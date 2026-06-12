@@ -1146,7 +1146,7 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
   // Persist unlock
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode.trim() === 'FUTURA2026') {
+    if (passcode.trim() === 'Maryolis123.') {
       setIsUnlocked(true);
       setPassError('');
       localStorage.setItem('futura_admin_unlocked', 'true');
@@ -1327,14 +1327,7 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
             </button>
           </form>
 
-          <div className="pt-6 border-t border-white/5 space-y-2 text-left">
-            <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3">
-              <span className="w-2.5 h-2.5 bg-brand-primary rounded-full animate-ping shrink-0" />
-              <p className="text-[10px] text-slate-400 font-sans tracking-wide">
-                <strong>Clave de Validación en Desarrollo:</strong> <span className="font-mono text-white bg-white/10 px-2 py-0.5 rounded ml-1">FUTURA2026</span>
-              </p>
-            </div>
-          </div>
+          {/* Clave de validación en desarrollo removida del front-end comercial */}
         </motion.div>
       </div>
     );

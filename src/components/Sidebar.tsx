@@ -54,7 +54,6 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
       title: "Lanzamiento y Venta",
       items: [
         { id: 'pro', label: 'FUTURA PRO / Móvil', icon: Crown },
-        { id: 'launch-guide', label: 'Plan de Lanzamiento', icon: Rocket },
       ]
     },
     {

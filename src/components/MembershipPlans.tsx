@@ -62,7 +62,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
   const [pM_ref, setPM_ref] = useState('');
   const [toast, setToast] = useState<string | null>(null);
 
-  const bcvTasa = 40.0;
+  const bcvTasa = 582.68;
   const planCostUsd = 10;
   const planCostBs = planCostUsd * bcvTasa;
 
@@ -534,18 +534,18 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                 <div className="bg-black/45 border border-white/5 p-5 rounded-2xl space-y-4">
                   <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
                     <span className="text-slate-400 font-sans">Banco Receptor:</span>
-                    <strong className="text-white font-mono">Banesco (0116)</strong>
+                    <strong className="text-white font-mono">Banco de Venezuela 0102</strong>
                   </div>
                   <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
                     <span className="text-slate-400 font-sans">Teléfono Destinatario:</span>
-                    <strong className="text-white font-mono">0424-5551234</strong>
+                    <strong className="text-white font-mono">0412-948.62.39</strong>
                   </div>
                   <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
-                    <span className="text-slate-400 font-sans">Documento / Rif:</span>
-                    <strong className="text-white font-mono">J-401234567</strong>
+                    <span className="text-slate-400 font-sans">Cédula:</span>
+                    <strong className="text-white font-mono">V-24.829.302</strong>
                   </div>
                   <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
-                    <span className="text-slate-400 font-sans">Tasa de Cambio BCV:</span>
+                    <span className="text-slate-400 font-sans">Tasa de Cambio Oficial:</span>
                     <strong className="text-amber-400 font-mono">{bcvTasa.toFixed(2)} Ves / Usd</strong>
                   </div>
                   <div className="flex justify-between items-center text-xs pt-2">
