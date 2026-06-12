@@ -6,15 +6,14 @@ import {
   Image as ImageIcon, 
   Settings, 
   User, 
-  PlusSquare,
+  PlusSquare, 
   Zap,
   Layout,
   History,
   Crown,
   ShieldCheck,
   Shield,
-  Rocket,
-  Smartphone
+  Rocket
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -55,7 +54,6 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
       title: "Lanzamiento y Venta",
       items: [
         { id: 'pro', label: 'Membresías', icon: Crown },
-        { id: 'phone-sync', label: 'Sincronización Móvil', icon: Smartphone },
       ]
     },
     {

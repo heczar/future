@@ -114,6 +114,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
   const [nucleusGeneratedResult, setNucleusGeneratedResult] = useState<any>(null);
   const [nucleusSlideIndex, setNucleusSlideIndex] = useState(0);
   const [copySubTab, setCopySubTab] = useState<'nucleus' | 'copy_writer'>('nucleus');
+  const [workspaceMode, setWorkspaceMode] = useState<'graphics' | 'copys'>('graphics');
 
   const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'model', content: string }[]>([]);
   
@@ -1182,8 +1183,38 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
         )}
       </AnimatePresence>
 
-      {/* Top Section: Compact Brand & Methodology */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* Selector de Modo de Trabajo de FUTURA */}
+      <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 max-w-xl mx-auto md:mx-0">
+        <button
+          onClick={() => setWorkspaceMode('graphics')}
+          className={cn(
+            "flex-1 py-2.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer",
+            workspaceMode === 'graphics'
+              ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
+              : "text-slate-400 hover:text-white hover:bg-white/5"
+          )}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>🧬 Co-Creación Gráfica (Canva)</span>
+        </button>
+        <button
+          onClick={() => setWorkspaceMode('copys')}
+          className={cn(
+            "flex-1 py-2.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer",
+            workspaceMode === 'copys'
+              ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20"
+              : "text-slate-400 hover:text-white hover:bg-white/5"
+          )}
+        >
+          <PenTool className="w-3.5 h-3.5" />
+          <span>✍️ Redactor de Copys de Elite</span>
+        </button>
+      </div>
+
+      {workspaceMode === 'graphics' ? (
+        <>
+          {/* Top Section: Compact Brand & Methodology */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-3">
           <button 
             onClick={onNavigateToVault}
@@ -3421,6 +3452,324 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
           </motion.div>
         )}
       </AnimatePresence>
+        </>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6 text-left"
+        >
+          <div className="glass-panel p-6 md:p-8 rounded-[2rem] border-rose-500/10 bg-surface-950/40 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-rose-500">
+              <PenTool className="w-48 h-48" />
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-white/5 pb-6">
+              <div className="text-left">
+                <h2 className="text-xl font-bold font-display tracking-tight text-white mb-1">Redactor Quirúrgico de Copys FUTURA</h2>
+                <span className="text-[10px] font-black text-rose-400 uppercase tracking-[0.25em] font-sans">Escribe copys de alto rendimiento con la metodología "Results over Aesthetics"</span>
+              </div>
+              <div className="flex items-center gap-2 bg-rose-500/10 border border-rose-500/20 px-3.5 py-1.5 rounded-full text-rose-400 text-xs font-bold font-mono tracking-widest uppercase">
+                <Check className="w-4 h-4" />
+                <span>Conversión Probada</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left mt-8">
+              {/* COPY CONFIGURATOR PANEL */}
+              <div className="lg:col-span-5 space-y-5">
+                {/* Brand active info lock */}
+                <div className="bg-surface-900/40 border border-white/5 p-4 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-mono">ADN de Marca Activa</span>
+                    <span className="text-[7.5px] font-black px-1.5 py-0.5 rounded bg-teal-400/10 text-teal-400 font-mono font-sans font-sans">VINCULADO</span>
+                  </div>
+                  
+                  {activeBrand ? (
+                    <div className="space-y-1.5">
+                      <h5 className="text-[11px] font-bold text-white uppercase tracking-wider">{activeBrand.name}</h5>
+                      <p className="text-[10px] text-slate-400 line-clamp-2 leading-relaxed">{activeBrand.description}</p>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-slate-400 leading-relaxed font-mono">
+                      No se ha detectado una marca del Baúl activa. Se utilizarán tus datos de Mi Perfil (Rol/Bio).
+                    </p>
+                  )}
+
+                  {profile && (
+                    <div className="border-t border-white/5 pt-2 text-[9px] text-slate-500 font-mono uppercase space-y-1">
+                      <div>Rol: <span className="text-slate-300 font-bold">{profile.roles?.[0] || 'Consultor / Creador'}</span></div>
+                      <div>Filosofía: <span className="text-slate-300 font-bold">{profile.philosophy || 'Results Over Aesthetics'}</span></div>
+                    </div>
+                  )}
+                </div>
+
+                {/* CATEGORÍA DE COPY */}
+                <div className="space-y-2">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Tipo de Copy de Redes</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {[
+                      { id: 'advertising', label: '📢 Publicitario', desc: 'AIDA & Conversión' },
+                      { id: 'informative', label: '💡 Informativo', desc: 'Educación & Valor' },
+                      { id: 'engagement', label: '🤝 Engagement', desc: 'Participativo / Viral' }
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setCopyType(opt.id as any)}
+                        className={cn(
+                          "p-3 rounded-xl border transition-all text-left flex flex-col justify-between space-y-1 cursor-pointer w-full outline-none",
+                          copyType === opt.id 
+                            ? "bg-rose-500/10 border-rose-500 text-rose-400 shadow-sm" 
+                            : "bg-surface-950/40 border-white/5 hover:border-white/15 text-slate-400 hover:text-white"
+                        )}
+                      >
+                        <span className="text-[9.5px] font-black uppercase tracking-wider leading-none">{opt.label}</span>
+                        <span className="text-[7.5px] opacity-75 font-mono leading-tight block mt-1">{opt.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* DESTINO PLATFORMS */}
+                <div className="space-y-2">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Red Social del Destino</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'instagram', label: 'Instagram' },
+                      { id: 'linkedin', label: 'LinkedIn' },
+                      { id: 'facebook', label: 'Facebook' },
+                      { id: 'twitter', label: 'Twitter / X' },
+                      { id: 'tiktok', label: 'TikTok' },
+                      { id: 'whatsapp', label: 'WhatsApp' }
+                    ].map((plat) => (
+                      <button
+                        key={plat.id}
+                        type="button"
+                        onClick={() => setCopyPlatform(plat.id as any)}
+                        className={cn(
+                          "py-2 px-3 rounded-xl border text-[9px] font-black uppercase tracking-wider text-center transition-all cursor-pointer w-full outline-none",
+                          copyPlatform === plat.id 
+                            ? "bg-rose-500 text-white border-rose-500" 
+                            : "bg-surface-950/20 border-white/5 hover:border-white/10 text-slate-400 hover:text-white"
+                        )}
+                      >
+                        {plat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* TONAL ANGLE */}
+                <div className="space-y-2">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Tono de Escritura Directa</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {[
+                      { id: 'results_over_aesthetics', label: 'Results over Aesthetics', desc: 'Conversión, ROI' },
+                      { id: 'elite_educator', label: 'Elite Educador', desc: 'Autoridad, Ciencia' },
+                      { id: 'brutalist_persuasion', label: 'Brutalismo Directo', desc: 'Al dolor crudo' }
+                    ].map((tone) => (
+                      <button
+                        key={tone.id}
+                        type="button"
+                        onClick={() => setCopyTone(tone.id as any)}
+                        className={cn(
+                          "p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between space-y-1 cursor-pointer w-full outline-none",
+                          copyTone === tone.id 
+                            ? "bg-rose-500/5 border-rose-500/40 text-rose-400" 
+                            : "bg-surface-950/20 border-white/5 hover:border-white/10 text-slate-400 hover:text-white"
+                        )}
+                      >
+                        <span className="text-[9px] font-bold leading-normal uppercase">{tone.label}</span>
+                        <span className="text-[7.5px] text-slate-500 font-mono leading-tight mt-0.5">{tone.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* CLIENTE IDEAL */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Perfil de tu Cliente Ideal (Buyer Persona)</span>
+                    <span className="text-[7px] text-slate-500 font-mono uppercase">Opcional</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={copyClientDetails}
+                    onChange={(e) => setCopyClientDetails(e.target.value)}
+                    placeholder="Ej: Emprendedor digital, Dueños de agencias, Atletas de élite..."
+                    className="w-full bg-black border border-white/5 focus:border-rose-500/50 rounded-xl px-3 py-2.5 text-xs text-white outline-none"
+                  />
+                </div>
+
+                {/* CONTEXTO EXTRA */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Objetivo de la Publicación / Temática Exacta</span>
+                    <span className="text-[7px] text-rose-400 font-mono uppercase font-black font-sans">Recomendado</span>
+                  </div>
+                  <textarea
+                    value={copyExtraContext}
+                    onChange={(e) => setCopyExtraContext(e.target.value)}
+                    placeholder="Ej: Lanzamiento de mi consultoría de tráfico. Destacar que solo hay 3 plazas libres y que garantizo resultados por contrato."
+                    rows={4}
+                    className="w-full bg-black border border-white/5 focus:border-rose-500/50 rounded-xl p-3 text-xs text-white outline-none resize-none font-sans"
+                  />
+                </div>
+
+                {/* IDIOMA */}
+                <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Idioma de Redacción</span>
+                  <div className="flex bg-black p-1 rounded-xl border border-white/5">
+                    <button
+                      type="button"
+                      onClick={() => setCopyGenLanguage('es')}
+                      className={cn(
+                        "px-3 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg cursor-pointer transition-all outline-none",
+                        copyGenLanguage === 'es' ? "bg-rose-500 text-white" : "text-slate-400 hover:text-white"
+                      )}
+                    >
+                      Español
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCopyGenLanguage('en')}
+                      className={cn(
+                        "px-3 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg cursor-pointer transition-all outline-none",
+                        copyGenLanguage === 'en' ? "bg-rose-500 text-white" : "text-slate-400 hover:text-white"
+                      )}
+                    >
+                      Inglés
+                    </button>
+                  </div>
+                </div>
+
+                {/* BUTTON GENERATE */}
+                <button
+                  type="button"
+                  onClick={handleGenerateSocialCopy}
+                  disabled={copyGenerating}
+                  className={cn(
+                    "w-full py-4 rounded-xl bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2.5 transition-all shadow-lg hover:shadow-rose-600/10 cursor-pointer disabled:opacity-50 outline-none"
+                  )}
+                >
+                  {copyGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> PROCESANDO CON IA DE ELITE...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" /> GENERAR COPY DE ALTO IMPACTO
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* RESULT SECTION */}
+              <div className="lg:col-span-7 flex flex-col h-full min-h-[480px]">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block font-mono mb-2">RESULTADO PREPARADO DE ALTO IMPACTO</span>
+                
+                <div className="flex-grow bg-black/40 border border-white/5 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                  {copyGenerating ? (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 py-24">
+                      <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-full animate-bounce">
+                        <Sparkles className="w-6 h-6 text-rose-400" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-bold uppercase text-white tracking-widest font-mono">FUTURA Redactor de Élite...</p>
+                        <p className="text-[9px] text-slate-500 tracking-wider uppercase font-mono px-4">Estructurando ganchos, inyectando palancas de dolor y terminando el llamado de conversión</p>
+                      </div>
+                      <div className="w-48 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-rose-500 animate-pulse rounded-full" style={{ width: '85%' }} />
+                      </div>
+                    </div>
+                  ) : customGeneratedCopy ? (
+                    <div className="flex-grow flex flex-col space-y-4 min-h-[350px]">
+                      <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">
+                            {copyPlatform.toUpperCase()} ({copyType.toUpperCase()})
+                          </span>
+                        </div>
+                        
+                        <button
+                          type="button"
+                          onClick={handleCopyToClipboardCustom}
+                          className="px-3.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 active:bg-rose-500 text-slate-300 active:text-white text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all outline-none"
+                        >
+                          {copiedCustom ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-teal-400" /> ¡COPIADO!
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" /> COPIAR COPY
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      <div className="flex-1 flex flex-col space-y-2">
+                        <span className="text-[7.5px] font-bold text-slate-500 font-mono tracking-widest uppercase">Editor en Tiempo Real</span>
+                        <textarea
+                          value={customGeneratedCopy}
+                          onChange={(e) => setCustomGeneratedCopy(e.target.value)}
+                          className="w-full flex-grow min-h-[300px] bg-surface-950/60 border border-white/10 rounded-xl p-4 text-xs font-sans text-slate-200 leading-relaxed outline-none focus:border-rose-500/30"
+                        />
+                      </div>
+
+                      <div className="border-t border-white/5 pt-4 space-y-2">
+                        <span className="text-[8px] font-black text-rose-400 uppercase tracking-wider block font-mono font-sans font-sans">Refinar con el Experto de FUTURA</span>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={refinementPrompt}
+                            onChange={(e) => setRefinementPrompt(e.target.value)}
+                            placeholder="Pídele: 'hazlo más corto', 'cambia el llamado a la acción', 'agrega más dolor'..."
+                            className="flex-1 bg-black border border-white/10 focus:border-rose-500/30 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleRefineSocialCopy(refinementPrompt);
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRefineSocialCopy(refinementPrompt)}
+                            disabled={!refinementPrompt.trim() || copyGenerating}
+                            className="px-4 py-2 bg-white text-black font-black uppercase text-[9px] tracking-wider rounded-xl hover:bg-rose-500 hover:text-white transition-all disabled:opacity-50 cursor-pointer outline-none"
+                          >
+                            REFINAR
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-grow flex flex-col items-center justify-center p-8 text-center border-2 border-dashed border-white/5 rounded-2xl py-24">
+                      <Bot className="w-10 h-10 text-slate-600 mb-3" />
+                      <h5 className="text-[11px] font-black text-slate-300 uppercase tracking-widest mb-1.5">MANIFIESTO DEL COPYWRITING FUTURA</h5>
+                      <div className="max-w-md w-full space-y-3 mt-1.5">
+                        <p className="text-[10px] text-slate-400 leading-relaxed">
+                          Sigue la filosofía **"Results over Aesthetics"**: eliminamos la jerga de agencias tradicionales para asestar verdades pragmáticas directas que convierten.
+                        </p>
+                        
+                        <div className="grid grid-cols-2 gap-2 text-left font-mono text-[8px] text-slate-500 bg-black/60 p-3 rounded-xl border border-white/5">
+                          <div>⚡ Ganchos de Scroll</div>
+                          <div>💰 CTAs de Caja Rápida</div>
+                          <div>💀 Directos al Dolor</div>
+                          <div>📈 Formatos Ágiles</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

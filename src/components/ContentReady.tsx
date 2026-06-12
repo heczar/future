@@ -46,13 +46,13 @@ const REQUISITES_SAMPLES = [
   },
   {
     title: "Hack de Posicionamiento Semanal",
-    copy: "💡 ¿Frustrado por publicar a diario en 5 redes sin ver un solo dólar de retorno? El secreto no es producir más volumen sin rumbo, sino centralizar tus creativos con un estilo unificado (como nuestro Brutalist Tech).\n\nEn este minitutorial te enseñamos cómo programar en WhatsApp e Instagram a la vez sincronizando el motor inteligente de FUTURA. ¡Escribe 'SISTEMA' abajo y te enviamos toda la información de forma automatizada! 🤫",
+    copy: "💡 ¿Frustrado por publicar a diario en 5 redes sin ver un solo dólar de retorno? El secreto no es producir más volumen sin rumbo, sino centralizar tus creativos con un estilo unificado (como nuestro Brutalist Tech).\n\nEn este minitutorial te enseñamos cómo programar múltiples redes a la vez sincronizando el motor inteligente de FUTURA. ¡Escribe 'SISTEMA' abajo y te enviamos toda la información de forma automatizada! 🤫",
     channels: ["Instagram", "TikTok", "YouTube Shorts"],
     imageUrl: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=400&q=80"
   },
   {
     title: "Actualización Operativa Directa",
-    copy: "Sincronía perfecta en marcha. ⚙️ Nuestra red neuronal de distribución acaba de actualizar sus protocolos para WhatsApp Business. Ahora tus propuestas en PDF y flyers se pueden cargar directamente en el panel sin abrir la app móvil. Descubre la consultoría que redefine el marketing de atracción.",
+    copy: "Sincronía perfecta en marcha. ⚙️ Nuestra red neuronal de distribución acaba de actualizar sus protocolos para múltiples canales. Ahora tus propuestas en PDF y flyers se pueden cargar directamente en el panel sin abrir la app de edición. Descubre la consultoría que redefine el marketing de atracción.",
     channels: ["WhatsApp Personal", "WhatsApp Business"],
     imageUrl: "https://images.unsplash.com/photo-1618005198143-e52834643664?auto=format&fit=crop&w=400&q=80"
   }
@@ -499,11 +499,11 @@ export default function ContentReady() {
   // Calendar logic around current selected month (e.g. May 2026)
   const renderCalendarDays = () => {
     const daysInMonth = 31; // May
-    const startOffset = 5; // May 2026 starts on Friday (5 empty slots for Mon-Thu)
+    const startOffset = 4; // May 2026 starts on Friday (4 empty slots: Mon, Tue, Wed, Thu)
     const grid = [];
 
     // Header labels
-    const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const weekdays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
     // Render empty spaces
     for (let i = 0; i < startOffset; i++) {
@@ -624,7 +624,7 @@ export default function ContentReady() {
             <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Subida Automática Centralizada</span>
           </div>
           <div className="bg-black/35 border border-white/5 p-4 rounded-2xl flex flex-col items-center">
-            <span className="text-2xl font-black text-teal-400 font-mono leading-none mb-1">WHATSAPP SYNC</span>
+            <span className="text-2xl font-black text-teal-400 font-mono leading-none mb-1">SINCRO DE CANALES</span>
             <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Llegada Directa a Audiencia</span>
           </div>
           <div className="bg-black/35 border border-white/5 p-4 rounded-2xl flex flex-col items-center">
