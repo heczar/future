@@ -13,7 +13,8 @@ import {
   Crown,
   ShieldCheck,
   Shield,
-  Rocket
+  Rocket,
+  Smartphone
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -53,7 +54,8 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
     {
       title: "Lanzamiento y Venta",
       items: [
-        { id: 'pro', label: 'FUTURA PRO / Móvil', icon: Crown },
+        { id: 'pro', label: 'Membresías', icon: Crown },
+        { id: 'phone-sync', label: 'Sincronización Móvil', icon: Smartphone },
       ]
     },
     {

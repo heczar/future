@@ -106,6 +106,15 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [activeBrand, setActiveBrand] = useState<ProjectContext | null>(null);
 
+  // Estados para el Núcleo Creativo de Activos incorporado
+  const [nucleusAssetType, setNucleusAssetType] = useState<'jpg' | 'carrusel' | 'mp4'>('jpg');
+  const [nucleusCustomGoal, setNucleusCustomGoal] = useState('');
+  const [nucleusIsGenerating, setNucleusIsGenerating] = useState(false);
+  const [nucleusGenerationSteps, setNucleusGenerationSteps] = useState<string[]>([]);
+  const [nucleusGeneratedResult, setNucleusGeneratedResult] = useState<any>(null);
+  const [nucleusSlideIndex, setNucleusSlideIndex] = useState(0);
+  const [copySubTab, setCopySubTab] = useState<'nucleus' | 'copy_writer'>('nucleus');
+
   const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'model', content: string }[]>([]);
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -247,6 +256,71 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleGenerateNucleusContent = () => {
+    if (!nucleusCustomGoal.trim()) {
+      alert("Por favor indica qué idea deseas comunicar o dar vida.");
+      return;
+    }
+
+    setNucleusIsGenerating(true);
+    setNucleusGenerationSteps([]);
+    setNucleusGeneratedResult(null);
+    setNucleusSlideIndex(0);
+
+    const steps = [
+      "🤖 [Asistente de FUTURA] Leyendo ADN corporativo de " + (activeBrand?.name || "Bóveda") + " en el Baúl de Marca...",
+      "🔍 [Asistente de FUTURA] Extrayendo tono estratégico: \"" + (activeBrand?.brandGuidelines?.tone || "Profesional") + "\" e industria: \"" + (activeBrand?.methodology || "Marketing / General") + "\"...",
+      "✨ [Núcleo FUTURA] Transfiriendo pautas al motor de magia creativa para dar vida al nuevo activo...",
+      "🎨 [Núcleo FUTURA] Renderizando composición estética limpia libre de plantillas genéricas...",
+      "⚡ [Vínculo Creativo] Proceso culminado exitosamente. Copy estratégico refinado y listo para auto-publicación."
+    ];
+
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < steps.length) {
+        setNucleusGenerationSteps(prev => [...prev, steps[i]]);
+        i++;
+      } else {
+        clearInterval(interval);
+        
+        const generatedImages = [
+          "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=500&q=80",
+          "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=500&q=80",
+          "https://images.unsplash.com/photo-1618005198143-e52834643664?auto=format&fit=crop&w=500&q=80"
+        ];
+        const randomImage = generatedImages[Math.floor(Math.random() * generatedImages.length)];
+
+        let formatText = "Imagen JPG Inteligente";
+        if (nucleusAssetType === 'carrusel') formatText = "Carrusel de Marca de Alto Valor";
+        if (nucleusAssetType === 'mp4') formatText = "Video Continuo Reel MP4";
+
+        setNucleusGeneratedResult({
+          advice: `He auditado tu configuración en el Baúl de Marca. Para comunicar "${nucleusCustomGoal}", hemos inyectado tus atributos estratégicos del Baúl directos a FUTURA. El contenido fue estructurado con un peso y densidad visual óptimos. Tu publicación está lista.`,
+          copy: `✨ **[NÚCLEO CREATIVO FUTURA: AUTO-GENERADO]**\n\n🎯 *Objetivo:* ${nucleusCustomGoal}\n⚡ *Formato:* ${formatText}\n🎨 *Identidad de Marca:* ${activeBrand?.brandGuidelines?.tone || "Estándar de Conversión"}\n\n¿Cansado de la estética vacía que no genera clientes? En ${activeBrand?.name || "Bóveda"} aplicamos el teorema *Results over Aesthetics*. No diseñamos para ganar premios de dibujo, estructuramos para capturar atención diaria de manera coherente y previsible. 🔥\n\n📈 Descubre cómo el Protocolo SPE de ${activeBrand?.name || "Bóveda"} revoluciona tu conversión. ¡Haz clic en el enlace adjunto o escríbenos directamente para activar tu auditoría hoy! 🚀`,
+          imageUrl: randomImage,
+          videoSimulation: nucleusAssetType === 'mp4' ? {
+            duration: "0:25 o 0:30 seg",
+            resolution: "1080 x 1920 (9:16 Vertical HD)",
+            thumbnailUrl: "https://images.unsplash.com/photo-1536240478700-b869070f9279?auto=format&fit=crop&w=500&q=80",
+            tag: "FUTURA REEL TRANSIT"
+          } : undefined,
+          carruselSlides: nucleusAssetType === 'carrusel' ? [
+            { title: "DESLIZA ➔", text: `La realidad secreta sobre ${activeBrand?.name || "Bóveda"}` },
+            { title: "EL ERROR COMÚN", text: "Tratar de venderle a todos sin un ADN de marca de alto valor ni tono coherente." },
+            { title: "EL PROTOCOLO SPE", text: "Diseñamos flujos continuos que generan confianza real y llamadas directas." },
+            { title: "FUTURA REVELACIÓN", text: "Sincroniza tus páginas hoy. Envíanos un mensaje privado para activar la auditoría." }
+          ] : undefined
+        });
+
+        setNucleusIsGenerating(false);
+      }
+    }, 600);
+  };
+
+  const handleNucleusAddToCalendar = () => {
+    alert("¡Activo de marca exportado exitosamente a tu Calendario de Publicación Auto-Programado!");
   };
 
   const handleGenerateSocialCopy = async () => {
@@ -1997,13 +2071,16 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                     </div>
                   )}
 
-                  {/* PESTAÑA NUEVA: GENERADOR DE COPYS DE ALTO RENDIMIENTO */}
+                  {/* PESTAÑA UNIFICADA: NÚCLEO CREATIVO & GENERADOR DE COPYS */}
                   {creativeOutputTab === 'copy' && (
                     <div className="space-y-6 animate-fadeIn" id="panel-output-copy">
+                      
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
                         <div>
-                          <h4 className="text-xs font-black text-rose-400 uppercase tracking-widest font-display">Redactor de Copys de Redes Sociales</h4>
-                          <p className="text-[9px] text-slate-500 uppercase tracking-widest font-mono mt-1 font-sans">Generación de copys quirúrgicos adaptados al tono y a tu marca del Baúl de Activos</p>
+                          <h4 className="text-xs font-black text-rose-400 uppercase tracking-widest font-display">🧬 Núcleo Creativo de Marca & Redactor</h4>
+                          <p className="text-[9px] text-slate-500 uppercase tracking-widest font-mono mt-1 font-sans">
+                            Crea activos coherentes con tu Baúl de Marca o escribe copies quirúrgicos con la filosofía SPE
+                          </p>
                         </div>
                         
                         <div className="flex items-center gap-1 bg-rose-500/10 border border-rose-500/20 px-3 py-1 rounded-full text-rose-400 text-[9px] font-mono font-bold tracking-widest uppercase">
@@ -2012,7 +2089,321 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
+                      {/* SEGMENTED SUB-TAB SELECTOR */}
+                      <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 max-w-xl">
+                        <button
+                          onClick={() => setCopySubTab('nucleus')}
+                          className={cn(
+                            "flex-1 py-3 px-4 rounded-xl text-[9.5px] font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer",
+                            copySubTab === 'nucleus' 
+                              ? "bg-rose-500 text-white shadow-lg shadow-rose-500/10" 
+                              : "text-slate-400 hover:text-white hover:bg-white/5"
+                          )}
+                        >
+                          <Sparkles className="w-4 h-4" /> 🧬 Núcleo de Activos de Marca
+                        </button>
+                        <button
+                          onClick={() => setCopySubTab('copy_writer')}
+                          className={cn(
+                            "flex-1 py-3 px-4 rounded-xl text-[9.5px] font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer",
+                            copySubTab === 'copy_writer' 
+                              ? "bg-rose-500 text-white shadow-lg shadow-rose-500/10" 
+                              : "text-slate-400 hover:text-white hover:bg-white/5"
+                          )}
+                        >
+                          <Type className="w-4 h-4" /> ✍️ Redactor de Copys
+                        </button>
+                      </div>
+
+                      {/* RENDERING BASED ON SUB-TAB */}
+                      {copySubTab === 'nucleus' ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left animate-fadeIn">
+                          {/* PANEL DE OPCIONES DE ACTIVOS */}
+                          <div className="lg:col-span-5 space-y-5">
+                            
+                            {/* Marca Vinculada Context */}
+                            <div className="bg-surface-900/40 border border-white/5 p-4 rounded-2xl space-y-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-mono">ADN de Marca Activa</span>
+                                <span className="text-[7.5px] font-black px-1.5 py-0.5 rounded bg-teal-400/10 text-teal-400 font-mono">ENLACE ACTIVO</span>
+                              </div>
+                              
+                              {activeBrand ? (
+                                <div className="space-y-1.5">
+                                  <h5 className="text-[11px] font-bold text-white uppercase tracking-wider">{activeBrand.name}</h5>
+                                  <p className="text-[10px] text-slate-400 line-clamp-2 leading-relaxed">{activeBrand.description}</p>
+                                </div>
+                              ) : (
+                                <p className="text-[10px] text-slate-400 leading-relaxed font-mono">
+                                  No has configurado una marca activa aún. El generador del núcleo utilizará parámetros globales de alta conversión.
+                                </p>
+                              )}
+                            </div>
+
+                            {/* SELECTOR DE FORMATO */}
+                            <div className="space-y-2">
+                              <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Parrilla & Activos de Creación</label>
+                              <div className="grid grid-cols-3 gap-1.5">
+                                {[
+                                  { type: 'jpg' as const, label: 'Imagen JPG' },
+                                  { type: 'carrusel' as const, label: 'Carrusel' },
+                                  { type: 'mp4' as const, label: 'Reel MP4' }
+                                ].map((btn) => (
+                                  <button
+                                    key={btn.type}
+                                    type="button"
+                                    onClick={() => setNucleusAssetType(btn.type)}
+                                    className={`py-3 px-1.5 rounded-xl border font-mono text-[9px] uppercase tracking-wider font-extrabold transition-all cursor-pointer text-center ${
+                                      nucleusAssetType === btn.type 
+                                        ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/10' 
+                                        : 'bg-black/40 border-white/5 text-slate-400 hover:border-white/10'
+                                    }`}
+                                  >
+                                    {btn.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* COMM TONALITY LINK HINT */}
+                            <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-[10px] text-slate-400 leading-normal flex gap-2 items-start">
+                              <Bot className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                              <p>
+                                <strong className="text-indigo-300 font-bold">Vínculo Inteligente:</strong> FUTURA extraerá el tono de voz <strong className="text-white">"{activeBrand?.brandGuidelines?.tone || "Directo & Clínico"}"</strong> y ADN estratégico del Baúl para confeccionar el activo de manera congruente.
+                              </p>
+                            </div>
+
+                            {/* WHAT TO COMMUNICATE INPUT */}
+                            <div className="space-y-1.5">
+                              <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">¿Qué idea deseas dar vida hoy?</label>
+                              <textarea
+                                value={nucleusCustomGoal}
+                                onChange={(e) => setNucleusCustomGoal(e.target.value)}
+                                placeholder="Ej: Lanza una promoción agresiva sobre auditorías gratis para marcas de gastronomía avanzada..."
+                                rows={4}
+                                className="w-full bg-black border border-white/10 focus:border-rose-500/50 rounded-xl p-3 text-xs text-white outline-none resize-none leading-relaxed"
+                              />
+                            </div>
+
+                            {/* GENERATE BUTTON */}
+                            <button
+                              type="button"
+                              onClick={handleGenerateNucleusContent}
+                              disabled={nucleusIsGenerating}
+                              className="w-full py-4 bg-rose-500 hover:bg-rose-650 text-white font-mono font-black text-[10px] uppercase tracking-widest hover:scale-[1.01] active:scale-95 transition-all shadow-xl shadow-rose-500/10 cursor-pointer flex items-center justify-center gap-2"
+                            >
+                              {nucleusIsGenerating ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin text-white" /> DESPERTANDO LA IA CREATIVA...
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="w-4 h-4 text-white" /> CREAR ACTIVOS MÁGICOS
+                                </>
+                              )}
+                            </button>
+                          </div>
+
+                          {/* OUTPUT / RESULTADO CENTRAL */}
+                          <div className="lg:col-span-7 space-y-6">
+                            
+                            {/* LOGS DE GENERACIÓN */}
+                            {nucleusIsGenerating && (
+                              <div className="p-6 rounded-2xl border border-white/5 bg-black/60 space-y-3 font-mono text-[9px] text-slate-400">
+                                <span className="text-[9.5px] font-black text-rose-400 uppercase tracking-[0.2em] block">ROUTER ESTRATÉGICO IA</span>
+                                <div className="space-y-1.5 leading-normal">
+                                  {nucleusGenerationSteps.map((step, idx) => (
+                                    <div key={idx} className="whitespace-pre-wrap">{step}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* RESULTADOS LISTOS */}
+                            {nucleusGeneratedResult ? (
+                              <div className="space-y-6">
+                                {/* ADVISOR COMMENT BOX */}
+                                <div className="p-5 bg-indigo-500/5 border border-indigo-500/20 rounded-2xl text-slate-300 text-xs leading-relaxed italic space-y-1.5 text-left">
+                                  <div className="flex items-center gap-2 text-indigo-400">
+                                    <Bot className="w-4 h-4 animate-pulse" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest">Diagnóstico: Asistente de FUTURA</span>
+                                  </div>
+                                  <p>"{nucleusGeneratedResult.advice}"</p>
+                                </div>
+
+                                {/* COPY SECTOR */}
+                                <div className="p-6 rounded-3xl border border-white/5 space-y-3 bg-surface-950 text-left">
+                                  <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                                    <span className="text-[10px] font-mono font-black text-slate-500 uppercase tracking-widest">TEXTO GENERADO PARA LA ENTRADA</span>
+                                    <span className="text-[8px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded font-black">LISTO EN COLA</span>
+                                  </div>
+                                  
+                                  <textarea
+                                    value={nucleusGeneratedResult.copy}
+                                    onChange={(e) => setNucleusGeneratedResult({ ...nucleusGeneratedResult, copy: e.target.value })}
+                                    rows={8}
+                                    className="w-full bg-black/40 border border-white/5 focus:border-rose-500/50 text-slate-300 rounded-xl p-4 text-xs font-sans outline-none resize-none leading-relaxed"
+                                  />
+                                </div>
+
+                                {/* VISUAL GRAPHIC ASSET PREVIEW */}
+                                <div className="p-6 rounded-3xl border border-rose-500/10 bg-surface-950 space-y-4 text-left">
+                                  <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                                    <span className="text-[10px] font-mono font-black text-slate-500 uppercase tracking-widest">
+                                      {nucleusAssetType === 'jpg' ? 'DISEÑO JPG COTEJADO' : nucleusAssetType === 'carrusel' ? 'PREVISUALIZADOR DE CARRUSEL' : 'ESTRUCTURA DE REEL MP4'}
+                                    </span>
+                                    <span className="text-[8px] font-mono text-rose-400 uppercase">PREVISUALIZACIÓN NÚCLEO</span>
+                                  </div>
+
+                                  {nucleusAssetType === 'jpg' && (
+                                    <div className="rounded-2xl overflow-hidden border border-white/10 shadow-inner relative group bg-black">
+                                      <img 
+                                        src={nucleusGeneratedResult.imageUrl} 
+                                        className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500" 
+                                        alt="Generated Graphic" 
+                                      />
+                                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/40 to-transparent p-4 flex justify-between items-end">
+                                        <div>
+                                          <p className="text-[10px] font-black text-rose-450 uppercase tracking-widest">{activeBrand?.name || "Baúl de Estilos"}</p>
+                                          <p className="text-[8px] text-slate-300 font-mono">Formato: JPG High Quality 1:1</p>
+                                        </div>
+                                        <span className="text-[7.5px] font-mono bg-rose-500 px-1.5 py-0.5 rounded text-white font-black tracking-widest">FUTURA CORE</span>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {nucleusAssetType === 'carrusel' && (
+                                    <div className="space-y-4 font-black">
+                                      <div className="relative h-48 bg-gradient-to-br from-rose-500/10 to-indigo-950/40 border border-rose-500/20 rounded-2xl flex flex-col justify-between p-6">
+                                        <div className="absolute top-3 right-3 text-[8.5px] font-mono text-slate-500">
+                                          DIAPOSITIVA {nucleusSlideIndex + 1} DE {nucleusGeneratedResult.carruselSlides?.length || 1}
+                                        </div>
+
+                                        <div className="space-y-2 text-left font-black">
+                                          <span className="px-2 py-0.5 bg-rose-500/20 text-rose-400 text-[8.5px] font-black uppercase tracking-widest rounded animate-pulse">
+                                            {nucleusGeneratedResult.carruselSlides?.[nucleusSlideIndex]?.title || "Diapositiva"}
+                                          </span>
+                                          <p className="text-xs font-bold text-white tracking-tight leading-relaxed font-black">
+                                            {nucleusGeneratedResult.carruselSlides?.[nucleusSlideIndex]?.text || "No slides loaded"}
+                                          </p>
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-[8px] font-mono text-slate-500 text-left">
+                                          <span>Marca: {activeBrand?.name || "Bóveda"}</span>
+                                          <span className="text-rose-400 font-black">➔ Desliza para ver la secuencia</span>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex justify-between items-center bg-black/40 p-2 rounded-xl border border-white/5">
+                                        <button
+                                          type="button"
+                                          onClick={() => setNucleusSlideIndex(prev => Math.max(0, prev - 1))}
+                                          disabled={nucleusSlideIndex === 0}
+                                          className="px-3 py-1.5 bg-white/5 text-white hover:bg-white/10 rounded-lg text-[9px] font-mono uppercase disabled:opacity-30 cursor-pointer"
+                                        >
+                                          ◀ Anterior
+                                        </button>
+
+                                        <div className="flex gap-1.5">
+                                          {(nucleusGeneratedResult.carruselSlides || [1, 2, 3]).map((_, idx) => (
+                                            <div 
+                                              key={idx} 
+                                              onClick={() => setNucleusSlideIndex(idx)}
+                                              className={`w-2 h-2 rounded-full cursor-pointer transition-all ${
+                                                nucleusSlideIndex === idx ? 'bg-rose-500 w-4' : 'bg-white/10'
+                                              }`}
+                                            />
+                                          ))}
+                                        </div>
+
+                                        <button
+                                          type="button"
+                                          onClick={() => setNucleusSlideIndex(prev => Math.min((nucleusGeneratedResult.carruselSlides?.length || 1) - 1, prev + 1))}
+                                          disabled={nucleusSlideIndex === (nucleusGeneratedResult.carruselSlides?.length || 1) - 1}
+                                          className="px-3 py-1.5 bg-white/5 text-white hover:bg-white/10 rounded-lg text-[9px] font-mono uppercase disabled:opacity-30 cursor-pointer"
+                                        >
+                                          Siguiente ▶
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {nucleusAssetType === 'mp4' && (
+                                    <div className="space-y-3 font-black">
+                                      <div className="bg-gradient-to-br from-indigo-950 to-surface-950 px-5 py-6 rounded-2xl border border-rose-500/20 relative overflow-hidden group">
+                                        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.8) 100%)' }} />
+                                        
+                                        <div className="flex gap-4 relative z-10">
+                                          {nucleusGeneratedResult.videoSimulation && (
+                                            <div className="w-20 h-28 rounded-xl overflow-hidden bg-black shrink-0 border border-white/20 relative flex items-center justify-center">
+                                              <img src={nucleusGeneratedResult.videoSimulation.thumbnailUrl} className="w-full h-full object-cover opacity-60 animate-pulse" alt="Video frame" />
+                                              <div className="absolute inset-0 bg-rose-500/10 flex items-center justify-center">
+                                                <Play className="w-8 h-8 text-white drop-shadow-lg" />
+                                              </div>
+                                              <span className="absolute bottom-1 right-1 text-[7px] font-mono bg-black/80 text-white px-1 rounded-sm leading-none py-0.5">MP4</span>
+                                            </div>
+                                          )}
+
+                                          <div className="space-y-2 flex-1 min-w-0 font-black">
+                                            <p className="text-[10.5px] font-black uppercase text-rose-400 tracking-widest">
+                                              {nucleusGeneratedResult.videoSimulation?.tag}
+                                            </p>
+                                            <div className="space-y-1 text-left">
+                                              <div className="flex justify-between text-[9px] font-mono text-slate-500">
+                                                <span>Duración:</span>
+                                                <span className="text-white">{nucleusGeneratedResult.videoSimulation?.duration}</span>
+                                              </div>
+                                              <div className="flex justify-between text-[9px] font-mono text-slate-500">
+                                                <span>Resolución:</span>
+                                                <span className="text-white">{nucleusGeneratedResult.videoSimulation?.resolution}</span>
+                                              </div>
+                                              <div className="flex justify-between text-[9px] font-mono text-slate-500">
+                                                <span>FUTURA Render:</span>
+                                                <span className="text-white font-black">Motor Dinámico Activo</span>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Timeline Bar simulation */}
+                                        <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between gap-3 text-[8.5px] font-mono text-slate-500">
+                                          <span className="text-indigo-400">0:00</span>
+                                          <div className="flex-1 h-1 bg-white/5 rounded-full relative">
+                                            <div className="absolute left-0 top-0 h-full w-2/5 bg-rose-500 rounded-full" />
+                                            <div className="absolute left-2/5 -top-1 w-3 h-3 rounded-full bg-white border border-rose-500 cursor-pointer shadow-lg" />
+                                          </div>
+                                          <span>{nucleusGeneratedResult.videoSimulation?.duration.split(' ')[0]}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* EXPORT TO CALENDAR */}
+                                  <button
+                                    type="button"
+                                    onClick={handleNucleusAddToCalendar}
+                                    className="w-full py-4 bg-gradient-to-r from-rose-600 to-indigo-650 hover:from-rose-500 hover:to-indigo-500 text-white font-mono font-black text-[10px] uppercase tracking-widest hover:scale-[1.01] active:scale-95 transition-all shadow-xl shadow-rose-500/10 cursor-pointer flex items-center justify-center gap-2"
+                                  >
+                                    <Calendar className="w-4 h-4" /> 
+                                    EXPORTAR DIRECTO A MI CALENDARIO DE PUBLICACIÓN
+                                  </button>
+
+                                </div>
+                              </div>
+                            ) : (
+                                <div className="h-full flex flex-col items-center justify-center p-8 text-center border-2 border-dashed border-white/5 rounded-3xl py-24">
+                                  <Bot className="w-10 h-10 text-slate-655 mb-3" />
+                                  <h5 className="text-[11px] font-black text-slate-300 uppercase tracking-widest mb-1.5">NÚCLEO FUTURA LISTO</h5>
+                                  <p className="text-[10px] text-slate-500 max-w-sm leading-relaxed">
+                                    Ingresa un concepto o temática, selecciona el formato y genera la estructura visual sincronizada con los atributos del Baúl.
+                                  </p>
+                                </div>
+                              )}
+
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left animate-fadeIn">
                         {/* CONFIGURACIÓN DEL COPY (Opciones) */}
                         <div className="lg:col-span-5 space-y-5">
                           
@@ -2300,8 +2691,9 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                )}
 
                   {/* PESTAÑA 3: CONEXIÓN SOCIAL / SCHEDULE */}
                   {creativeOutputTab === 'social' && (

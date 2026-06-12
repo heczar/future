@@ -10,6 +10,7 @@ import Sidebar from './components/Sidebar';
 import CreativeEngine from './components/CreativeEngine';
 import ProjectManager from './components/ProjectManager';
 import MembershipPlans from './components/MembershipPlans';
+import PhoneSync from './components/PhoneSync';
 import Gallery from './components/Gallery';
 import ContentReady from './components/ContentReady';
 import MasterControlEpicenter from './components/MasterControlEpicenter';
@@ -389,6 +390,8 @@ function AppContent() {
         return <ContentReady />;
       case 'pro':
         return <MembershipPlans profile={profile} onUpdateProfile={handleUpdateProfile} />;
+      case 'phone-sync':
+        return <PhoneSync profile={profile} />;
       case 'launch-guide':
         return <LaunchGuide />;
       case 'epicenter':
