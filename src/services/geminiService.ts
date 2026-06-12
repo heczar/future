@@ -5,7 +5,8 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const geminiApiKey = process.env.GEMINI_API_KEY || ((import.meta as any).env?.VITE_GEMINI_API_KEY as string) || "";
+const ai = new GoogleGenAI({ apiKey: geminiApiKey });
 
 function robustJsonParse(text: string, defaultPrompt: string): { strategy: string; copy: string; imagePrompt: string } {
   // 1. Limpieza de bloques de markdown comunes

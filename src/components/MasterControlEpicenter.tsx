@@ -463,49 +463,6 @@ export default function MasterControlEpicenter({
                 </div>
               </div>
             </div>
-
-            {/* APP BONDING BUTTONS PANEL (GESTIONADO POR ASISTENTE) */}
-            <div className="space-y-3 pt-2 text-left">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">
-                  Cuentas Operativas Vinculadas por Asistente de FUTURA
-                </span>
-                <span className="text-[8px] font-mono text-indigo-400 uppercase">Integración de Baúl</span>
-              </div>
-              
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                {[
-                  { key: 'instagram' as const, name: "Instagram", icon: Instagram, color: "text-pink-400 hover:border-pink-500/30" },
-                  { key: 'tiktok' as const, name: "TikTok", icon: Video, color: "text-sky-400 hover:border-sky-500/30" },
-                  { key: 'shorts' as const, name: "YouTube", icon: Chrome, color: "text-red-400 hover:border-red-500/30" },
-                  { key: 'whatsappPersonal' as const, name: "WhatsApp Pers", icon: Phone, color: "text-green-400 hover:border-green-500/30" },
-                  { key: 'whatsappBusiness' as const, name: "WhatsApp Biz", icon: Smartphone, color: "text-emerald-400 hover:border-emerald-500/30" }
-                ].map((app) => {
-                  const isConnected = bondedApps[app.key];
-                  return (
-                    <button
-                      key={app.key}
-                      onClick={() => toggleBond(app.key, app.name)}
-                      className={`p-4 border rounded-2xl flex flex-col items-center justify-center gap-2 transition-all cursor-pointer relative group ${
-                        isConnected 
-                          ? 'bg-white/5 border-indigo-500/30 shadow-lg shadow-indigo-500/5' 
-                          : 'bg-black/40 border-white/5 opacity-55 hover:opacity-100'
-                      } ${app.color}`}
-                    >
-                      <app.icon className="w-6 h-6 shrink-0" />
-                      <span className="text-[10px] font-extrabold text-white">{app.name}</span>
-                      
-                      <div className="flex items-center gap-1.5">
-                        <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-indigo-400 animate-pulse' : 'bg-slate-600'}`} />
-                        <span className="text-[7.5px] font-mono uppercase text-slate-400">
-                          {isConnected ? 'SINCRO' : 'OFFLINE'}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
 
           {/* VIGILANCIA SPE Y NOTIFICADOR DE ALERTAS */}

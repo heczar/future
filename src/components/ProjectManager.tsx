@@ -44,6 +44,7 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     setProfileName(profile.name);
@@ -102,8 +103,11 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
       setTrainingMaterial(p.trainingMaterial || []);
       setDriveContext(p.driveContext || []);
       setLoading(false);
+      setErrorMsg(null);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'projects');
+      console.error('[Brand Vault] Snapshot subscription error:', error);
+      setErrorMsg('Error de sincronización con Firestore. Si estás fuera de Google AI Studio, asegúrate de configurar tu proyecto de Firebase autorizado.');
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -153,6 +157,7 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
     if (!files) return;
 
     setSaveStatus('saving');
+    setErrorMsg(null);
     
     const filePromises = Array.from(files).map(file => {
       return new Promise<string>((resolve) => {
@@ -160,7 +165,8 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
         reader.onloadend = async () => {
           const base64String = reader.result as string;
           try {
-            const compressed = await compressImage(base64String, target === 'logos' ? 400 : 700, 0.6);
+            // Highly optimized dimensions and quality to fit comfortably within Firestore limits (max 1MB document storage)
+            const compressed = await compressImage(base64String, target === 'logos' ? 250 : 600, 0.5);
             resolve(compressed);
           } catch (err) {
             console.error('Error compressing image:', err);
@@ -172,6 +178,10 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
     });
 
     const results = (await Promise.all(filePromises)).filter(r => r !== '');
+    if (results.length === 0) {
+      setSaveStatus('idle');
+      return;
+    }
     
     let updatedLogos = [...logos];
     let updatedTraining = [...trainingMaterial];
@@ -193,12 +203,21 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
           trainingMaterial: updatedTraining,
           updatedAt: serverTimestamp()
         });
-      } catch (err) {
+        setSaveStatus('saved');
+      } catch (err: any) {
         console.error('Autosaving uploaded files failed:', err);
+        if (err?.message?.includes('too large') || err?.code === 'resource-exhausted') {
+          setErrorMsg('Error: El tamaño total de las imágenes del Baúl excede el límite de Firestore. Intenta subir imágenes más pequeñas.');
+        } else {
+          setErrorMsg('Error al guardar imágenes en Firestore: ' + (err?.message || err));
+        }
+        setSaveStatus('idle');
+        return;
       }
+    } else {
+      setSaveStatus('saved');
     }
 
-    setSaveStatus('saved');
     setTimeout(() => setSaveStatus('idle'), 2000);
   };
 
@@ -352,6 +371,13 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
                 </motion.div>
               )}
             </div>
+
+            {errorMsg && (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-xs text-red-400 font-bold tracking-wide flex items-center justify-between">
+                <span>{errorMsg}</span>
+                <button onClick={() => setErrorMsg(null)} className="px-2 text-[10px] uppercase underline cursor-pointer">Descartar</button>
+              </div>
+            )}
 
             {/* Selector de Identidades de Marca */}
             <div className="space-y-4 text-left">

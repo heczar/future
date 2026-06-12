@@ -32,9 +32,20 @@ export async function compressImage(base64: string, maxWidth = 500, quality = 0.
 
       ctx.drawImage(img, 0, 0, width, height);
       
-      // Logos need PNG for transparency but we can resize them significantly
-      const isLogo = base64.startsWith('data:image/png');
-      const result = canvas.toDataURL(isLogo ? 'image/png' : 'image/jpeg', isLogo ? undefined : quality);
+      // Convert to webp if possible, otherwise jpeg, keeping quality around 0.5 for ultra-efficiency
+      // WebP supports transparency beautifully while keeping file sizes up to 10x smaller than raw PNGs!
+      let result = '';
+      try {
+        result = canvas.toDataURL('image/webp', quality);
+        if (!result.startsWith('data:image/webp')) {
+          // Fallback if browser doesn't support webp
+          const isPng = base64.startsWith('data:image/png');
+          result = canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', isPng ? undefined : quality);
+        }
+      } catch (e) {
+        const isPng = base64.startsWith('data:image/png');
+        result = canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', isPng ? undefined : quality);
+      }
       resolve(result);
     };
     img.onerror = (err) => reject(err);

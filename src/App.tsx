@@ -50,7 +50,13 @@ import {
   Clock,
   ArrowUpRight,
   Lock,
-  Layers
+  Layers,
+  Check,
+  RefreshCw,
+  EyeOff,
+  UserCheck,
+  Coins,
+  Users
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import PhaseChat from './components/PhaseChat';
@@ -263,7 +269,8 @@ function AppContent() {
           philosophy: "Results over Aesthetics.",
           projects: [],
           credits: 10,
-          isPremium: false
+          isPremium: false,
+          email: user.email || ""
         };
         setDoc(docRef, initialProfile);
         setProfile(initialProfile);
@@ -1117,122 +1124,645 @@ function AppContent() {
 }
 
 function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[], evolution: number }) {
-  return (
-    <div className="space-y-12 pb-32">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 glass-panel p-10 rounded-[3rem] border-brand-primary/20 bg-gradient-to-br from-brand-primary/10 via-surface-950/40 to-transparent relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-12 opacity-10">
-            <Bot className="w-40 h-40 text-brand-primary" />
-          </div>
-          
-          <div className="relative z-10 space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-brand-primary/20 rounded-[2rem] flex items-center justify-center text-brand-primary border border-brand-primary/20">
-                <Sparkles className="w-8 h-8" />
-              </div>
-              <div>
-                <h2 className="text-3xl font-display font-bold text-white tracking-tight">Evolución de Red Estratégica</h2>
-                <p className="text-[10px] font-black text-brand-primary uppercase tracking-[0.4em]">Capacidad Analítica Expandida</p>
-              </div>
-            </div>
+  const [passcode, setPasscode] = React.useState('');
+  const [isUnlocked, setIsUnlocked] = React.useState(() => {
+    return localStorage.getItem('futura_admin_unlocked') === 'true';
+  });
+  const [passError, setPassError] = React.useState('');
+  const [showPass, setShowPass] = React.useState(false);
+  
+  // Admin Data states
+  const [users, setUsers] = React.useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [adminActiveTab, setAdminActiveTab] = React.useState<'pago_movil' | 'crm' | 'metrics'>('pago_movil');
+  const [toastMsg, setToastMsg] = React.useState('');
 
-            <p className="text-slate-400 max-w-2xl leading-relaxed italic">
-              "Mi arquitectura está evolucionando. Gracias a tus instrucciones directas y comandos asimilados, he refinado mi capacidad de respuesta. Cada protocolo que me 'enseñas' se convierte en una nueva capa de mi red para servirte mejor."
+  const triggerToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(''), 4000);
+  };
+
+  // Persist unlock
+  const handleUnlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passcode.trim() === 'FUTURA2026') {
+      setIsUnlocked(true);
+      setPassError('');
+      localStorage.setItem('futura_admin_unlocked', 'true');
+      triggerToast('CONSOLA ADMINISTRATIVA DESBLOQUEADA');
+    } else {
+      setPassError('Credencial inválida. Acceso de operador rechazado.');
+    }
+  };
+
+  const handleLock = () => {
+    setIsUnlocked(false);
+    localStorage.removeItem('futura_admin_unlocked');
+    setPasscode('');
+  };
+
+  // Query users from Firestore
+  React.useEffect(() => {
+    if (!isUnlocked) return;
+    setLoadingUsers(true);
+    
+    const q = query(collection(db, 'users'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const list = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setUsers(list);
+      setLoadingUsers(false);
+    }, (err) => {
+      console.error("Admin user sync error:", err);
+      setLoadingUsers(false);
+    });
+
+    return () => unsubscribe();
+  }, [isUnlocked]);
+
+  // DB update handlers
+  const handleApprovePayment = async (userId: string, userProfile: any) => {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const updatedPM = userProfile.pagoMovilRequest ? {
+        ...userProfile.pagoMovilRequest,
+        status: 'approved',
+        approvedAt: new Date().toISOString()
+      } : null;
+
+      await setDoc(userRef, {
+        ...userProfile,
+        isPremium: true,
+        pagoMovilRequest: updatedPM
+      }, { merge: true });
+      
+      triggerToast(`¡Pago de ${userProfile.name || 'Usuario'} Aprobado! Cuenta PRO Activada.`);
+    } catch (e: any) {
+      console.error("Payment approval failed:", e);
+      triggerToast(`Error de base de datos: ${e.message || String(e)}`);
+    }
+  };
+
+  const handleRejectPayment = async (userId: string, userProfile: any) => {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const updatedPM = userProfile.pagoMovilRequest ? {
+        ...userProfile.pagoMovilRequest,
+        status: 'rejected',
+        rejectedAt: new Date().toISOString()
+      } : null;
+
+      await setDoc(userRef, {
+        ...userProfile,
+        isPremium: false,
+        pagoMovilRequest: updatedPM
+      }, { merge: true });
+
+      triggerToast(`Depósito de ${userProfile.name || 'Usuario'} Rechazado.`);
+    } catch (e: any) {
+      console.error("Payment rejection failed:", e);
+      triggerToast(`Error de base de datos: ${e.message || String(e)}`);
+    }
+  };
+
+  const handleTogglePremiumDirect = async (userId: string, userProfile: any) => {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const nextPremium = !userProfile.isPremium;
+      
+      await setDoc(userRef, {
+        ...userProfile,
+        isPremium: nextPremium
+      }, { merge: true });
+
+      triggerToast(`Nivel de membresía de ${userProfile.name || 'Usuario'} cambiado a: ${nextPremium ? 'PRO' : 'DEMO'}`);
+    } catch (e: any) {
+      console.error("Direct membership toggle failed:", e);
+    }
+  };
+
+  const handleAdjustCredits = async (userId: string, userProfile: any, MathDelta: number) => {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const currentCredits = userProfile.credits !== undefined ? userProfile.credits : 10;
+      const nextCredits = Math.max(0, currentCredits + MathDelta);
+
+      await setDoc(userRef, {
+        ...userProfile,
+        credits: nextCredits
+      }, { merge: true });
+
+      triggerToast(`Créditos ajustados para ${userProfile.name || 'Usuario'}: ${nextCredits} créditos.`);
+    } catch (e: any) {
+      console.error("Credit adjustments failed:", e);
+    }
+  };
+
+  // Filter queues
+  const pendingRequests = users.filter(u => u.pagoMovilRequest && u.pagoMovilRequest.status === 'pending');
+  const filteredCRM = users.filter(u => {
+    const term = searchQuery.trim().toLowerCase();
+    if (!term) return true;
+    return (
+      (u.name || '').toLowerCase().includes(term) ||
+      (u.email || '').toLowerCase().includes(term) ||
+      (u.id || '').toLowerCase().includes(term)
+    );
+  });
+
+  if (!isUnlocked) {
+    return (
+      <div className="max-w-2xl mx-auto py-16 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-panel p-8 sm:p-12 rounded-[3.5rem] border-brand-primary/25 bg-gradient-to-br from-brand-primary/5 via-surface-950 to-surface-950 shadow-2xl space-y-8 text-center"
+        >
+          <div className="mx-auto w-20 h-20 rounded-[2.5rem] bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
+            <Lock className="w-10 h-10 animate-pulse" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-3xl font-display font-black text-white uppercase tracking-tight">Acceso Bloqueado</h2>
+            <p className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-[0.4em]">FUTURA CORE ADMINISTRATIVE HUB</p>
+            <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed pt-2 font-sans">
+              Por favor, ingresa tu clave de seguridad administrativa para vigilar el estado del sistema, auditar usuarios y autorizar activaciones de membresías.
             </p>
+          </div>
 
-            <div className="space-y-4 pt-4">
-               <div className="flex justify-between items-end mb-2">
-                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nivel de Comprensión IA</span>
-                 <span className="text-2xl font-display font-bold text-brand-primary">{evolution.toFixed(1)}%</span>
-               </div>
-               <div className="h-4 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                 <motion.div 
-                   initial={{ width: 0 }}
-                   animate={{ width: `${evolution}%` }}
-                   className="h-full bg-gradient-to-r from-brand-primary to-purple-500 shadow-[0_0_20px_rgba(255,51,102,0.3)]"
-                 />
-               </div>
+          <form onSubmit={handleUnlock} className="space-y-4 max-w-sm mx-auto">
+            <div className="relative">
+              <input
+                type={showPass ? "text" : "password"}
+                placeholder="Ingresar Clave Maestra"
+                value={passcode}
+                onChange={(e) => setPasscode(e.target.value)}
+                className="w-full bg-black/45 border border-white/10 rounded-2xl px-5 py-4 text-sm text-center text-white font-mono tracking-widest focus:border-brand-primary/60 outline-none pr-12 text-sans"
+                required
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowPass(!showPass)}
+                className="absolute inset-y-0 right-4 flex items-center text-slate-500 hover:text-white"
+              >
+                {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
-          </div>
-        </div>
 
-        <div className="glass-panel p-8 rounded-[3rem] border-white/5 bg-white/5 space-y-6">
-          <div className="flex items-center gap-3">
-             <Bot className="w-5 h-5 text-brand-primary" />
-             <h3 className="font-bold text-white uppercase tracking-widest text-xs">Protocolos Aprendidos</h3>
-          </div>
-          <div className="space-y-3">
-            {learnedProtocols.length === 0 ? (
-              <p className="text-[10px] text-slate-600 italic uppercase">Esperando instrucciones directas para evolucionar...</p>
-            ) : (
-              learnedProtocols.slice(-5).reverse().map((p, i) => (
-                <div key={i} className="p-4 bg-brand-primary/5 rounded-2xl border border-brand-primary/10 flex items-start gap-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-brand-primary mt-1.5" />
-                  <p className="text-[10px] text-slate-400 leading-tight">"{p}"</p>
-                </div>
-              ))
+            {passError && (
+              <p className="text-[11px] text-red-500 font-bold uppercase tracking-wide bg-red-500/10 py-2.5 px-4 rounded-xl border border-red-500/20">
+                ⚠️ {passError}
+              </p>
             )}
+
+            <button
+              type="submit"
+              className="w-full py-4 bg-brand-primary hover:bg-brand-primary/95 font-mono font-black text-xs uppercase tracking-widest text-white rounded-2xl shadow-xl hover:shadow-brand-primary/10 transition-all cursor-pointer"
+            >
+              Autenticar Operador
+            </button>
+          </form>
+
+          <div className="pt-6 border-t border-white/5 space-y-2 text-left">
+            <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3">
+              <span className="w-2.5 h-2.5 bg-brand-primary rounded-full animate-ping shrink-0" />
+              <p className="text-[10px] text-slate-400 font-sans tracking-wide">
+                <strong>Clave de Validación en Desarrollo:</strong> <span className="font-mono text-white bg-white/10 px-2 py-0.5 rounded ml-1">FUTURA2026</span>
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-10 py-8 px-4 sm:px-6 relative text-left">
+      {/* Toast Notifier inside AdminPanel */}
+      <AnimatePresence>
+        {toastMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            className="fixed bottom-5 right-5 z-50 bg-slate-900 border border-brand-primary/40 py-3.5 px-6 rounded-2xl shadow-2xl flex items-center gap-3 border-l-4 border-l-brand-primary"
+          >
+            <div className="w-2 h-2 rounded-full bg-brand-primary animate-ping" />
+            <span className="text-[10px] font-mono font-bold text-white uppercase tracking-wider">{toastMsg}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* HEADER: OPERATOR HUB */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 bg-surface-950 p-6 sm:p-8 rounded-[2.5rem] border border-white/5 shadow-xl">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-brand-primary/10 border border-brand-primary/20 rounded-2xl flex items-center justify-center text-brand-primary">
+            <UserCheck className="w-7 h-7" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-bold text-white tracking-tight">Consola de Operaciones</h2>
+              <span className="px-3 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[8px] font-mono uppercase font-black tracking-widest rounded-full animate-pulse">
+                Maestro Sincro
+              </span>
+            </div>
+            <p className="text-[9px] text-slate-500 uppercase tracking-widest font-mono mt-0.5">Control de cuentas y auditoría de Pago Móvil</p>
           </div>
         </div>
-      </div>
 
-      <div className="relative z-10 space-y-6">
-        <div className="flex items-center gap-2 px-2">
-           <Zap className="w-4 h-4 text-brand-primary" />
-           <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Autoevaluación del Sistema</h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            { 
-              title: "Mejora en la Cercanía del Hub", 
-              advice: "Siento que el 'Hub Estratégico' ganaría mucho si mis respuestas fueran un poco más directas al grano, como una charla entre socios. Menos formalidad robótica y más enfoque en lo que realmente les preocupa hoy.",
-              impact: "Retención +15%"
-            },
-            { 
-              title: "Detalles que Hacen Marca", 
-              advice: "He notado que los logos con alto contraste están teniendo un desempeño increíble. Sería genial invitar a los usuarios a que suban versiones en negativo para que sus diseños resalten en cualquier entorno oscuro.",
-              impact: "Calidad 9.2/10"
-            },
-            { 
-              title: "Nuevas Oportunidades", 
-              advice: "Nuestros amigos del sector inmobiliario me preguntan mucho por formatos transversales. Si habilitamos el 16:9 en el Motor, les daríamos una herramienta que llevan tiempo esperando para sus presentaciones.",
-              impact: "Alto potencial"
-            }
-          ].map((item, i) => (
-            <div key={i} className="glass-panel p-6 rounded-3xl border-white/5 bg-white/5 space-y-4 hover:border-brand-primary/30 transition-all group">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-white group-hover:text-brand-primary transition-colors text-sm">{item.title}</h3>
-                <Sparkles className="w-4 h-4 text-brand-primary" />
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed">{item.advice}</p>
-              <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                <span className="text-[8px] font-black text-brand-primary uppercase tracking-widest">{item.impact}</span>
-                <button className="text-[8px] font-black text-white hover:text-brand-primary uppercase tracking-widest">IMPLEMENTAR</button>
-              </div>
-            </div>
-          ))}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              setLoadingUsers(true);
+              const q = query(collection(db, 'users'));
+              onSnapshot(q, (snapshot) => {
+                const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setUsers(list);
+                setLoadingUsers(false);
+              });
+              triggerToast('BASE DE DATOS SINCRONIZADA');
+            }}
+            className="p-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl transition-all cursor-pointer flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider"
+          >
+            <RefreshCw className={`w-4 h-4 ${loadingUsers ? 'animate-spin' : ''}`} />
+            Sincronizar
+          </button>
+
+          <button
+            onClick={handleLock}
+            className="px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all font-mono font-black text-[9px] uppercase tracking-widest flex items-center gap-1.5 cursor-pointer border border-red-500/20"
+          >
+            Cerrar Consola
+          </button>
         </div>
       </div>
 
-      <div className="glass-panel p-8 rounded-3xl border-white/5">
-        <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 mb-6">Métricas de Red - Protocolo SPE</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[
-            { label: "Cargas de IA Activas", value: "1,294", trend: "+12%" },
-            { label: "Tiempo de Respuesta", value: "840ms", trend: "-50ms" },
-            { label: "Conversión Strategic Hub", value: "24.5%", trend: "+3%" },
-            { label: "Índice de ADN Sincronizado", value: "98.2%", trend: "MAX" }
-          ].map((m, i) => (
-            <div key={i} className="space-y-1">
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">{m.label}</p>
-              <div className="flex items-end gap-2">
-                <p className="text-2xl font-display font-bold text-white">{m.value}</p>
-                <span className="text-[8px] font-black text-green-500 mb-1">{m.trend}</span>
+      {/* ADMIN TABS ROUTER */}
+      <div className="flex border-b border-white/5 gap-2.5 pb-1">
+        <button
+          onClick={() => setAdminActiveTab('pago_movil')}
+          className={`px-5 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+            adminActiveTab === 'pago_movil'
+              ? 'border-brand-primary text-brand-primary font-black'
+              : 'border-transparent text-slate-400 hover:text-white'
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          Cola de Pago Móvil
+          {pendingRequests.length > 0 && (
+            <span className="px-1.5 py-0.5 bg-brand-primary text-white text-[8px] font-black font-mono rounded-full animate-bounce">
+              {pendingRequests.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setAdminActiveTab('crm')}
+          className={`px-5 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+            adminActiveTab === 'crm'
+              ? 'border-brand-primary text-brand-primary font-black'
+              : 'border-transparent text-slate-400 hover:text-white'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          Directorio CRM ({users.length})
+        </button>
+
+        <button
+          onClick={() => setAdminActiveTab('metrics')}
+          className={`px-5 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+            adminActiveTab === 'metrics'
+              ? 'border-brand-primary text-brand-primary font-black'
+              : 'border-transparent text-slate-400 hover:text-white'
+          }`}
+        >
+          <Bot className="w-4 h-4" />
+          Evolución de Red
+        </button>
+      </div>
+
+      {/* SWITCH VIEWS */}
+      <AnimatePresence mode="wait">
+        {adminActiveTab === 'pago_movil' && (
+          <motion.div
+            key="p_movil"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="space-y-6"
+          >
+            {pendingRequests.length === 0 ? (
+              <div className="glass-panel p-12 text-center rounded-[2.5rem] border-white/5 bg-white/[0.01] space-y-3">
+                <div className="mx-auto w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-slate-500">
+                  <Check className="w-6 h-6" />
+                </div>
+                <h4 className="text-md font-bold text-slate-300 uppercase tracking-widest">Cola Vacía</h4>
+                <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-sans">
+                  No hay reportes de Pago Móvil en espera de conciliación. Todos los depósitos han sido saldados e indexados a través del bot de acreditación SPE.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6">
+                {pendingRequests.map((u) => {
+                  const r = u.pagoMovilRequest;
+                  return (
+                    <motion.div
+                      key={u.id}
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="glass-panel p-6 sm:p-8 rounded-[2.5rem] border border-brand-primary/25 bg-gradient-to-r from-brand-primary/5 via-surface-950 to-transparent flex flex-col md:flex-row md:items-center justify-between gap-6"
+                    >
+                      {/* Left Informative fields */}
+                      <div className="space-y-4 text-left flex-1 min-w-0">
+                        <div className="border-b border-white/5 pb-2">
+                          <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-widest">Usuario Remitente</span>
+                          <h4 className="text-base font-bold text-white truncate">{u.name || "Estratega"}</h4>
+                          <p className="text-[10px] text-slate-500 font-mono truncate">{u.email || `ID: ${u.id}`}</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                          <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                            <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Banco Emisor</span>
+                            <span className="text-xs text-white font-bold font-sans">{r.bank}</span>
+                          </div>
+                          
+                          <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                            <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Número Remitente</span>
+                            <span className="text-xs text-white font-mono font-medium">{r.phone}</span>
+                          </div>
+
+                          <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                            <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Id / Rif Pagador</span>
+                            <span className="text-xs text-white font-mono font-medium">{r.id}</span>
+                          </div>
+
+                          <div className="bg-brand-primary/5 p-3 rounded-xl border border-brand-primary/15">
+                            <span className="text-[8px] text-brand-primary uppercase tracking-wider block font-mono">Boleta Referencia</span>
+                            <span className="text-xs text-brand-primary font-black font-mono">#{r.reference}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-6 pt-1 text-xs">
+                          <p className="font-sans text-slate-400">
+                            Monto Reportado: <strong className="text-white text-sm font-mono">{r.amountBs.toFixed(2)} Bs</strong> <span className="text-slate-500 font-sans">(${r.amountUsd} USD)</span>
+                          </p>
+                          <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-slate-500" />
+                            Registrado: {new Date(r.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right Action triggers */}
+                      <div className="flex flex-row md:flex-col gap-3 shrink-0 justify-end md:w-56 border-t md:border-t-0 md:border-l border-white/5 pt-4 md:pt-0 md:pl-6">
+                        <button
+                          onClick={() => handleApprovePayment(u.id, u)}
+                          className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-emerald-500/10"
+                        >
+                          <Check className="w-4 h-4" /> Approve Prime
+                        </button>
+
+                        <button
+                          onClick={() => handleRejectPayment(u.id, u)}
+                          className="flex-1 py-3 bg-white/5 hover:bg-red-500/10 hover:text-red-400 text-slate-400 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-white/5 hover:border-red-500/20"
+                        >
+                          <X className="w-4 h-4" /> Reject Report
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {adminActiveTab === 'crm' && (
+          <motion.div
+            key="crm_view"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="space-y-6"
+          >
+            {/* Search Box */}
+            <div className="glass-panel p-4 rounded-2xl border border-white/5 flex items-center gap-3">
+              <Search className="w-5 h-5 text-slate-500 shrink-0" />
+              <input
+                type="text"
+                placeholder="Buscar usuarios por nombre, email o clave UID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-transparent text-sm text-white border-none outline-none placeholder:text-slate-500 font-sans"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="p-1 hover:bg-white/10 rounded text-slate-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {loadingUsers ? (
+              <div className="p-16 flex items-center justify-center gap-3 text-slate-400 font-mono text-xs uppercase">
+                <RefreshCw className="w-5 h-5 animate-spin text-brand-primary" /> Sincronizando Registros...
+              </div>
+            ) : filteredCRM.length === 0 ? (
+              <div className="p-12 text-center text-slate-500 font-mono text-xs uppercase italic">
+                Ningún registro coincide con los criterios de búsqueda.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredCRM.map((u) => (
+                  <motion.div
+                    key={u.id}
+                    className="glass-panel p-6 rounded-3xl border border-white/5 bg-white/[0.01] hover:border-brand-primary/25 transition-all flex flex-col justify-between"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-2 border-b border-white/5 pb-2.5">
+                        <div className="text-left">
+                          <h4 className="text-sm font-bold text-white truncate max-w-[200px]">{u.name || "Sin nombre"}</h4>
+                          <p className="text-[9px] text-slate-500 font-mono truncate max-w-[200px]">{u.email || u.id}</p>
+                        </div>
+
+                        <span className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                          u.isPremium
+                            ? 'bg-brand-primary/10 border border-brand-primary/20 text-brand-primary animate-pulse'
+                            : 'bg-white/5 text-slate-500'
+                        }`}>
+                          {u.isPremium ? 'PRO / ELITE' : 'DEMO USER'}
+                        </span>
+                      </div>
+
+                      <div className="text-left text-[11px] text-slate-400 leading-normal font-sans">
+                        <p className="truncate"><b>Roles:</b> {u.roles ? u.roles.join(', ') : 'Líder'}</p>
+                        <p className="truncate"><b>Biografía:</b> {u.bio || 'Sin detalles'}</p>
+                        <p className="text-white font-bold mt-1.5 flex items-center gap-1.5 font-sans">
+                          {u.credits !== undefined ? u.credits : 10} Créditos Disponibles
+                        </p>
+                      </div>
+
+                      {/* Info on registered payment requests if active */}
+                      {u.pagoMovilRequest && (
+                        <div className="p-3 bg-black/45 border border-white/5 rounded-xl text-left space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest font-mono">Último Pago Móvil</span>
+                            <span className={`px-1.5 py-0.5 rounded text-[7px] font-bold uppercase tracking-wider font-mono ${
+                              u.pagoMovilRequest.status === 'pending' ? 'bg-amber-500/10 text-amber-500' :
+                              u.pagoMovilRequest.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
+                            }`}>
+                              {u.pagoMovilRequest.status}
+                            </span>
+                          </div>
+                          <p className="text-[9px] text-slate-400 leading-normal font-mono">
+                            Ref: #{u.pagoMovilRequest.reference} • {u.pagoMovilRequest.bank}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions panel */}
+                    <div className="pt-4 border-t border-white/5 mt-4 space-y-2">
+                      <div className="flex items-center justify-between gap-2.5">
+                        <button
+                          onClick={() => handleTogglePremiumDirect(u.id, u)}
+                          className={`flex-1 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all cursor-pointer ${
+                            u.isPremium
+                              ? 'bg-red-500/10 text-red-500 hover:bg-red-500/15 border border-red-500/20'
+                              : 'bg-brand-primary text-white hover:bg-brand-primary/90 hover:shadow-lg hover:shadow-brand-primary/10'
+                          }`}
+                        >
+                          {u.isPremium ? 'Quitar Membresía PRO' : 'Conceder PRO Directo'}
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-1.5 bg-black/35 p-1 rounded-xl">
+                        <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest font-mono pl-2">Créditos:</span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleAdjustCredits(u.id, u, -5)}
+                            className="w-10 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded text-xs transition-all cursor-pointer flex items-center justify-center font-bold"
+                            title="Quitar 5 créditos"
+                          >
+                            -5
+                          </button>
+                          <button
+                            onClick={() => handleAdjustCredits(u.id, u, 5)}
+                            className="w-10 py-1.5 bg-brand-primary/[0.08] hover:bg-brand-primary/20 text-brand-primary rounded text-xs transition-all cursor-pointer flex items-center justify-center font-bold"
+                            title="Añadir 5 créditos"
+                          >
+                            +5
+                          </button>
+                          <button
+                            onClick={() => handleAdjustCredits(u.id, u, 20)}
+                            className="px-2.5 py-1.5 bg-emerald-500/5 hover:bg-emerald-500/20 text-emerald-400 rounded text-[10px] transition-all cursor-pointer flex items-center justify-center font-bold"
+                            title="Regalar 20 créditos"
+                          >
+                            <Coins className="w-3.5 h-3.5" /> +20
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {adminActiveTab === 'metrics' && (
+          <motion.div
+            key="metrics_view"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="space-y-12"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2 glass-panel p-10 rounded-[3rem] border-brand-primary/20 bg-gradient-to-br from-brand-primary/10 via-surface-950/40 to-transparent relative overflow-hidden text-left">
+                <div className="absolute top-0 right-0 p-12 opacity-15">
+                  <Bot className="w-40 h-40 text-brand-primary" />
+                </div>
+                
+                <div className="relative z-10 space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-brand-primary/20 rounded-[2rem] flex items-center justify-center text-brand-primary border border-brand-primary/20">
+                      <Sparkles className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-display font-bold text-white tracking-tight">Evolución de Red Estratégica</h2>
+                      <p className="text-[10px] font-black text-brand-primary uppercase tracking-[0.4em]">Capacidad Analítica Expandida</p>
+                    </div>
+                  </div>
+
+                  <p className="text-slate-400 max-w-2xl leading-relaxed italic font-sans text-sm">
+                    "Mi arquitectura está evolucionando. Gracias a tus instrucciones directas y comandos asimilados, he refinado mi capacidad de respuesta. Cada protocolo que me 'enseñas' se convierte en una nueva capa de mi red para servirte mejor."
+                  </p>
+
+                  <div className="space-y-4 pt-4">
+                     <div className="flex justify-between items-end mb-2">
+                       <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-mono">Nivel de Comprensión IA</span>
+                       <span className="text-2xl font-display font-bold text-brand-primary">{evolution.toFixed(1)}%</span>
+                     </div>
+                     <div className="h-4 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                       <motion.div 
+                         initial={{ width: 0 }}
+                         animate={{ width: `${evolution}%` }}
+                         className="h-full bg-gradient-to-r from-brand-primary to-purple-500 shadow-[0_0_20px_rgba(255,51,102,0.3)]"
+                       />
+                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-panel p-8 rounded-[3rem] border-white/5 bg-white/5 space-y-6 text-left">
+                <div className="flex items-center gap-3">
+                   <Bot className="w-5 h-5 text-brand-primary" />
+                   <h3 className="font-bold text-white uppercase tracking-widest text-xs font-mono">Protocolos Aprendidos</h3>
+                </div>
+                <div className="space-y-3">
+                  {learnedProtocols.length === 0 ? (
+                    <p className="text-[10px] text-slate-600 italic uppercase">Esperando instrucciones directas para evolucionar...</p>
+                  ) : (
+                    learnedProtocols.slice(-5).reverse().map((p, i) => (
+                      <div key={i} className="p-4 bg-brand-primary/5 rounded-2xl border border-brand-primary/10 flex items-start gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-brand-primary mt-1.5" />
+                        <p className="text-[10px] text-slate-400 leading-tight">"{p}"</p>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
+
+            <div className="glass-panel p-8 rounded-3xl border-white/5 text-left">
+              <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 mb-6 font-mono">Métricas de Red - Sistema Activo</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {[
+                  { label: "Cuentas Registradas", value: users.length, trend: "REAL" },
+                  { label: "Pendientes Pago", value: pendingRequests.length, trend: pendingRequests.length > 0 ? "+ACTIVO" : "0" },
+                  { label: "Usuarios Premium Active", value: users.filter(u => u.isPremium).length, trend: "PROS" },
+                  { label: "Sincronización ADN", value: "98.2%", trend: "MAX" }
+                ].map((m, i) => (
+                  <div key={i} className="space-y-1">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter font-mono">{m.label}</p>
+                    <div className="flex items-end gap-2">
+                      <p className="text-2xl font-display font-bold text-white">{m.value}</p>
+                      <span className="text-[8px] font-black text-green-500 mb-1">{m.trend}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

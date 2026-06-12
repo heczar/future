@@ -16,15 +16,7 @@ service cloud.firestore {
 
     // 3. USER PROFILES
     match /users/{userId} {
-      allow get: if isSignedIn(); // Allow discovery within system
-      allow list: if false; // Block scraping
-      allow write: if isOwner(userId) && isValidProfile(incoming());
-      
-      function isValidProfile(data) {
-        return data.name is string && data.name.size() <= 100 &&
-               data.philosophy is string && data.philosophy.size() <= 500 &&
-               data.roles is list && data.roles.size() <= 10;
-      }
+      allow get, list, write: if isSignedIn();
     }
 
     // 4. PROJECTS

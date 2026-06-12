@@ -56,6 +56,19 @@ export interface UserProfile {
   projects: string[];
   credits?: number;
   isPremium?: boolean;
+  email?: string;
+  pagoMovilRequest?: {
+    bank: string;
+    phone: string;
+    id: string;
+    reference: string;
+    amountUsd: number;
+    amountBs: number;
+    timestamp: string;
+    status: 'pending' | 'approved' | 'rejected';
+    approvedAt?: string;
+    rejectedAt?: string;
+  } | null;
 }
 
 export interface GeneratedContent {
