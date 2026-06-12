@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. GLOBAL SAFETY NET: Default to total deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. GLOBAL HELPERS
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // 3. USER PROFILES
+    match /users/{userId} {
+      allow get: if isSignedIn(); // Allow discovery within system
+      allow list: if false; // Block scraping
+      allow write: if isOwner(userId) && isValidProfile(incoming());
+      
+      function isValidProfile(data) {
+        return data.name is string && data.name.size() <= 100 &&
+               data.philosophy is string && data.philosophy.size() <= 500 &&
+               data.roles is list && data.roles.size() <= 10;
+      }
+    }
+
+    // 4. PROJECTS
+    match /projects/{projectId} {
+      allow get: if isOwner(existing().ownerId);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isOwner(incoming().ownerId) && isValidProject(incoming());
+      allow update: if isOwner(existing().ownerId) && 
+                      incoming().ownerId == existing().ownerId &&
+                      isValidProject(incoming());
+      allow delete: if isOwner(existing().ownerId);
+
+      function isValidProject(data) {
+        return data.name is string && data.name.size() <= 100 &&
+               data.description is string && data.description.size() <= 2000 &&
+               data.methodology in ['SPE', 'DE', 'Custom'];
+      }
+    }
+
+    // 5. ASSETS (Legacy - for backward compatibility if needed)
+    match /assets/{assetId} {
+      allow get: if isSignedIn() && get(/databases/$(database)/documents/projects/$(existing().projectId)).data.ownerId == request.auth.uid;
+      allow list: if isSignedIn() && get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && 
+                      get(/databases/$(database)/documents/projects/$(incoming().projectId)).data.ownerId == request.auth.uid &&
+                      isValidAsset(incoming());
+      allow delete: if isSignedIn() && get(/databases/$(database)/documents/projects/$(existing().projectId)).data.ownerId == request.auth.uid;
+
+      function isValidAsset(data) {
+        return data.type in ['infographic', 'flyer', 'photo', 'social_post'] &&
+               data.imageUrl is string && data.imageUrl.size() <= 2000 &&
+               data.projectId is string;
+      }
+    }
+
+    // 6. SAVED ASSETS (Gallery)
+    match /saved_assets/{assetId} {
+      allow get: if isOwner(existing().ownerId);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isOwner(incoming().ownerId) && isValidSavedAsset(incoming());
+      allow delete: if isOwner(existing().ownerId);
+
+      function isValidSavedAsset(data) {
+        return data.imageUrl is string && data.imageUrl.size() <= 2000 &&
+               data.brandName is string && data.brandName.size() <= 100 &&
+               data.strategy is string && data.strategy.size() <= 10000 &&
+               data.format is string && data.format.size() <= 100 &&
+               data.style is string && data.style.size() <= 100 &&
+               data.ownerId == request.auth.uid;
+      }
+    }
+  }
+}

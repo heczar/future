@@ -1,0 +1,69 @@
+{
+  "entities": {
+    "profile": {
+      "title": "User Profile",
+      "description": "Professional profile and philosophy of the user",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "bio": { "type": "string" },
+        "philosophy": { "type": "string" },
+        "roles": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["name", "bio", "philosophy"]
+    },
+    "project": {
+      "title": "Project Context",
+      "description": "Business or personal project information and assets",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "logos": { "type": "array", "items": { "type": "string" } },
+        "trainingMaterial": { "type": "array", "items": { "type": "string" } },
+        "driveContext": { 
+          "type": "array", 
+          "items": { 
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "content": { "type": "string" }
+            }
+          }
+        },
+        "methodology": { "type": "string", "enum": ["SPE", "DE", "Custom"] },
+        "ownerId": { "type": "string" }
+      },
+      "required": ["name", "ownerId"]
+    },
+    "saved_asset": {
+      "title": "Saved Creative Asset",
+      "description": "Finalized design from the Creative Engine",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "strategy": { "type": "string" },
+        "format": { "type": "string" },
+        "style": { "type": "string" },
+        "brandName": { "type": "string" },
+        "createdAt": { "type": "object" }
+      },
+      "required": ["ownerId", "imageUrl", "brandName"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "profile",
+      "description": "Public and private user profile data"
+    },
+    "projects/{projectId}": {
+      "schema": "project",
+      "description": "Project context and brand guidelines"
+    },
+    "saved_assets/{assetId}": {
+      "schema": "saved_asset",
+      "description": "Finalized designs saved in the Gallery"
+    }
+  }
+}

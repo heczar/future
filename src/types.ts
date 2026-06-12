@@ -1,0 +1,72 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+export enum SPEPhase {
+  INVESTIGATION = 'investigation',
+  STRATEGY = 'strategy',
+  EXECUTION = 'execution',
+  OPTIMIZATION = 'optimization',
+  SCALING = 'scaling'
+}
+
+
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+  }
+}
+
+export interface ProjectContext {
+  id: string;
+  name: string;
+  description: string;
+  logos: string[]; // Base64 or URLs
+  trainingMaterial?: string[]; // Base64 or URLs
+  driveContext?: { name: string; content: string }[];
+  methodology: 'SPE' | 'DE' | 'Custom';
+  brandGuidelines?: {
+    primaryColor: string;
+    secondaryColor: string;
+    tone: string;
+  };
+}
+
+export interface UserProfile {
+  name: string;
+  roles: string[];
+  bio: string;
+  philosophy: string;
+  projects: string[];
+  credits?: number;
+  isPremium?: boolean;
+}
+
+export interface GeneratedContent {
+  id: string;
+  type: 'infographic' | 'flyer' | 'photo' | 'social_post';
+  title: string;
+  description: string;
+  imageUrl: string;
+  createdAt: number;
+  metadata: {
+    prompt: string;
+    phase?: SPEPhase;
+  };
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Future Marketing Consult | FUTURA",
+  "description": "Premium creative engine and consultancy for high-impact brand development. Powered by the FUTURA strategic AI assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

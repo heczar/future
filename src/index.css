@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Montserrat:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&family=Bebas+Neue&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-brand-primary: #8B5CF6;
+  --color-brand-secondary: #D9F99D;
+  --color-surface-900: #050505;
+  --color-surface-800: #0F0F12;
+  --color-surface-700: #18181B;
+}
+
+@layer base {
+  body {
+    @apply bg-surface-900 text-slate-200 font-sans selection:bg-brand-primary/30;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight text-white;
+  }
+}
+
+.glass-panel {
+  @apply bg-surface-800/50 backdrop-blur-xl border border-white/5;
+}
+
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-primary to-brand-secondary;
+}
+
+.markdown-body {
+  @apply space-y-4;
+}
+
+.markdown-body p {
+  @apply mb-4 leading-relaxed;
+}
+
+.markdown-body ul {
+  @apply list-disc pl-6 space-y-2 mb-4;
+}
+
+.markdown-body ol {
+  @apply list-decimal pl-6 space-y-2 mb-4;
+}
+
+.markdown-body h1, .markdown-body h2, .markdown-body h3 {
+  @apply font-bold text-white mt-6 mb-2;
+}
+
+.markdown-body h1 { @apply text-2xl; }
+.markdown-body h2 { @apply text-xl; }
+.markdown-body h3 { @apply text-lg; }
+
+.markdown-body strong {
+  @apply font-bold text-brand-primary;
+}
+
+.markdown-body code {
+  @apply bg-white/10 px-1.5 py-0.5 rounded font-mono text-sm;
+}
