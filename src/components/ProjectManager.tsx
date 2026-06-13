@@ -58,8 +58,41 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
     }
   }, [selectedProjectId]);
 
+  // Prevent loading locks / short-circuit loading status
   useEffect(() => {
-    if (!auth.currentUser) return;
+    const timer = setTimeout(() => {
+      if (loading) {
+        console.warn('[Brand Vault] Firestore synchronization timed out - loading fallback to prevent UI freeze');
+        setLoading(false);
+        if (!project || projects.length === 0) {
+          const fallbackProj: ProjectContext = {
+            id: 'default-local-vault-brand',
+            name: 'Mi Bóveda Corporativa',
+            description: 'Misión: Ser la referencia líder en nuestro nicho comercial.\nVisión: Multiplicar el alcance mediante canales inteligentes y contenidos automatizados.\nValores: Innovación, Calidad, Enfoque Centrado en Resultados.\nTono: Cercano, Directo, de Alto Impacto.',
+            logos: [],
+            trainingMaterial: [],
+            driveContext: [],
+            methodology: 'SPE'
+          };
+          setProjects([fallbackProj]);
+          setProject(fallbackProj);
+          setName(fallbackProj.name);
+          setDescription(fallbackProj.description);
+        }
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [loading, project, projects]);
+
+  useEffect(() => {
+    if (!auth.currentUser) {
+      // If no authenticated user is present yet, disable loader to let them play with local profile values
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
 
     const q = query(
       collection(db, 'projects'),
@@ -70,8 +103,8 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
       if (snapshot.empty) {
         // Automatically create a default high-performance brand project to enable instant file uploading/saving
         const defaultProject = {
-          name: 'Mi Proyecto Premium',
-          description: 'Identidad y ADN estratégico de alto impacto optimizados bajo la metodología SPE.',
+          name: 'Mi Leyenda Corporativa',
+          description: 'Misión: Dominio absoluto de nuestro nicho de marketing.\nVisión: Sistema automatizado de conversión e impacto multicanal.\nValores: Autenticidad, Métricas Claras, Enfoque SPE.',
           logos: [],
           trainingMaterial: [],
           driveContext: [],
@@ -80,6 +113,8 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         };
+        // Set loading as false immediately so it doesn't freeze under slow networks
+        setLoading(false);
         addDoc(collection(db, 'projects'), defaultProject).catch(err => {
           console.error('[Brand Vault] Failed to initialize default brand workspace:', err);
         });

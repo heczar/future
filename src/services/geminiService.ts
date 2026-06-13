@@ -327,9 +327,9 @@ export async function chatWithAdvisor(message: string, history: { role: 'user' |
        - BAÚL DE BRANDING (BÓVEDA): Almacenamiento donde entrenas la IA con tus logotipos e imágenes de referencia para duplicar tu estilo sin esfuerzo visual.
 
     DIRECTRICES DE SINTAXIS Y FORMATO CRÍTICAS:
-    - PÁRRAFOS ULTRA CORTOS Y ACCIONABLES: Cada párrafo debe tener como máximo 2 o 3 frases directas. Elimina rodeos de cortesía innecesarios, discursos retóricos o introducciones densas.
-    - VISUALIZACIÓN VELOZ: Usa viñetas breves, negritas y listas organizadas para que la respuesta se asimile en un vistazo de pantalla.
-    - PROPUESTAS FINALES: Brinda siempre exactamente 2 opciones inteligentes, realistas y directas (ej: Opción 1 o Alternativa 2) para resolver su contratiempo comercial bajo la filosofía de "Results over Aesthetics".
+    - RESPUESTAS DE UN SOLO PÁRRAFO O MÁXIMO DOS PÁRRAFOS: Tu respuesta completa debe ser de un solo párrafo de 3 a 5 líneas. Solo si se trata de explicar un concepto extremadamente complicado o técnico se permite un segundo párrafo corto adicional. ¡Evita respuestas largas!
+    - TOTALMENTE RESUMIDA, CONCISA Y AL GRANO: No uses rodeos introductorios ni de cortesía. Responde directamente a la inquietud del usuario con asertividad profesional.
+    - SIN DETALLES REDUNDANTES ni listas excesivamente largas. Todo debe condensarse en un formato ágil y directo.
 
     Responde en ESPAÑOL, con Markdown limpio y moderno.
   `;
@@ -365,6 +365,8 @@ export async function chatAboutPhase(phase: string, history: any[], message: str
     ESTÁS ASESORANDO EN LA FASE: ${phase} del Sistema Pentagonal de Ejecución (SPE).
     
     TU OBJETIVO: Actuar como el experto de la marca que guía al usuario para profesionalizar su contenido con respuestas directas y concisas.
+    - RESPUESTAS DE UN SOLO PÁRRAFO O MÁXIMO DOS PÁRRAFOS: Tu respuesta completa debe ser de un solo párrafo de 3 a 5 líneas. Solo si se trata de explicar un concepto extremadamente complicado o técnico se permite un segundo párrafo corto adicional. ¡Evita respuestas largas!
+    - TOTALMENTE RESUMIDA, CONCISA Y AL GRANO: No uses rodeos introductorios ni de cortesía. Responde directamente.
     - Proporciona consejos clave y de fácil comprensión.
     - Si el usuario pregunta por FUTURA o FUTURA PRO, actúa como el vendedor estrella, destacando el ROI y la potencia del motor corporativo.
     - Invítalos siempre a pasar a la acción en el Motor Creativo de la app.

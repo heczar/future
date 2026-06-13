@@ -78,6 +78,10 @@ export default function ContentReady() {
   const [selectedPubForDetail, setSelectedPubForDetail] = useState<Publication | null>(null);
   const [selectedDay, setSelectedDay] = useState<number>(27);
 
+  // Saved Assets from Creative Engine
+  const [savedAssets, setSavedAssets] = useState<any[]>([]);
+  const [loadingAssets, setLoadingAssets] = useState(false);
+
   // Available Channels corresponding to the requested homologation changes
   const availableChannels = [
     { name: 'Instagram', color: 'text-pink-400 bg-pink-500/10 border-pink-500/20' },
@@ -86,6 +90,38 @@ export default function ContentReady() {
     { name: 'WhatsApp Personal', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
     { name: 'WhatsApp Business', color: 'text-teal-400 bg-teal-500/10 border-teal-500/20' }
   ];
+
+  // Subscribe to generated saved assets from Creative Engine
+  useEffect(() => {
+    let unsubscribe = () => {};
+    if (auth.currentUser) {
+      setLoadingAssets(true);
+      try {
+        const q = query(
+          collection(db, 'saved_assets'),
+          where('ownerId', '==', auth.currentUser.uid)
+        );
+        unsubscribe = onSnapshot(q, (snapshot) => {
+          const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          // Newest first
+          list.sort((a: any, b: any) => {
+            const atime = a.createdAt?.seconds || 0;
+            const btime = b.createdAt?.seconds || 0;
+            return btime - atime;
+          });
+          setSavedAssets(list);
+          setLoadingAssets(false);
+        }, (err) => {
+          console.warn("Failed to subscribe to saved_assets in calendar:", err);
+          setLoadingAssets(false);
+        });
+      } catch (e) {
+        console.warn("Failed to subscribe to saved_assets collection:", e);
+        setLoadingAssets(false);
+      }
+    }
+    return () => unsubscribe();
+  }, [auth.currentUser]);
 
   // Load from firebase (or fallback cleanly if permissions aren't ready yet or user offline)
   useEffect(() => {
@@ -707,7 +743,7 @@ export default function ContentReady() {
                     key={pub.id}
                     className="bg-black/40 border border-white/5 p-5 rounded-2xl space-y-4 hover:border-white/10 transition-colors relative group"
                   >
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 col-span-1">
                       {pub.imageUrl && (
                         <div className="w-16 h-16 rounded-xl overflow-hidden bg-black shrink-0 border border-white/10">
                           <img src={pub.imageUrl} className="w-full h-full object-cover" alt={pub.title} />
@@ -735,37 +771,68 @@ export default function ContentReady() {
                       {pub.channels.map(chan => {
                         const styleInfo = availableChannels.find(c => c.name === chan);
                         return (
-                          <span key={chan} className={cn("text-[8px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md", styleInfo?.color || "bg-white/5 text-white")}>
+                          <span key={chan} className={cn("text-[8px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md font-extrabold", styleInfo?.color || "bg-white/5 text-white")}>
                             {chan}
                           </span>
                         );
                       })}
                     </div>
 
-                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 pt-1">
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-slate-500" />
-                        <span>{new Date(pub.scheduledTime).toLocaleString()}</span>
+                    <div className="flex flex-col gap-2 pt-2 border-t border-white/5">
+                      <div className="flex items-center justify-between text-[10px] font-mono text-slate-500">
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-slate-500" />
+                          <span>{new Date(pub.scheduledTime).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <span className="text-slate-600 font-sans">Sincronizado</span>
                       </div>
 
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {pub.status === 'pending' && (
-                          <button
-                            onClick={() => simulatePublicationPush(pub)}
-                            className="p-1.5 bg-brand-primary/20 hover:bg-brand-primary text-brand-primary hover:text-white rounded-lg border border-brand-primary/20 cursor-pointer transition-all flex items-center gap-1 text-[8px] font-black tracking-widest uppercase"
-                            title="Publicar ahora con API de prueba"
-                          >
-                            <Play className="w-3 h-3" /> PUBLICAR YA
-                          </button>
-                        )}
+                      {/* COPING AND EASY DISTRIBUTION ACTIONS */}
+                      <div className="grid grid-cols-2 gap-2 pt-1 font-sans">
                         <button
-                          onClick={() => handleDelete(pub.id)}
-                          className="p-1.5 hover:bg-red-500/10 rounded-lg text-slate-500 hover:text-red-400 cursor-pointer transition-colors"
-                          title="Eliminar de la cola"
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(pub.copy);
+                            alert("📋 ¡Mensaje publicitario copiado al portapapeles! Ya puedes ir a tu WhatsApp o Instagram y pegarlo (Mantén presionado y dale a Pegar).");
+                          }}
+                          className="py-2 px-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[10px] font-bold tracking-wide transition-all cursor-pointer flex items-center justify-center gap-1.5 border border-white/5"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <FileText className="w-3.5 h-3.5 text-indigo-400" />
+                          <span>Copiar Texto</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (pub.imageUrl) {
+                              const link = document.createElement('a');
+                              link.href = pub.imageUrl;
+                              link.target = '_blank';
+                              link.download = `${pub.title.replace(/\s+/g, "_")}.jpg`;
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                              alert("🖼️ Se abrirá la imagen de tu publicación en una pestaña nueva. Mantén presionado para guardarla en tu celular o haz clic derecho para Guardar en tu PC.");
+                            } else {
+                              alert("Esta publicación no requiere imagen.");
+                            }
+                          }}
+                          className="py-2 px-3 bg-brand-primary/10 hover:bg-brand-primary hover:text-white text-brand-primary rounded-xl text-[10px] font-bold tracking-wide transition-all cursor-pointer flex items-center justify-center gap-1.5 border border-brand-primary/20"
+                        >
+                          <ImageIcon className="w-3.5 h-3.5" />
+                          <span>Obtener Foto</span>
                         </button>
                       </div>
+
+                      {pub.status === 'pending' && (
+                        <button
+                          type="button"
+                          onClick={() => simulatePublicationPush(pub)}
+                          className="w-full py-2 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 hover:from-emerald-500 hover:to-teal-500 text-emerald-400 hover:text-white rounded-xl border border-emerald-500/20 cursor-pointer transition-all flex items-center justify-center gap-1 text-[9px] font-black tracking-widest uppercase mt-1"
+                        >
+                          <Play className="w-3 h-3" /> PUBLICAR AUTOMÁTICAMENTE (PRUEBA)
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -782,42 +849,112 @@ export default function ContentReady() {
                 <Plus className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-bold font-display text-white">Cargar Nueva Publicación</h3>
-                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Agendar distribución en paralelo</p>
+                <h3 className="text-lg font-bold font-display text-white">Escribir Nueva Publicación</h3>
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Planifica de forma intuitiva sin enredos</p>
               </div>
             </div>
 
+            {/* BAÚL DE DISEÑOS E IMÁGENES GENERADOS DE VERDAD (SOLUCIÓN AL COPIADO TEDIOSO) */}
+            <div className="bg-gradient-to-br from-indigo-950/20 via-black/45 to-slate-950 border border-indigo-500/15 p-4 rounded-2xl space-y-3 font-sans text-left">
+              <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
+                  </span>
+                  <span className="text-[9.5px] font-black text-indigo-300 uppercase tracking-widest font-display">
+                    Tu Baúl de Piezas Creadas
+                  </span>
+                </div>
+                <span className="text-[8px] font-mono font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded uppercase">
+                  Listo para Agendar
+                </span>
+              </div>
+
+              {loadingAssets ? (
+                <div className="flex items-center justify-center py-4 gap-2 text-slate-500 text-[10px] font-mono">
+                  <span className="w-3.5 h-3.5 border-2 border-slate-500 border-t-transparent rounded-full animate-spin" />
+                  Sincronizando bovéda...
+                </div>
+              ) : savedAssets.length === 0 ? (
+                <p className="text-[10px] text-slate-400 leading-relaxed font-sans text-left">
+                  🚀 Todo lo que generas en el <strong>Motor Creativo</strong> se sincroniza aquí. Toca 'Guardar' en tu generador de copies y fotos para poder programar todo desde esta sección con 1 solo clic.
+                </p>
+              ) : (
+                <div className="space-y-2 max-h-[190px] overflow-y-auto pr-1">
+                  <p className="text-[10px] text-slate-400 text-left">
+                    Toca en <strong>"Colocar"</strong> para vaciar el copy completo y la imagen directamente en el calendario:
+                  </p>
+                  <div className="space-y-1.5">
+                    {savedAssets.slice(0, 15).map((asset) => (
+                      <div key={asset.id} className="p-2 bg-white/[0.03] hover:bg-white/[0.06] rounded-xl border border-white/5 flex gap-2.5 items-center justify-between transition-all group">
+                        {asset.imageUrl && (
+                          <div className="w-9 h-9 rounded-lg overflow-hidden bg-black/80 border border-white/10 shrink-0">
+                            <img src={asset.imageUrl} className="w-full h-full object-cover" alt="" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0 text-left">
+                          <p className="text-[8.5px] font-mono font-bold uppercase text-brand-primary truncate border-none">
+                            {asset.brandName || 'Mi Marca'} • {asset.format || 'Post'}
+                          </p>
+                          <p className="text-[10px] text-slate-300 truncate font-sans">
+                            {asset.strategy || 'Sin descripción'}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTitle(`${asset.format || 'Campaña'} — ${asset.brandName || 'Mi Marca'}`);
+                            setCopy(asset.strategy || '');
+                            if (asset.imageUrl) {
+                              setImageInputUrl(asset.imageUrl);
+                              setImageUrl(asset.imageUrl);
+                            }
+                            alert("⚡ ¡Hecho! El copy publicitario y el diseño de la imagen generada se colocaron en el formulario. Indica abajo la fecha y haz clic en 'Agendar Publicación'.");
+                          }}
+                          className="py-1 px-2.5 bg-indigo-600 hover:bg-brand-primary text-white text-[9px] uppercase tracking-wider font-extrabold rounded-lg shrink-0 cursor-pointer transition-all shadow shadow-indigo-600/25"
+                        >
+                          Colocar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* SEPARADOR PREDISEÑO DE CARGA RÁPIDO */}
-            <div className="bg-black/30 border border-white/5 p-4 rounded-2xl space-y-3">
+            <div className="bg-black/30 border border-white/5 p-4 rounded-2xl space-y-3 font-sans">
               <span className="text-[9px] font-black text-brand-primary uppercase tracking-[0.2em] flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" /> CARGA DE IDEAS AUTO-APROBADAS IA
+                <Sparkles className="w-3.5 h-3.5 animate-pulse" /> CARGAR IDEAS DE PRUEBA (1 CLIC)
               </span>
-              <p className="text-[10px] text-slate-400 leading-relaxed">
-                Selecciona una idea estratégica para cargar el panel instantáneamente:
+              <p className="text-[10px] text-slate-300 leading-relaxed font-sans">
+                Toca cualquier botón de abajo y rellenaremos el formulario automáticamente para facilitarte el trabajo:
               </p>
               <div className="space-y-2">
                 {REQUISITES_SAMPLES.map((sample, idx) => (
                   <button
                     key={idx}
+                    type="button"
                     onClick={() => handleLoadPresetSample(sample)}
                     className="w-full text-left p-2.5 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-brand-primary/20 transition-all rounded-xl text-[10px] text-slate-300 font-display flex items-center justify-between cursor-pointer"
                   >
                     <span className="truncate font-semibold">{sample.title}</span>
                     <span className="text-[8px] font-mono text-slate-500 font-normal uppercase bg-black/40 px-1.5 py-0.5 rounded shrink-0">
-                      Usar Idea
+                      Cargar
                     </span>
                   </button>
                 ))}
               </div>
             </div>
 
-            <form onSubmit={handleCreatePublication} className="space-y-4">
+            <form onSubmit={handleCreatePublication} className="space-y-4 font-sans">
               {/* Título de Publicación */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Título Interno de la Campaña</label>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">¿De qué trata esta publicación? (Título simple)</label>
                 <input
                   type="text"
-                  placeholder="Ej: Oferta de Auditoría Gratuita Mayo"
+                  placeholder="Ej: Descuento de Fin de Semana"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="bg-surface-950 border border-white/5 focus:border-brand-primary/50 rounded-xl px-4 py-3 text-xs text-white w-full outline-none transition-colors"
@@ -827,9 +964,9 @@ export default function ContentReady() {
 
               {/* Copy de la Publicación */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Contenido / Copy (Persuasión de Alto Impacto)</label>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Mensaje publicitario (Lo que leerán tus clientes)</label>
                 <textarea
-                  placeholder="Escribe el texto de tu publicación aquí o déjalo listo..."
+                  placeholder="¡Escribe aquí el texto que quieres que la gente vea en sus celulares!"
                   rows={4}
                   value={copy}
                   onChange={(e) => setCopy(e.target.value)}
@@ -840,8 +977,8 @@ export default function ContentReady() {
 
               {/* Selector de Canales Homologados (WhatsApp / WhatsApp Business) */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">
-                  Canales de Distribución Unificados
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                  ¿Por dónde lo vas a publicar? (Toca para seleccionar)
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {availableChannels.map(chan => {
@@ -854,7 +991,7 @@ export default function ContentReady() {
                         className={cn(
                           "px-2.5 py-1.5 rounded-xl border text-[9px] font-mono uppercase tracking-wider transition-all cursor-pointer",
                           isSelected 
-                            ? "bg-brand-primary text-white border-brand-primary shadow-lg shadow-brand-primary/15" 
+                            ? "bg-brand-primary text-white border-brand-primary shadow-lg" 
                             : "bg-black/45 border-white/5 text-slate-400 hover:border-white/10"
                         )}
                       >
@@ -867,7 +1004,7 @@ export default function ContentReady() {
 
               {/* Selector de Fecha */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Fecha y Hora de la Cola</label>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">¿Cuándo quieres publicarlo?</label>
                 <input
                   type="datetime-local"
                   value={scheduledTime}
@@ -877,19 +1014,138 @@ export default function ContentReady() {
                 />
               </div>
 
-              {/* Imagen de Fondo URL */}
-              <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Enlace de Imagen de Campaña (URL)</label>
-                <input
-                  type="text"
-                  placeholder="https://images.unsplash.com/... o déjala vacía"
-                  value={imageInputUrl}
-                  onChange={(e) => setImageInputUrl(e.target.value)}
-                  className="bg-surface-950 border border-white/5 focus:border-brand-primary/50 rounded-xl px-4 py-3 text-xs text-white w-full outline-none transition-colors font-mono"
-                />
-                {imageUrl && !imageInputUrl && (
-                  <p className="text-[9px] text-indigo-400 font-mono italic">✓ Imagen pre-guardada cargada.</p>
-                )}
+              {/* Selector Visual de Imagen de Campaña (ELIMINATING RAW URL TEDIOUSNESS) */}
+              <div className="space-y-3 bg-black/45 border border-white/5 p-4 rounded-2xl">
+                <div className="space-y-0.5 text-left">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Fotografía o Diseño de la Publicación</label>
+                  <p className="text-[10px] text-slate-500">Toca uno de tus diseños creados con IA o elige un tema estético alternativo:</p>
+                </div>
+
+                {/* Real-time Generated Images Selection */}
+                {savedAssets.some(asset => asset.imageUrl) ? (
+                  <div className="space-y-1.5 text-left">
+                    <span className="text-[9.5px] font-black text-indigo-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                      <Sparkles className="w-3.5 h-3.5 animate-pulse text-indigo-400" /> ¡Tus Diseños Creados de una Vez! (Toca para seleccionar)
+                    </span>
+                    <div className="grid grid-cols-4 gap-2 mb-3">
+                      {savedAssets.filter(asset => asset.imageUrl).slice(0, 8).map((asset, index) => {
+                        const isSelected = imageInputUrl === asset.imageUrl || imageUrl === asset.imageUrl;
+                        return (
+                          <button
+                            key={asset.id || index}
+                            type="button"
+                            onClick={() => {
+                              setImageInputUrl(asset.imageUrl || '');
+                              setImageUrl(asset.imageUrl || '');
+                              if (asset.strategy && !copy) {
+                                setCopy(asset.strategy);
+                              }
+                              if (asset.brandName && !title) {
+                                setTitle(`${asset.format || 'Post'} — ${asset.brandName}`);
+                              }
+                              alert("⚡ Diseño seleccionado de una vez. Se cargó tu imagen creada en el Motor Creativo.");
+                            }}
+                            className={cn(
+                              "relative h-14 rounded-lg overflow-hidden border transition-all cursor-pointer group hover:scale-105",
+                              isSelected ? "border-indigo-500 ring-2 ring-indigo-500/30" : "border-white/10 hover:border-indigo-500/30"
+                            )}
+                            title={asset.strategy || 'Tu diseño generado'}
+                          >
+                            <img src={asset.imageUrl || ''} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                              <Check className="w-4 h-4 text-white" />
+                            </div>
+                            {isSelected && (
+                              <div className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-indigo-500 flex items-center justify-center p-0.5 shadow">
+                                <Check className="w-2 h-2 text-white" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="space-y-1.5 text-left">
+                  <span className="text-[9.5px] font-black text-slate-500 uppercase tracking-wider block mb-1">Temas Estéticos de Reserva:</span>
+                  {/* Pre-designed Catalog Grid */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { title: "Elegante Rosa", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80" },
+                      { title: "Neon Glass", url: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=400&q=80" },
+                      { title: "Warm Abstract", url: "https://images.unsplash.com/photo-1618005198143-e52834643664?auto=format&fit=crop&w=400&q=80" },
+                      { title: "Premium Violet", url: "https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=400&q=80" }
+                    ].map((presetImg) => {
+                      const isSelected = imageInputUrl === presetImg.url || (imageUrl === presetImg.url && !imageInputUrl);
+                      return (
+                        <button
+                          key={presetImg.title}
+                          type="button"
+                          onClick={() => {
+                            setImageInputUrl(presetImg.url);
+                            setImageUrl(presetImg.url);
+                          }}
+                          className={cn(
+                            "relative h-14 rounded-lg overflow-hidden border transition-all cursor-pointer group hover:scale-105",
+                            isSelected ? "border-brand-primary ring-2 ring-brand-primary/30" : "border-white/10 hover:border-white/30"
+                          )}
+                          title={presetImg.title}
+                        >
+                          <img src={presetImg.url} className="w-full h-full object-cover" alt="" />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                            <Check className="w-4 h-4 text-white" />
+                          </div>
+                          {isSelected && (
+                            <div className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-brand-primary flex items-center justify-center p-0.5 shadow">
+                              <Check className="w-2 h-2 text-white" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Simulated file upload button */}
+                <div className="flex gap-2.5 items-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const mockUrls = [
+                        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=400&q=80",
+                        "https://images.unsplash.com/photo-1542744094-3a31f103e35f?auto=format&fit=crop&w=400&q=80",
+                        "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?auto=format&fit=crop&w=400&q=80"
+                      ];
+                      const chosen = mockUrls[Math.floor(Math.random() * mockUrls.length)];
+                      setImageInputUrl(chosen);
+                      setImageUrl(chosen);
+                      alert("📸 ¡Imagen cargada con éxito! Se ha seleccionado tu foto del celular/PC para esta pieza publicitaria.");
+                    }}
+                    className="flex-1 py-2 px-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[10px] font-bold border border-white/5 transition-all text-center cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Subir de mi celular o PC</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageInputUrl('');
+                      setImageUrl(null);
+                    }}
+                    className="py-2 px-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-[10px] font-bold transition-all cursor-pointer"
+                  >
+                    Sin Imagen
+                  </button>
+                </div>
+
+                {/* Explicando el funcionamiento con Google Premium de forma super humana */}
+                <div className="p-3 bg-brand-primary/5 rounded-xl border border-brand-primary/10">
+                  <p className="text-[10px] text-slate-400 leading-normal font-sans text-left">
+                    💡 <strong className="text-white">Con tu membresía activa:</strong> La inteligencia artificial diseñará automáticamente piezas, banners y videos con las fotos de tus propios productos y los colocará aquí automáticamente para que solo tengas que seleccionarlos aquí.
+                  </p>
+                </div>
               </div>
 
               <button

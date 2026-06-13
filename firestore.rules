@@ -68,5 +68,13 @@ service cloud.firestore {
                data.ownerId == request.auth.uid;
       }
     }
+
+    // 7. PUBLICATIONS (Calendar / Content Ready)
+    match /publications/{pubId} {
+      allow get, delete: if isOwner(existing().ownerId);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isOwner(incoming().ownerId);
+      allow update: if isOwner(existing().ownerId) && incoming().ownerId == existing().ownerId;
+    }
   }
 }

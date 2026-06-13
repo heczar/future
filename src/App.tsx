@@ -78,6 +78,9 @@ export default function App() {
 function AppContent() {
   const { user, signIn } = useAuth();
   const [activeTab, setActiveTab] = useState('');
+  const [isSimplifiedMode, setIsSimplifiedMode] = useState(() => {
+    return localStorage.getItem('futura_simplified_mode') === 'true';
+  });
   const [selectedPhase, setSelectedPhase] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -120,9 +123,17 @@ function AppContent() {
 
   // Scroll to top when tab changes
   React.useEffect(() => {
-    if (mainRef.current) {
-      mainRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    const scrollToTop = () => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTo({ top: 0 });
+      document.body.scrollTo({ top: 0 });
+      if (mainRef.current) {
+        mainRef.current.scrollTo({ top: 0 });
+      }
+    };
+    scrollToTop();
+    const t = setTimeout(scrollToTop, 150);
+    return () => clearTimeout(t);
   }, [activeTab]);
 
   // Auto-scroll Consultoría
@@ -398,6 +409,7 @@ function AppContent() {
             onUpdateProfile={handleUpdateProfile}
             projectsList={projectsList}
             setActiveTab={setActiveTab}
+            isSimplifiedMode={isSimplifiedMode}
             onTriggerConsult={(text) => {
               setDashboardPrompt(text);
               handleHubConsult(text);
@@ -456,78 +468,78 @@ function AppContent() {
               </div>
             </section>
 
-            {/* 2. HUB DE OPERACIÓN INTUITIVO: GUÍA EN 3 PASOS PARA DISMINUIR TEDIOSIDAD */}
-            <section className="mb-16 text-left">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div>
-                  <span className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-widest block">OPERACIÓN OPTIMIZADA</span>
-                  <h3 className="text-2xl font-display font-bold text-white tracking-tight">¿Cómo operar FUTURA de forma rápida y sin complicaciones?</h3>
-                  <p className="text-xs text-slate-500 mt-1">Sigue el flujo intuitivo para crear, entrenar y automatizar tus publicaciones en minutos.</p>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Paso 1 */}
-                <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-brand-primary/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[220px] transition-all group hover:bg-surface-950/60">
-                  <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors">01</div>
-                  <div className="space-y-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-                      <Layers className="w-5 h-5 animate-pulse" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 1: Configura ADN</h4>
-                      <p className="text-xs text-slate-400 leading-relaxed mt-1">Sube tus logotipos, define el tono de voz y la misión en tu <b>Baúl de Marca</b>. Puedes manejar múltiples identidades.</p>
-                    </div>
+              <section className="mb-16 text-left">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                  <div>
+                    <span className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-widest block">OPERACIÓN OPTIMIZADA</span>
+                    <h3 className="text-2xl font-display font-bold text-white tracking-tight">¿Cómo operar FUTURA de forma rápida y sin complicaciones?</h3>
+                    <p className="text-xs text-slate-500 mt-1">Sigue el flujo intuitivo para crear, entrenar y automatizar tus publicaciones en minutos.</p>
                   </div>
-                  <button 
-                    onClick={() => setActiveTab('vault')}
-                    className="mt-4 w-full py-2.5 bg-purple-500/10 hover:bg-purple-500 text-purple-400 hover:text-white rounded-xl border border-purple-500/20 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    Abrir Baúl de Marca <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
                 </div>
 
-                {/* Paso 2 */}
-                <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-brand-primary/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[220px] transition-all group hover:bg-surface-950/60">
-                  <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors">02</div>
-                  <div className="space-y-3">
-                    <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
-                      <Zap className="w-5 h-5 animate-pulse" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Paso 1 */}
+                  <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-brand-primary/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[220px] transition-all group hover:bg-surface-950/60">
+                    <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors">01</div>
+                    <div className="space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                        <Layers className="w-5 h-5 animate-pulse" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 1: Configura ADN</h4>
+                        <p className="text-xs text-slate-400 leading-relaxed mt-1">Sube tus logotipos, define el tono de voz y la misión en tu <b>Baúl de Marca</b>. Puedes manejar múltiples identidades.</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 2: Genera Contenido</h4>
-                      <p className="text-xs text-slate-400 leading-relaxed mt-1">Abre el <b>Motor Creativo</b> para generar imágenes o copies publicitarios alineados instantáneamente con el ADN de tu marca.</p>
-                    </div>
+                    <button 
+                      onClick={() => setActiveTab('vault')}
+                      className="mt-4 w-full py-2.5 bg-purple-500/10 hover:bg-purple-500 text-purple-400 hover:text-white rounded-xl border border-purple-500/20 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      Abrir Baúl de Marca <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => setActiveTab('engine')}
-                    className="mt-4 w-full py-2.5 bg-brand-primary/10 hover:bg-brand-primary text-brand-primary hover:text-white rounded-xl border border-brand-primary/20 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    Lanzar Motor Creativo <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
 
-                {/* Paso 3 */}
-                <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-brand-primary/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[220px] transition-all group hover:bg-surface-950/60">
-                  <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors">03</div>
-                  <div className="space-y-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                      <Calendar className="w-5 h-5 animate-pulse" />
+                  {/* Paso 2 */}
+                  <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-brand-primary/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[220px] transition-all group hover:bg-surface-950/60">
+                    <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors">02</div>
+                    <div className="space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
+                        <Zap className="w-5 h-5 animate-pulse" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 2: Genera Contenido</h4>
+                        <p className="text-xs text-slate-400 leading-relaxed mt-1">Abre el <b>Motor Creativo</b> para generar imágenes o copies publicitarios alineados instantáneamente con el ADN de tu marca.</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 3: Sincroniza</h4>
-                      <p className="text-xs text-slate-400 leading-relaxed mt-1">Revisa el <b>Contenido Listo</b> y tu agenda integrada para inyectar tus posts al aire automáticamente o programar alertas.</p>
-                    </div>
+                    <button 
+                      onClick={() => setActiveTab('engine')}
+                      className="mt-4 w-full py-2.5 bg-brand-primary/10 hover:bg-brand-primary text-brand-primary hover:text-white rounded-xl border border-brand-primary/20 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      Lanzar Motor Creativo <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => setActiveTab('content')}
-                    className="mt-4 w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white rounded-xl border border-emerald-500/20 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    Ver Contenido Listo <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+
+                  {/* Paso 3 */}
+                  <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-brand-primary/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[220px] transition-all group hover:bg-surface-950/60">
+                    <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors">03</div>
+                    <div className="space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                        <Calendar className="w-5 h-5 animate-pulse" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 3: Sincroniza</h4>
+                        <p className="text-xs text-slate-400 leading-relaxed mt-1">Revisa el <b>Contenido Listo</b> y tu agenda integrada para inyectar tus posts al aire automáticamente o programar alertas.</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setActiveTab('content')}
+                      className="mt-4 w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white rounded-xl border border-emerald-500/20 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      Ver Contenido Listo <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </section>
+              </section>
 
             {/* SECCIÓN PANTALLA ANTERIOR */}
             <section className="mb-20 space-y-16">
@@ -1097,10 +1109,12 @@ function AppContent() {
                 </div>
               </div>
             </div>
-            <div className="hidden md:flex gap-4">
-              <div className="px-5 py-2.5 glass-panel rounded-2xl flex items-center gap-3 border-brand-primary/10">
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="hidden lg:flex px-5 py-2.5 glass-panel rounded-2xl items-center gap-3 border-brand-primary/10">
                 <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
-                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Protocolo SPE: {activeTab === 'admin' ? 'AUDITORÍA' : 'ACTIVO'}</span>
+                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+                  Protocolo SPE: {activeTab === 'admin' ? 'AUDITORÍA' : 'ACTIVO'}
+                </span>
               </div>
             </div>
           </div>

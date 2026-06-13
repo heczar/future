@@ -45,6 +45,7 @@ interface MasterControlEpicenterProps {
   projectsList: any[];
   setActiveTab: (tab: string) => void;
   onTriggerConsult: (text: string) => void;
+  isSimplifiedMode?: boolean;
 }
 
 export default function MasterControlEpicenter({ 
@@ -52,7 +53,8 @@ export default function MasterControlEpicenter({
   onUpdateProfile, 
   projectsList,
   setActiveTab,
-  onTriggerConsult
+  onTriggerConsult,
+  isSimplifiedMode
 }: MasterControlEpicenterProps) {
   
   // Active page / brand managed in control center
@@ -63,12 +65,12 @@ export default function MasterControlEpicenter({
   const fallbackBrands = [
     {
       id: "fb-1",
-      name: "Gabinete de Innovación",
-      description: "Servicios estratégicos digitales y consultoría de automatización avanzada.",
-      industry: "Tecnología & IA",
+      name: "Estilo & Estrategia",
+      description: "Servicios creativos digitales y consultoría de diseño para marcas en crecimiento.",
+      industry: "Consultoría & Diseño",
       primaryColor: "#FF3366",
       secondaryColor: "#8B5CF6",
-      tone: "Cercano, Brutalmente Directo y Profesional",
+      tone: "Profesional, Claro y Empático",
       logos: ["https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80"]
     },
     {
@@ -401,20 +403,24 @@ export default function MasterControlEpicenter({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-white text-lg">Asistente de FUTURA</h3>
+                    <h3 className="font-bold text-white text-lg">
+                      {isSimplifiedMode ? "Tu Asistente Personal de Marca" : "Asistente de FUTURA"}
+                    </h3>
                     <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 text-[8px] font-black uppercase tracking-widest rounded">
-                      Enlace del Baúl
+                      {isSimplifiedMode ? "Tu Marca Seleccionada" : "Enlace del Baúl"}
                     </span>
                   </div>
                   <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">
-                    Auditoría de Marcas y Sincronizaciones Operativas
+                    {isSimplifiedMode ? "Tu guía de negocio fácil de entender para todas las edades" : "Auditoría de Marcas y Sincronizaciones Operativas"}
                   </p>
                 </div>
               </div>
 
               {/* BRAND / PAGE SELECTOR DROPDOWN */}
               <div className="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-xl border border-white/5">
-                <span className="text-[9px] text-slate-500 font-mono uppercase">Enlace Activo:</span>
+                <span className="text-[9px] text-slate-500 font-mono uppercase">
+                  {isSimplifiedMode ? "Marca actual:" : "Enlace Activo:"}
+                </span>
                 <select 
                   value={activeBrandIndex} 
                   onChange={(e) => {
@@ -457,9 +463,13 @@ export default function MasterControlEpicenter({
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed font-sans">{selectedBrand.description}</p>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-mono text-slate-500">
-                  <span>TONO EN BAÚL: <strong className="text-slate-300">{selectedBrand.tone || "Directo & Clínico"}</strong></span>
+                  <span>
+                    {isSimplifiedMode ? "ESTILO DE VOZ:" : "TONO EN BAÚL:"} <strong className="text-slate-300">{selectedBrand.tone || "Directo & Clínico"}</strong>
+                  </span>
                   <span>•</span>
-                  <span>ESTADO: <strong className="text-indigo-400">Sincronizado</strong></span>
+                  <span>
+                    {isSimplifiedMode ? "CONEXIÓN:" : "ESTADO:"} <strong className="text-indigo-400">{isSimplifiedMode ? "Listo para Usar" : "Sincronizado"}</strong>
+                  </span>
                 </div>
               </div>
             </div>
@@ -475,12 +485,16 @@ export default function MasterControlEpicenter({
                   <AlertTriangle className="w-5 h-5 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-lg">Alertas y Notificaciones de Vigilancia</h3>
-                  <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Detección operativa en tus canales por el Asistente</p>
+                  <h3 className="font-bold text-white text-lg">
+                    {isSimplifiedMode ? "Consejos y Tareas recomendadas hoy" : "Alertas y Notificaciones de Vigilancia"}
+                  </h3>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">
+                    {isSimplifiedMode ? "Acciones sencillas sugeridas por el asistente de forma cómoda" : "Detección operativa en tus canales por el Asistente"}
+                  </p>
                 </div>
               </div>
               <span className="text-[9px] font-mono text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-bold">
-                AUDITORÍA ACTIVA
+                {isSimplifiedMode ? "TODO AL DÍA" : "AUDITORÍA ACTIVA"}
               </span>
             </div>
 

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Send, Image as ImageIcon, Zap, Loader2, Briefcase, Camera, Pencil, Square, Trash2, Download, Check, Eraser, Undo, Type, Layers, ChevronDown, ShieldCheck, Bot, User, Maximize2, Minimize2, Copy, Plus, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Underline, PenTool } from 'lucide-react';
-import { generateContentStrategy, generateCreativeImage, generateSocialCopy, refineSocialCopy } from '../services/geminiService';
+import { generateContentStrategy, generateCreativeImage, generateSocialCopy, refineSocialCopy, chatWithAdvisor } from '../services/geminiService';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { db, auth } from '../lib/firebase';
@@ -125,6 +125,53 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
   const [showBriefingScrollDown, setShowBriefingScrollDown] = useState(false);
   const isBriefingNearBottom = React.useRef(true);
 
+  // Conversa con Futura States
+  const [futuraMessages, setFuturaMessages] = useState<{ role: 'user' | 'model'; text: string }[]>(() => {
+    return [
+      {
+        role: 'model',
+        text: '¡Hola! Escribe aquí si tienes inquietudes con respecto al enfoque de tu contenido, ganchos persuasivos, o quieres solicitar consejos sobre la mejor de las opciones para vender hoy. ¡Asesórate sobre la mejor manera de generar tu contenido aquí y hablemos en tiempo real mientras configuras tus opciones de la izquierda!'
+      }
+    ];
+  });
+  const [futuraInput, setFuturaInput] = useState('');
+  const [isFuturaLoading, setIsFuturaLoading] = useState(false);
+  const futuraChatContainerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Scroll only the internal chat container so it doesn't jump the main webpage scroll position
+    if (futuraChatContainerRef.current) {
+      futuraChatContainerRef.current.scrollTop = futuraChatContainerRef.current.scrollHeight;
+    }
+  }, [futuraMessages]);
+
+  const handleFuturaChat = async (presetText?: string) => {
+    const textToSend = (presetText || futuraInput).trim();
+    if (!textToSend || isFuturaLoading) return;
+
+    setFuturaMessages(prev => [...prev, { role: 'user', text: textToSend }]);
+    setFuturaInput('');
+    setIsFuturaLoading(true);
+
+    try {
+      const activeBrandInfo = activeBrand 
+        ? `MARCA ACTIVA CONECTADA: ${activeBrand.name}. DESCRIPCIÓN: ${activeBrand.description}. TONO DE VOZ DEL BAÚL: ${activeBrand.brandGuidelines?.tone || 'Profesional / SPE'}.` 
+        : 'No hay marca seleccionada aún o no se han cargado activos en la Bóveda.';
+      
+      const responseText = await chatWithAdvisor(
+        textToSend,
+        futuraMessages,
+        `CONTEXTO DE TRABAJO (MOTOR CREATIVO): El usuario está rellenando las opciones del Motor Creativo y necesita optimizar su enfoque de publicación. El usuario está buscando asesorarse para generar su contenido aquí de la mejor manera. ${activeBrandInfo}`
+      );
+      setFuturaMessages(prev => [...prev, { role: 'model', text: responseText }]);
+    } catch (err) {
+      console.error("Futura Chat Error:", err);
+      setFuturaMessages(prev => [...prev, { role: 'model', text: '⚠️ He experimentado una interrupción en mi flujo neuronal. Por favor, vuelve a intentar tu pregunta o consejo.' }]);
+    } finally {
+      setIsFuturaLoading(false);
+    }
+  };
+
   const scrollBriefingToBottom = (behavior: ScrollBehavior = 'smooth') => {
     const trigger = () => {
       const container = briefingScrollRef.current;
@@ -196,6 +243,15 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
       if (onPromptConsumed) onPromptConsumed();
     }
   }, [initialPrompt]);
+
+  // Forzar que el scroll empiece desde el principio de la página al cambiar de modo
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' as any });
+    const mainEl = document.querySelector('main');
+    if (mainEl) {
+      mainEl.scrollTo({ top: 0, behavior: 'instant' as any });
+    }
+  }, [displayMode]);
 
   const startBriefing = () => {
     if (!prompt.trim()) return;
@@ -1527,94 +1583,220 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-3 space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block ml-1">Formato de Producción</label>
-                    <div className="relative">
-                      <select 
-                        value={selectedFormat}
-                        onChange={(e) => setSelectedFormat(e.target.value)}
-                        className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-brand-primary/50 cursor-pointer appearance-none outline-none"
-                      >
-                        <optgroup label="Optimizado Redes">
-                          <option value="Carrusel (1080x1350)">Carrusel de Valor (1080x1350)</option>
-                          <option value="Post (1080x1080)">Post Cuadrado (1080x1080)</option>
-                          <option value="Story (1080x1920)">Story / Reel Vertical (1080x1920)</option>
-                        </optgroup>
-                      </select>
-                      <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Left Side: Conversa con Futura Chat Advisor Area (lg:col-span-5) */}
+                <div className="lg:col-span-5 h-[430px] flex flex-col bg-gradient-to-b from-indigo-950/20 via-black/40 to-slate-950 border border-indigo-500/15 rounded-2xl relative overflow-hidden shadow-2xl">
+                  {/* Chat Header */}
+                  <div className="bg-black/60 border-b border-indigo-500/10 p-3.5 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-2.5 w-2.5 shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-primary font-sans"></span>
+                      </span>
+                      <div>
+                        <span className="text-xs font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-300 to-brand-primary uppercase tracking-wide block font-display">
+                          🔮 CONSULTORÍA ESTRATÉGICA FUTURA
+                        </span>
+                        <span className="text-[7.5px] font-mono text-indigo-300 uppercase tracking-widest block leading-none">
+                          TU CO-PILOTO DE VENTAS SPE EN TIEMPO REAL
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[8px] font-mono font-bold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded uppercase shrink-0">
+                      AI Advisor
+                    </span>
+                  </div>
+
+                  {/* Strategic Help Note */}
+                  <div className="bg-indigo-950/40 border-b border-indigo-500/10 px-3 py-2 text-[9.5px] text-slate-350 leading-normal font-sans text-left flex gap-1.5 items-start shrink-0">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-400 shrink-0 animate-pulse mt-0.5" />
+                    <div>
+                      <strong className="text-white">Asesórate para generar tu contenido aquí:</strong> Pregúntame sobre ganchos de venta, enfoques agresivos, dolores de tu cliente ideal o dinámicas de contenido.
                     </div>
                   </div>
 
-                  <div className="space-y-1.5 pt-2">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block ml-1">Referencia Visual Directa</label>
-                    <div 
-                      onClick={() => fileInputRef.current?.click()}
+                  {/* Chat Messages */}
+                  <div 
+                    ref={futuraChatContainerRef}
+                    className="flex-1 overflow-y-auto p-3.5 space-y-3 font-sans text-xs scrollbar-thin scrollbar-thumb-white/5 text-left"
+                  >
+                    {futuraMessages.map((msg, i) => (
+                      <div key={i} className={cn(
+                        "flex items-start gap-2.5 max-w-[90%]",
+                        msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'
+                      )}>
+                        <div className={cn(
+                          "w-5 h-5 rounded-md flex items-center justify-center shrink-0 border",
+                          msg.role === 'user' 
+                            ? 'bg-brand-primary/10 border-brand-primary/20 text-brand-primary' 
+                            : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300'
+                        )}>
+                          {msg.role === 'user' ? <User className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
+                        </div>
+                        <div className={cn(
+                          "px-3 py-2 rounded-xl text-[11px] leading-relaxed text-left",
+                          msg.role === 'user' 
+                            ? 'bg-brand-primary/15 text-slate-100 rounded-tr-none' 
+                            : 'bg-white/[0.03] border border-white/5 text-slate-300 rounded-tl-none'
+                        )}>
+                          <ReactMarkdown>{msg.text}</ReactMarkdown>
+                        </div>
+                      </div>
+                    ))}
+                    {isFuturaLoading && (
+                      <div className="flex items-center gap-2.5 max-w-[90%] mr-auto animate-pulse">
+                        <div className="w-5 h-5 rounded-md flex items-center justify-center bg-indigo-500/10 border border-indigo-500/20 text-indigo-300">
+                          <Bot className="w-3 h-3 shrink-0" />
+                        </div>
+                        <div className="px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl text-slate-300 text-[10px] font-mono flex items-center gap-1.5">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Futura está redactando su consejo...
+                        </div>
+                      </div>
+                    )}
+                    
+                    {futuraMessages.length === 1 && (
+                      <div className="pt-2 text-left">
+                        <p className="text-[8.5px] font-black tracking-widest text-indigo-300 uppercase mb-1.5">Sugerencias rápidas de consulta:</p>
+                        <div className="flex flex-col gap-1.5">
+                          {[
+                            "¿Cómo estructuro un gancho agresivo hoy?",
+                            "Dame 3 ideas de contenido de alto impacto",
+                            "¿Cómo enfocar mi copy para que resuelva dolores reales?"
+                          ].map((suggestion, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                handleFuturaChat(suggestion);
+                              }}
+                              className="text-[9.5px] text-left px-2.5 py-1.5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-indigo-500/20 rounded-lg text-slate-300 hover:text-white transition-all cursor-pointer"
+                            >
+                              💡 "{suggestion}"
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Chat Input */}
+                  <div className="p-2 border-t border-indigo-500/10 bg-black/40 flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      value={futuraInput}
+                      onChange={(e) => setFuturaInput(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          fileInputRef.current?.click();
+                        if (e.key === 'Enter') {
+                          handleFuturaChat();
                         }
                       }}
-                      tabIndex={0}
-                      role="button"
-                      className={cn(
-                        "w-full h-24 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer overflow-hidden p-2 group outline-none",
-                        adhocReference 
-                          ? "border-brand-primary/50 bg-brand-primary/5 text-white" 
-                          : "border-dashed border-white/10 hover:border-brand-primary/30 bg-surface-900/20 text-slate-500 hover:text-slate-300"
-                      )}
+                      placeholder="Consulta de contenidos o ganchos..."
+                      className="flex-1 bg-surface-900 border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleFuturaChat()}
+                      disabled={isFuturaLoading || !futuraInput.trim()}
+                      className="p-2 bg-indigo-600 hover:bg-brand-primary disabled:opacity-50 text-white rounded-xl cursor-pointer shrink-0 transition-colors"
+                      title="Enviar consulta"
                     >
-                      {adhocReference ? (
-                        <div className="relative w-full h-full">
-                          <img src={adhocReference} className="w-full h-full object-cover rounded-lg" alt="Ref" />
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                            <span className="text-[8px] font-black tracking-widest uppercase bg-brand-primary text-white px-2 py-1 rounded">Cambiar Imagen</span>
-                          </div>
-                          <button 
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setAdhocReference(null);
-                            }}
-                            className="absolute top-1.5 right-1.5 p-1 bg-black/80 hover:bg-black rounded-lg text-slate-400 hover:text-white"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ) : (
-                        <>
-                          <Camera className="w-5 h-5 text-slate-500 group-hover:text-brand-primary transition-colors" />
-                          <div className="text-center">
-                            <span className="text-[9px] font-black uppercase tracking-widest block">Subir Referencia</span>
-                            <span className="text-[7px] text-slate-600 block mt-0.5 font-bold uppercase">JPG, PNG (Alineador AI)</span>
-                          </div>
-                        </>
-                      )}
-                    </div>
+                      <Send className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
- 
-                <div className="lg:col-span-9 relative flex flex-col">
-                  <textarea
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Describe los objetivos de tu campaña, dolor del cliente o enfoques de venta que quieres materializar..."
-                    className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-5 md:p-6 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-brand-primary/50 transition-all min-h-[160px] resize-none"
-                  />
-                  <div className="flex flex-col md:flex-row md:items-center justify-between mt-4 gap-4">
-                    <p className="text-[10px] text-slate-500 italic max-w-sm">
-                      FUTURA procesará esta solicitud combinando el ADN del Brand Vault bajo el estandarte metodológico SPE.
-                    </p>
-                    <button
-                      onClick={startBriefing}
-                      disabled={loading || !prompt.trim()}
-                      className="w-full md:w-auto bg-brand-primary text-white px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-brand-primary/20 disabled:opacity-50"
-                    >
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                      {loading ? 'PROCESANDO STRATEGY...' : 'INICIAR CO-CREACIÓN'}
-                    </button>
+
+                {/* Right Side: Campaign Configuration Grid (lg:col-span-7) */}
+                <div className="lg:col-span-7 space-y-4">
+                  <div className="p-5 sm:p-6 bg-white/[0.02] border border-white/5 rounded-2xl space-y-4">
+                    <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.2em] flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5" /> Configurador de Carga
+                    </span>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block ml-1">Formato de Producción</label>
+                        <div className="relative">
+                          <select 
+                            value={selectedFormat}
+                            onChange={(e) => setSelectedFormat(e.target.value)}
+                            className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-brand-primary/50 cursor-pointer appearance-none outline-none"
+                          >
+                            <optgroup label="Optimizado Redes">
+                              <option value="Carrusel (1080x1350)">Carrusel de Valor (1080x1350)</option>
+                              <option value="Post (1080x1080)">Post Cuadrado (1080x1080)</option>
+                              <option value="Story (1080x1920)">Story / Reel Vertical (1080x1920)</option>
+                            </optgroup>
+                          </select>
+                          <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block ml-1">Referencia Visual Directa</label>
+                        <div 
+                          onClick={() => fileInputRef.current?.click()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              fileInputRef.current?.click();
+                            }
+                          }}
+                          tabIndex={0}
+                          role="button"
+                          className={cn(
+                            "w-full h-11 rounded-xl border flex items-center justify-center gap-2 transition-all cursor-pointer overflow-hidden px-3 group outline-none",
+                            adhocReference 
+                              ? "border-brand-primary/50 bg-brand-primary/5 text-white" 
+                              : "border-dashed border-white/10 hover:border-brand-primary/30 bg-surface-900/20 text-slate-500 hover:text-slate-300"
+                          )}
+                        >
+                          {adhocReference ? (
+                            <div className="relative w-full h-full flex items-center justify-between">
+                              <span className="text-[9px] text-slate-300 truncate font-mono">Imagen Cargada</span>
+                              <button 
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setAdhocReference(null);
+                                }}
+                                className="p-1 bg-black/80 hover:bg-black rounded-lg text-slate-400 hover:text-white shrink-0"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <Camera className="w-4 h-4 text-slate-500 group-hover:text-brand-primary transition-colors shrink-0" />
+                              <span className="text-[9px] font-black uppercase tracking-widest shrink-0">Subir Referencia</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block ml-1">Idea o Enfoque Creativo</label>
+                      <textarea
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        placeholder="Describe los objetivos de tu campaña, dolor del cliente o enfoques de venta que quieres materializar..."
+                        className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-4 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-brand-primary/50 transition-all min-h-[140px] resize-none"
+                      />
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-white/5 pt-4 gap-4">
+                      <p className="text-[9px] text-slate-500 italic max-w-[210px]">
+                        FUTURA procesará esta solicitud combinando el ADN del Brand Vault bajo el estandarte metodológico SPE.
+                      </p>
+                      <button
+                        onClick={startBriefing}
+                        disabled={loading || !prompt.trim()}
+                        className="w-full sm:w-auto bg-brand-primary text-white px-6 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95 transition-all shadow-xl shadow-brand-primary/20 disabled:opacity-50 cursor-pointer"
+                      >
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                        {loading ? 'PROCESANDO STRATEGY...' : 'INICIAR CO-CREACIÓN'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

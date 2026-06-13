@@ -32,6 +32,7 @@ import {
   DollarSign,
   ArrowLeft,
   Check,
+  Building,
   Clock,
   ArrowRight
 } from 'lucide-react';
@@ -54,6 +55,26 @@ interface NotificationItem {
 export default function MembershipPlans({ profile, onUpdateProfile }: MembershipPlansProps) {
   const isPremiumActive = profile?.isPremium || false;
 
+  // Scroll to top when view mounts
+  useEffect(() => {
+    const forceScroll = () => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTo({ top: 0 });
+      document.body.scrollTo({ top: 0 });
+      const mainEl = document.querySelector('main');
+      if (mainEl) {
+        mainEl.scrollTo({ top: 0 });
+      }
+    };
+    forceScroll();
+    const t1 = setTimeout(forceScroll, 50);
+    const t2 = setTimeout(forceScroll, 200);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
+
   // Pago Móvil States
   const [showPagoMovilForm, setShowPagoMovilForm] = useState(false);
   const [pM_bank, setPM_bank] = useState('Banesco');
@@ -62,11 +83,15 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
   const [pM_ref, setPM_ref] = useState('');
   const [toast, setToast] = useState<string | null>(null);
 
-  // Binance & ETH States
-  const [paymentMethod, setPaymentMethod] = useState<'pago_movil' | 'binance_eth'>('pago_movil');
+  // Binance & ETH / PayPal & Bank Transfer States
+  const [paymentMethod, setPaymentMethod] = useState<'pago_movil' | 'binance_eth' | 'paypal' | 'bank_transfer'>('pago_movil');
   const [binanceMethod, setBinanceMethod] = useState('Binance Pay / Binance Direct');
   const [binanceWallet, setBinanceWallet] = useState('');
   const [binanceHash, setBinanceHash] = useState('');
+  const [paypalEmail, setPaypalEmail] = useState('');
+  const [paypalTxId, setPaypalTxId] = useState('');
+  const [bankTransferSender, setBankTransferSender] = useState('');
+  const [bankTransferRef, setBankTransferRef] = useState('');
   const [copiedWallet, setCopiedWallet] = useState(false);
   const userWalletDest = "0x9C84AdFD95062d5ECED4068b3a190912DdB3f841";
 
@@ -111,7 +136,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
         // Attempt to play notification sound
         playNotificationSound();
       }
-    } else {
+    } else if (paymentMethod === 'binance_eth') {
       // Binance ETH L2 Base
       if (!binanceWallet || !binanceHash) {
         setToast('⚠️ Por favor completa los campos del reporte para verificar su pago en Crypto.');
@@ -139,6 +164,60 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
         setShowPagoMovilForm(false);
         
         // Attempt to play notification sound
+        playNotificationSound();
+      }
+    } else if (paymentMethod === 'paypal') {
+      if (!paypalEmail || !paypalTxId) {
+        setToast('⚠️ Por favor completa los campos del reporte para verificar su pago en PayPal.');
+        setTimeout(() => setToast(null), 3000);
+        return;
+      }
+
+      if (onUpdateProfile && profile) {
+        onUpdateProfile({
+          ...profile,
+          pagoMovilRequest: {
+            bank: 'PayPal Direct Gateway',
+            phone: paypalEmail,
+            id: 'PayPal Verified Transaction',
+            reference: paypalTxId,
+            amountUsd: planCostUsd,
+            amountBs: 0,
+            timestamp: new Date().toISOString(),
+            status: 'pending',
+            paymentType: 'paypal'
+          }
+        });
+        setToast('✅ ¡Reporte de Pago PayPal enviado con éxito! Su cuenta está en verificación.');
+        setTimeout(() => setToast(null), 5000);
+        setShowPagoMovilForm(false);
+        playNotificationSound();
+      }
+    } else if (paymentMethod === 'bank_transfer') {
+      if (!bankTransferSender || !bankTransferRef) {
+        setToast('⚠️ Por favor completa los campos del reporte de transferencia bancaria.');
+        setTimeout(() => setToast(null), 3000);
+        return;
+      }
+
+      if (onUpdateProfile && profile) {
+        onUpdateProfile({
+          ...profile,
+          pagoMovilRequest: {
+            bank: 'Banco de Venezuela Direct',
+            phone: bankTransferSender,
+            id: 'Transf. Directa VES',
+            reference: bankTransferRef,
+            amountUsd: planCostUsd,
+            amountBs: planCostBs,
+            timestamp: new Date().toISOString(),
+            status: 'pending',
+            paymentType: 'bank_transfer'
+          }
+        });
+        setToast('✅ ¡Reporte de Transferencia Bancaria enviado con éxito! Su cuenta está en verificación.');
+        setTimeout(() => setToast(null), 5000);
+        setShowPagoMovilForm(false);
         playNotificationSound();
       }
     }
@@ -307,7 +386,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
         ? "SUSCRIPCIÓN PRO ACTIVA" 
         : profile?.pagoMovilRequest?.status === 'pending'
           ? "📱 PAGO EN VERIFICACIÓN (VER)"
-          : "ACTIVAR CON PAGO MÓVIL ($10/mes)",
+          : "ADQUIRIR PLAN PRO ($10/mes)",
       action: () => {
         setShowPagoMovilForm(true);
       },
@@ -340,11 +419,17 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
                 <h3 className="text-md font-black text-amber-400 uppercase tracking-wider font-display">
-                  ⏳ ESTATUS: Verificando Pago Móvil
+                  ⏳ ESTATUS: Verificando {
+                    profile.pagoMovilRequest.paymentType === 'pago_movil' ? 'Pago Móvil' :
+                    profile.pagoMovilRequest.paymentType === 'binance_eth' ? 'Pago Crypto (Binance/ETH)' :
+                    profile.pagoMovilRequest.paymentType === 'paypal' ? 'Pago PayPal' :
+                    profile.pagoMovilRequest.paymentType === 'bank_transfer' ? 'Transferencia Directa VES' :
+                    'Transacción de Pago'
+                  }
                 </h3>
               </div>
               <p className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">
-                Referencia Registrada: #{profile.pagoMovilRequest.reference} • Monto: {profile.pagoMovilRequest.amountBs.toFixed(2)} Bs ({profile.pagoMovilRequest.amountUsd} USD)
+                Referencia Registrada: #{profile.pagoMovilRequest.reference} • Monto: {profile.pagoMovilRequest.amountBs > 0 ? `${profile.pagoMovilRequest.amountBs.toFixed(2)} Bs / ` : ''}{profile.pagoMovilRequest.amountUsd} USD
               </p>
             </div>
             
@@ -380,7 +465,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                 <span>Paso 2: Conciliación</span>
               </div>
               <p className="text-[10px] text-slate-300 leading-normal font-sans">
-                Verificando extractos de Pago Móvil con el banco destino. Nuestro bot de acreditación SPE valida fondos en menos de 5 min.
+                Verificando detalles de la transacción con el banco o pasarela destino. Nuestro bot de acreditación SPE valida fondos en menos de 5 min.
               </p>
               <span className="text-[8px] text-amber-400 font-mono block pt-1 animate-pulse">Esperando conciliación...</span>
             </div>
@@ -405,7 +490,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
             </div>
             
             <p className="text-[10px] text-slate-300 leading-relaxed font-sans">
-              En una aplicación de producción comercial, nuestro bot o panel de administración consolida la conciliación bancaria y aprueba la membresía. Para que puedas ver el camino completo y activar tu cuenta hoy mismo, usa esta consola para simular la verificación exitosa del Pago Móvil:
+              En una aplicación de producción comercial, nuestro bot o panel de administración consolida la conciliación bancaria y aprueba la membresía. Para que puedas ver el camino completo y activar tu cuenta hoy mismo, usa esta consola para simular la verificación exitosa de tu reporte:
             </p>
 
             <div className="flex flex-wrap gap-3 pt-1">
@@ -457,30 +542,54 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
           </div>
 
           {/* Selector de Método de Pago */}
-          <div className="flex bg-black/40 p-1 rounded-2xl border border-white/5 max-w-md">
+          <div className="grid grid-cols-2 lg:grid-cols-4 bg-black/40 p-1.5 rounded-[1.5rem] border border-white/5 w-full gap-1 font-sans">
             <button
               type="button"
               onClick={() => setPaymentMethod('pago_movil')}
-              className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              className={`py-3 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
                 paymentMethod === 'pago_movil'
                   ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/25"
                   : "text-slate-400 hover:text-white hover:bg-white/5"
               }`}
             >
               <CreditCard className="w-4 h-4" />
-              <span>Pago Móvil (VES)</span>
+              <span>Pago Móvil</span>
             </button>
             <button
               type="button"
               onClick={() => setPaymentMethod('binance_eth')}
-              className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              className={`py-3 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
                 paymentMethod === 'binance_eth'
                   ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/25"
                   : "text-slate-400 hover:text-white hover:bg-white/5"
               }`}
             >
               <Zap className="w-4 h-4 text-amber-400" />
-              <span>Binance ETH (Base)</span>
+              <span>Binance ETH</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('paypal')}
+              className={`py-3 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                paymentMethod === 'paypal'
+                  ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/25"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <DollarSign className="w-4 h-4 text-sky-400" />
+              <span>PayPal</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('bank_transfer')}
+              className={`py-3 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                paymentMethod === 'bank_transfer'
+                  ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/25"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <Building className="w-4 h-4 text-emerald-400" />
+              <span>Transf. Bancaria</span>
             </button>
           </div>
 
@@ -489,7 +598,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
             {paymentMethod === 'pago_movil' ? (
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block font-mono">1. DATOS DE DESTINO (A DÓNDE ENVIAR)</span>
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block font-mono">1. DATOS DE DESTINO (PAGO MÓVIL)</span>
                   
                   <div className="bg-black/45 border border-white/5 p-5 rounded-2xl space-y-4">
                     <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
@@ -530,14 +639,10 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                       <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
                       <p>Llena el formulario de reporte de Pago Móvil de la derecha y haz clic en <strong>"Enviar Reporte de Pago"</strong>.</p>
                     </div>
-                    <div className="flex gap-2.5 items-start">
-                      <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">4</span>
-                      <p>Nuestro asistente SPE validará la transacción en minutos para activar tu Suite de Agentes.</p>
-                    </div>
                   </div>
                 </div>
               </div>
-            ) : (
+            ) : paymentMethod === 'binance_eth' ? (
               <div className="space-y-6">
                 <div className="space-y-3">
                   <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest block font-mono">1. DATOS DE DESTINO (CRIPTOMONEDAS)</span>
@@ -548,7 +653,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                       <strong className="text-amber-400 font-mono">BASE (Ethereum L2) o Binance Pay</strong>
                     </div>
 
-                    <div className="border-b border-white/5 pb-2 space-y-1.5text-left">
+                    <div className="border-b border-white/5 pb-2 space-y-1.5 text-left">
                       <span className="text-slate-400 text-xs font-sans block">Dirección de Billetera Oficial:</span>
                       <div className="flex items-center gap-2 bg-slate-900/90 rounded-xl p-2.5 border border-white/10">
                         <span className="text-white font-mono text-[10.5px] truncate select-all">{userWalletDest}</span>
@@ -580,9 +685,127 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                       <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
                       <p>Copia el <strong>Hash de la Transacción (Tx Hash)</strong> o ID de transferencia de Binance.</p>
                     </div>
+                  </div>
+                </div>
+              </div>
+            ) : paymentMethod === 'paypal' ? (
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <span className="text-[10px] font-black text-sky-400 uppercase tracking-widest block font-mono">1. DATOS DE DESTINO (PAYPAL)</span>
+                  
+                  <div className="bg-black/45 border border-sky-500/10 p-5 rounded-2xl space-y-4">
+                    <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
+                      <span className="text-slate-400 font-sans">Método de Envío:</span>
+                      <strong className="text-sky-400 font-mono">Amigos y Familiares (Sin comisión)</strong>
+                    </div>
+
+                    <div className="border-b border-white/5 pb-2 space-y-1.5 text-left">
+                      <span className="text-slate-400 text-xs font-sans block">Correo PayPal Oficial:</span>
+                      <div className="flex items-center gap-2 bg-slate-900/90 rounded-xl p-2.5 border border-white/10">
+                        <span className="text-white font-mono text-[11px] truncate select-all">heczaroficial@gmail.com</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText("heczaroficial@gmail.com");
+                            alert("📋 Correo PayPal copiado: heczaroficial@gmail.com");
+                          }}
+                          className="px-2.5 py-1 bg-brand-primary hover:bg-brand-primary/80 text-white font-bold text-[9px] uppercase tracking-wider rounded-lg transition-all shrink-0 cursor-pointer"
+                        >
+                          Copiar Correo
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center text-xs pt-2">
+                      <span className="text-slate-200 font-bold uppercase text-[10px] tracking-wider font-sans">Monto a Transferir:</span>
+                      <strong className="text-brand-primary font-display text-base tracking-tight font-sans">$10.00 USD</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block font-mono">2. INSTRUCCIONES PARA PAYPAL</span>
+                  <div className="space-y-3 text-xs text-slate-300 leading-relaxed bg-white/[0.01] p-4 rounded-xl border border-white/5 text-left font-sans font-sans">
                     <div className="flex gap-2.5 items-start">
-                      <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
-                      <p>Completa el reporte de Binance ETH Base con su hash de depósito para acreditar tu Suite.</p>
+                      <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                      <p>Entra a tu cuenta en <strong>PayPal.com</strong> y haz un envío de <strong>$10.00 USD</strong> al correo de arriba.</p>
+                    </div>
+                    <div className="flex gap-2.5 items-start">
+                      <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                      <p>Copia el <strong>ID de transacción</strong> de tu recibo que genera PayPal automáticamente.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block font-mono">1. DATOS DE DESTINO (TRANSFERENCIA VES)</span>
+                  
+                  <div className="bg-black/45 border border-emerald-500/10 p-5 rounded-2xl space-y-4">
+                    <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
+                      <span className="text-slate-400 font-sans">Banco Destinatario:</span>
+                      <strong className="text-white font-mono uppercase text-emerald-400">Banco de Venezuela</strong>
+                    </div>
+
+                    <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
+                      <span className="text-slate-400 font-sans">Cédula del Titular:</span>
+                      <div className="flex items-center gap-2">
+                        <strong className="text-white font-mono select-all">V-24829302</strong>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText("V24829302");
+                            alert("📋 Cédula copiada: V-24829302");
+                          }}
+                          className="px-1.5 py-0.5 bg-white/5 text-slate-400 hover:text-white rounded text-[9px] uppercase cursor-pointer"
+                        >
+                          Copiar
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="border-b border-white/5 pb-2 space-y-1.5 text-left">
+                      <span className="text-slate-400 text-xs font-sans block">Número de Cuenta VES:</span>
+                      <div className="flex items-center justify-between gap-2 bg-slate-900/90 rounded-xl p-2.5 border border-white/10">
+                        <span className="text-white font-mono text-[11.5px] truncate select-all tracking-wider">01020412790000744654</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText("01020412790000744654");
+                            alert("📋 Número de cuenta copiado: 01020412790000744654");
+                          }}
+                          className="px-2.5 py-1 bg-brand-primary hover:bg-brand-primary/80 text-white font-bold text-[9px] uppercase tracking-wider rounded-lg transition-all shrink-0 cursor-pointer"
+                        >
+                          Copiar Cuenta
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center text-xs pt-1">
+                      <span className="text-slate-200 font-bold uppercase text-[10px] tracking-wider font-sans">Tasa BCV Referencia:</span>
+                      <strong className="text-slate-400 font-mono text-xs">{bcvTasa} Bs/USD</strong>
+                    </div>
+
+                    <div className="flex justify-between items-center text-xs pt-2">
+                      <span className="text-slate-200 font-bold uppercase text-[10px] tracking-wider font-sans">Monto VES a Transferir:</span>
+                      <strong className="text-brand-primary font-display text-base tracking-tight font-sans">
+                        {planCostBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs.
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block font-mono">2. INSTRUCCIONES DE TRANSFERENCIA</span>
+                  <div className="space-y-3 text-xs text-slate-300 leading-relaxed bg-white/[0.01] p-4 rounded-xl border border-white/5 text-left font-sans font-sans">
+                    <div className="flex gap-2.5 items-start">
+                      <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                      <p>Inicia sesión en tu banco emisor y efectúa una transferencia directa por el monto exacto en Bolívares (VES).</p>
+                    </div>
+                    <div className="flex gap-2.5 items-start">
+                      <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                      <p>Asegúrate de guardar el recibo y copiar el <strong>Número de Referencia</strong> de la operación bancaria para rellenar el formulario de la derecha.</p>
                     </div>
                   </div>
                 </div>
@@ -592,7 +815,13 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
             {/* DERECHA: FORMULARIO DE REPORTE DINÁMICO */}
             <form onSubmit={handleSubmitPayment} className="bg-black/35 p-6 rounded-2xl border border-white/5 space-y-4 text-left font-sans">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block font-mono">
-                {paymentMethod === 'pago_movil' ? '3. FORMULARIO REPORTE PAGO MÓVIL' : '3. REPORTE DE DEPÓSITO CRYPTO'}
+                {paymentMethod === 'pago_movil' 
+                  ? '3. FORMULARIO REPORTE PAGO MÓVIL' 
+                  : paymentMethod === 'binance_eth'
+                  ? '3. REPORTE DE DEPÓSITO CRYPTO'
+                  : paymentMethod === 'paypal'
+                  ? '3. REPORTE DE PAGO PAYPAL'
+                  : '3. REPORTE DE TRANSFERENCIA BANCARIA'}
               </span>
 
               {paymentMethod === 'pago_movil' ? (
@@ -651,7 +880,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                     />
                   </div>
                 </>
-              ) : (
+              ) : paymentMethod === 'binance_eth' ? (
                 <>
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Canal Utilizado:</label>
@@ -692,8 +921,72 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                   </div>
 
                   <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
-                    <p className="text-[9.5px] text-amber-300 leading-normal font-sans">
+                    <p className="text-[9.5px] text-amber-300 leading-normal font-sans text-left">
                       ⚠️ Asegúrese de enviar su transacción en la red **Base** (L2) para evitar pérdida de fondos.
+                    </p>
+                  </div>
+                </>
+              ) : paymentMethod === 'paypal' ? (
+                <>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Tu Correo Electrónico de PayPal:</label>
+                    <input
+                      type="email"
+                      placeholder="Ej: mi_correo@ejemplo.com"
+                      value={paypalEmail}
+                      onChange={(e) => setPaypalEmail(e.target.value)}
+                      className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none"
+                      required={paymentMethod === 'paypal'}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">ID de Transacción PayPal (Recibo de Pago):</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: 8HG719273A..."
+                      value={paypalTxId}
+                      onChange={(e) => setPaypalTxId(e.target.value)}
+                      className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none"
+                      required={paymentMethod === 'paypal'}
+                    />
+                  </div>
+
+                  <div className="bg-sky-500/10 border border-sky-500/20 p-3 rounded-xl">
+                    <p className="text-[9.5px] text-sky-300 leading-normal font-sans text-left">
+                      📌 El robot de FUTURA verificará que el ID corresponda al cobro de $10 USD para acreditar tu cuenta.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Nombre del Titular que Transfiere (Emisor):</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Juan Pérez"
+                      value={bankTransferSender}
+                      onChange={(e) => setBankTransferSender(e.target.value)}
+                      className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none"
+                      required={paymentMethod === 'bank_transfer'}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Número de Referencia de Transferencia (Últimos 4 a 6 dígitos):</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: 7465"
+                      value={bankTransferRef}
+                      onChange={(e) => setBankTransferRef(e.target.value)}
+                      className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none"
+                      required={paymentMethod === 'bank_transfer'}
+                    />
+                  </div>
+
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">
+                    <p className="text-[9.5px] text-emerald-300 leading-normal font-sans text-left">
+                      📌 Al enviar el reporte de transferencia directa, nuestro equipo concilia y activa tu cuenta premium de forma prioritaria.
                     </p>
                   </div>
                 </>
