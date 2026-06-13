@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Send, Image as ImageIcon, Zap, Loader2, Briefcase, Camera, Pencil, Square, Trash2, Download, Check, Eraser, Undo, Type, Layers, ChevronDown, ShieldCheck, Bot, User, Maximize2, Minimize2, Copy, Plus, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Underline, PenTool } from 'lucide-react';
-import { generateContentStrategy, generateCreativeImage, generateSocialCopy } from '../services/geminiService';
+import { generateContentStrategy, generateCreativeImage, generateSocialCopy, refineSocialCopy } from '../services/geminiService';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { db, auth } from '../lib/firebase';
@@ -359,31 +359,9 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
     setCopyGenerating(true);
     
     try {
-      const { GoogleGenAI } = await import("@google/genai");
-      const client_gemini_key = process.env.GEMINI_API_KEY || ((import.meta as any).env?.VITE_GEMINI_API_KEY as string) || "";
-      const client_ai = new GoogleGenAI({ apiKey: client_gemini_key });
-      const systemInstruction = "Eres un editor experto de copywriting. Refina el copy provisto siguiendo las instrucciones brutales del usuario, manteniendo la fuerza persuasiva, el gancho magnético, el formato cómodo para móvil y la filosofía pragmática 'Results over Aesthetics'.";
-      const response = await client_ai.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents: [{
-          parts: [{
-            text: `
-              COPY ACTUAL:
-              """
-              ${customGeneratedCopy}
-              """
-
-              INSTRUCCIONES DE REFINAMIENTO:
-              "${refineInstructions}"
-
-              Genera el copy refinado final directamente en un impecable formato Markdown.
-            `
-          }]
-        }],
-        config: { systemInstruction }
-      });
-      if (response.text) {
-        setCustomGeneratedCopy(response.text);
+      const refined = await refineSocialCopy(customGeneratedCopy, refineInstructions);
+      if (refined) {
+        setCustomGeneratedCopy(refined);
         setRefinementPrompt('');
       }
     } catch (err) {
@@ -1202,7 +1180,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
           className={cn(
             "flex-1 py-2.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer",
             workspaceMode === 'copys'
-              ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20"
+              ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
               : "text-slate-400 hover:text-white hover:bg-white/5"
           )}
         >
@@ -1778,7 +1756,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                     className={cn(
                       "flex-1 py-3 px-4 rounded-2xl font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer",
                       creativeOutputTab === 'copy' 
-                        ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20" 
+                        ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20" 
                         : "text-slate-400 hover:text-white hover:bg-white/5"
                     )}
                     id="tab-output-copy"
@@ -2108,13 +2086,13 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                       
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
                         <div>
-                          <h4 className="text-xs font-black text-rose-400 uppercase tracking-widest font-display">🧬 Núcleo Creativo de Marca & Redactor</h4>
+                          <h4 className="text-xs font-black text-brand-primary uppercase tracking-widest font-display">🧬 Núcleo Creativo de Marca & Redactor</h4>
                           <p className="text-[9px] text-slate-500 uppercase tracking-widest font-mono mt-1 font-sans">
                             Crea activos coherentes con tu Baúl de Marca o escribe copies quirúrgicos con la filosofía SPE
                           </p>
                         </div>
                         
-                        <div className="flex items-center gap-1 bg-rose-500/10 border border-rose-500/20 px-3 py-1 rounded-full text-rose-400 text-[9px] font-mono font-bold tracking-widest uppercase">
+                        <div className="flex items-center gap-1 bg-brand-primary/10 border border-brand-primary/20 px-3 py-1 rounded-full text-brand-primary text-[9px] font-mono font-bold tracking-widest uppercase">
                           <Check className="w-3.5 h-3.5" />
                           <span>Results over Aesthetics</span>
                         </div>
@@ -2127,7 +2105,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                           className={cn(
                             "flex-1 py-3 px-4 rounded-xl text-[9.5px] font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer",
                             copySubTab === 'nucleus' 
-                              ? "bg-rose-500 text-white shadow-lg shadow-rose-500/10" 
+                              ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/10" 
                               : "text-slate-400 hover:text-white hover:bg-white/5"
                           )}
                         >
@@ -2138,7 +2116,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                           className={cn(
                             "flex-1 py-3 px-4 rounded-xl text-[9.5px] font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer",
                             copySubTab === 'copy_writer' 
-                              ? "bg-rose-500 text-white shadow-lg shadow-rose-500/10" 
+                              ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/10" 
                               : "text-slate-400 hover:text-white hover:bg-white/5"
                           )}
                         >
@@ -2186,7 +2164,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                     onClick={() => setNucleusAssetType(btn.type)}
                                     className={`py-3 px-1.5 rounded-xl border font-mono text-[9px] uppercase tracking-wider font-extrabold transition-all cursor-pointer text-center ${
                                       nucleusAssetType === btn.type 
-                                        ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/10' 
+                                        ? 'bg-brand-primary text-white border-brand-primary shadow-md shadow-brand-primary/10' 
                                         : 'bg-black/40 border-white/5 text-slate-400 hover:border-white/10'
                                     }`}
                                   >
@@ -2212,7 +2190,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                 onChange={(e) => setNucleusCustomGoal(e.target.value)}
                                 placeholder="Ej: Lanza una promoción agresiva sobre auditorías gratis para marcas de gastronomía avanzada..."
                                 rows={4}
-                                className="w-full bg-black border border-white/10 focus:border-rose-500/50 rounded-xl p-3 text-xs text-white outline-none resize-none leading-relaxed"
+                                className="w-full bg-black border border-white/10 focus:border-brand-primary/50 rounded-xl p-3 text-xs text-white outline-none resize-none leading-relaxed"
                               />
                             </div>
 
@@ -2221,7 +2199,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                               type="button"
                               onClick={handleGenerateNucleusContent}
                               disabled={nucleusIsGenerating}
-                              className="w-full py-4 bg-rose-500 hover:bg-rose-650 text-white font-mono font-black text-[10px] uppercase tracking-widest hover:scale-[1.01] active:scale-95 transition-all shadow-xl shadow-rose-500/10 cursor-pointer flex items-center justify-center gap-2"
+                              className="w-full py-4 bg-brand-primary hover:bg-purple-600 text-white font-mono font-black text-[10px] uppercase tracking-widest hover:scale-[1.01] active:scale-95 transition-all shadow-xl shadow-brand-primary/10 cursor-pointer flex items-center justify-center gap-2"
                             >
                               {nucleusIsGenerating ? (
                                 <>
@@ -2241,7 +2219,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                             {/* LOGS DE GENERACIÓN */}
                             {nucleusIsGenerating && (
                               <div className="p-6 rounded-2xl border border-white/5 bg-black/60 space-y-3 font-mono text-[9px] text-slate-400">
-                                <span className="text-[9.5px] font-black text-rose-400 uppercase tracking-[0.2em] block">ROUTER ESTRATÉGICO IA</span>
+                                <span className="text-[9.5px] font-black text-brand-primary uppercase tracking-[0.2em] block">ROUTER ESTRATÉGICO IA</span>
                                 <div className="space-y-1.5 leading-normal">
                                   {nucleusGenerationSteps.map((step, idx) => (
                                     <div key={idx} className="whitespace-pre-wrap">{step}</div>
@@ -2273,17 +2251,17 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                     value={nucleusGeneratedResult.copy}
                                     onChange={(e) => setNucleusGeneratedResult({ ...nucleusGeneratedResult, copy: e.target.value })}
                                     rows={8}
-                                    className="w-full bg-black/40 border border-white/5 focus:border-rose-500/50 text-slate-300 rounded-xl p-4 text-xs font-sans outline-none resize-none leading-relaxed"
+                                    className="w-full bg-black/40 border border-white/5 focus:border-brand-primary/50 text-slate-300 rounded-xl p-4 text-xs font-sans outline-none resize-none leading-relaxed"
                                   />
                                 </div>
 
                                 {/* VISUAL GRAPHIC ASSET PREVIEW */}
-                                <div className="p-6 rounded-3xl border border-rose-500/10 bg-surface-950 space-y-4 text-left">
+                                <div className="p-6 rounded-3xl border border-brand-primary/10 bg-surface-950 space-y-4 text-left">
                                   <div className="flex items-center justify-between border-b border-white/5 pb-2">
                                     <span className="text-[10px] font-mono font-black text-slate-500 uppercase tracking-widest">
                                       {nucleusAssetType === 'jpg' ? 'DISEÑO JPG COTEJADO' : nucleusAssetType === 'carrusel' ? 'PREVISUALIZADOR DE CARRUSEL' : 'ESTRUCTURA DE REEL MP4'}
                                     </span>
-                                    <span className="text-[8px] font-mono text-rose-400 uppercase">PREVISUALIZACIÓN NÚCLEO</span>
+                                    <span className="text-[8px] font-mono text-brand-primary uppercase">PREVISUALIZACIÓN NÚCLEO</span>
                                   </div>
 
                                   {nucleusAssetType === 'jpg' && (
@@ -2295,23 +2273,23 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                       />
                                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/40 to-transparent p-4 flex justify-between items-end">
                                         <div>
-                                          <p className="text-[10px] font-black text-rose-450 uppercase tracking-widest">{activeBrand?.name || "Baúl de Estilos"}</p>
+                                          <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest">{activeBrand?.name || "Baúl de Estilos"}</p>
                                           <p className="text-[8px] text-slate-300 font-mono">Formato: JPG High Quality 1:1</p>
                                         </div>
-                                        <span className="text-[7.5px] font-mono bg-rose-500 px-1.5 py-0.5 rounded text-white font-black tracking-widest">FUTURA CORE</span>
+                                        <span className="text-[7.5px] font-mono bg-brand-primary px-1.5 py-0.5 rounded text-white font-black tracking-widest">FUTURA CORE</span>
                                       </div>
                                     </div>
                                   )}
 
                                   {nucleusAssetType === 'carrusel' && (
                                     <div className="space-y-4 font-black">
-                                      <div className="relative h-48 bg-gradient-to-br from-rose-500/10 to-indigo-950/40 border border-rose-500/20 rounded-2xl flex flex-col justify-between p-6">
+                                      <div className="relative h-48 bg-gradient-to-br from-brand-primary/10 to-indigo-950/40 border border-brand-primary/20 rounded-2xl flex flex-col justify-between p-6">
                                         <div className="absolute top-3 right-3 text-[8.5px] font-mono text-slate-500">
                                           DIAPOSITIVA {nucleusSlideIndex + 1} DE {nucleusGeneratedResult.carruselSlides?.length || 1}
                                         </div>
 
                                         <div className="space-y-2 text-left font-black">
-                                          <span className="px-2 py-0.5 bg-rose-500/20 text-rose-400 text-[8.5px] font-black uppercase tracking-widest rounded animate-pulse">
+                                          <span className="px-2 py-0.5 bg-brand-primary/20 text-brand-primary text-[8.5px] font-black uppercase tracking-widest rounded animate-pulse">
                                             {nucleusGeneratedResult.carruselSlides?.[nucleusSlideIndex]?.title || "Diapositiva"}
                                           </span>
                                           <p className="text-xs font-bold text-white tracking-tight leading-relaxed font-black">
@@ -2321,7 +2299,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
 
                                         <div className="flex items-center justify-between text-[8px] font-mono text-slate-500 text-left">
                                           <span>Marca: {activeBrand?.name || "Bóveda"}</span>
-                                          <span className="text-rose-400 font-black">➔ Desliza para ver la secuencia</span>
+                                          <span className="text-brand-primary font-black">➔ Desliza para ver la secuencia</span>
                                         </div>
                                       </div>
 
@@ -2341,7 +2319,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                               key={idx} 
                                               onClick={() => setNucleusSlideIndex(idx)}
                                               className={`w-2 h-2 rounded-full cursor-pointer transition-all ${
-                                                nucleusSlideIndex === idx ? 'bg-rose-500 w-4' : 'bg-white/10'
+                                                nucleusSlideIndex === idx ? 'bg-brand-primary w-4' : 'bg-white/10'
                                               }`}
                                             />
                                           ))}
@@ -2361,14 +2339,14 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
 
                                   {nucleusAssetType === 'mp4' && (
                                     <div className="space-y-3 font-black">
-                                      <div className="bg-gradient-to-br from-indigo-950 to-surface-950 px-5 py-6 rounded-2xl border border-rose-500/20 relative overflow-hidden group">
+                                      <div className="bg-gradient-to-br from-indigo-950 to-surface-950 px-5 py-6 rounded-2xl border border-brand-primary/20 relative overflow-hidden group">
                                         <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.8) 100%)' }} />
                                         
                                         <div className="flex gap-4 relative z-10">
                                           {nucleusGeneratedResult.videoSimulation && (
                                             <div className="w-20 h-28 rounded-xl overflow-hidden bg-black shrink-0 border border-white/20 relative flex items-center justify-center">
                                               <img src={nucleusGeneratedResult.videoSimulation.thumbnailUrl} className="w-full h-full object-cover opacity-60 animate-pulse" alt="Video frame" />
-                                              <div className="absolute inset-0 bg-rose-500/10 flex items-center justify-center">
+                                              <div className="absolute inset-0 bg-brand-primary/10 flex items-center justify-center">
                                                 <Play className="w-8 h-8 text-white drop-shadow-lg" />
                                               </div>
                                               <span className="absolute bottom-1 right-1 text-[7px] font-mono bg-black/80 text-white px-1 rounded-sm leading-none py-0.5">MP4</span>
@@ -2376,7 +2354,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                           )}
 
                                           <div className="space-y-2 flex-1 min-w-0 font-black">
-                                            <p className="text-[10.5px] font-black uppercase text-rose-400 tracking-widest">
+                                            <p className="text-[10.5px] font-black uppercase text-brand-primary tracking-widest">
                                               {nucleusGeneratedResult.videoSimulation?.tag}
                                             </p>
                                             <div className="space-y-1 text-left">
@@ -2400,8 +2378,8 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                         <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between gap-3 text-[8.5px] font-mono text-slate-500">
                                           <span className="text-indigo-400">0:00</span>
                                           <div className="flex-1 h-1 bg-white/5 rounded-full relative">
-                                            <div className="absolute left-0 top-0 h-full w-2/5 bg-rose-500 rounded-full" />
-                                            <div className="absolute left-2/5 -top-1 w-3 h-3 rounded-full bg-white border border-rose-500 cursor-pointer shadow-lg" />
+                                            <div className="absolute left-0 top-0 h-full w-2/5 bg-brand-primary rounded-full" />
+                                            <div className="absolute left-2/5 -top-1 w-3 h-3 rounded-full bg-white border border-brand-primary cursor-pointer shadow-lg" />
                                           </div>
                                           <span>{nucleusGeneratedResult.videoSimulation?.duration.split(' ')[0]}</span>
                                         </div>
@@ -2413,7 +2391,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                   <button
                                     type="button"
                                     onClick={handleNucleusAddToCalendar}
-                                    className="w-full py-4 bg-gradient-to-r from-rose-600 to-indigo-650 hover:from-rose-500 hover:to-indigo-500 text-white font-mono font-black text-[10px] uppercase tracking-widest hover:scale-[1.01] active:scale-95 transition-all shadow-xl shadow-rose-500/10 cursor-pointer flex items-center justify-center gap-2"
+                                    className="w-full py-4 bg-gradient-to-r from-purple-600 to-brand-primary hover:from-brand-primary hover:to-purple-500 text-white font-mono font-black text-[10px] uppercase tracking-widest hover:scale-[1.01] active:scale-95 transition-all shadow-xl shadow-brand-primary/10 cursor-pointer flex items-center justify-center gap-2"
                                   >
                                     <Calendar className="w-4 h-4" /> 
                                     EXPORTAR DIRECTO A MI CALENDARIO DE PUBLICACIÓN
@@ -2479,7 +2457,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                   className={cn(
                                     "p-3 rounded-xl border transition-all text-left flex flex-col justify-between space-y-1 cursor-pointer",
                                     copyType === opt.id 
-                                      ? "bg-rose-500/10 border-rose-500 text-rose-400 shadow-sm" 
+                                      ? "bg-brand-primary/10 border-brand-primary text-brand-primary shadow-sm" 
                                       : "bg-surface-950/40 border-white/5 hover:border-white/15 text-slate-400 hover:text-white"
                                   )}
                                 >
@@ -2493,10 +2471,9 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                           {/* DESTINO PLATFORMS */}
                           <div className="space-y-2">
                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Red Social del Destino</label>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="flex flex-wrap gap-2">
                               {[
                                 { id: 'instagram', label: 'Instagram' },
-                                { id: 'linkedin', label: 'LinkedIn' },
                                 { id: 'facebook', label: 'Facebook' },
                                 { id: 'twitter', label: 'Twitter / X' },
                                 { id: 'tiktok', label: 'TikTok Video' },
@@ -2506,9 +2483,9 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                   key={plat.id}
                                   onClick={() => setCopyPlatform(plat.id as any)}
                                   className={cn(
-                                    "py-2 px-3 rounded-xl border text-[9px] font-black uppercase tracking-wider text-center transition-all cursor-pointer",
+                                    "py-2 px-3.5 rounded-xl border text-[9px] font-black uppercase tracking-wider text-center transition-all cursor-pointer",
                                     copyPlatform === plat.id 
-                                      ? "bg-rose-500 text-white border-rose-500" 
+                                      ? "bg-brand-primary text-white border-brand-primary" 
                                       : "bg-surface-950/20 border-white/5 hover:border-white/10 text-slate-400 hover:text-white"
                                   )}
                                 >
@@ -2533,7 +2510,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                   className={cn(
                                     "p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between space-y-1 cursor-pointer",
                                     copyTone === tone.id 
-                                      ? "bg-rose-500/5 border-rose-500/40 text-rose-400" 
+                                      ? "bg-brand-primary/5 border-brand-primary/40 text-brand-primary" 
                                       : "bg-surface-950/20 border-white/5 hover:border-white/10 text-slate-400 hover:text-white"
                                   )}
                                 >
@@ -2555,7 +2532,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                               value={copyClientDetails}
                               onChange={(e) => setCopyClientDetails(e.target.value)}
                               placeholder="Ej: Emprendedor digital, Dueños de agencias, Atletas de élite..."
-                              className="w-full bg-black border border-white/5 focus:border-rose-500/50 rounded-xl px-3 py-2.5 text-xs text-white outline-none"
+                              className="w-full bg-black border border-white/5 focus:border-brand-primary/50 rounded-xl px-3 py-2.5 text-xs text-white outline-none"
                             />
                           </div>
 
@@ -2563,14 +2540,14 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                           <div className="space-y-1.5">
                             <div className="flex justify-between items-center">
                               <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Objetivo de la Publicación / Temática Exacta</label>
-                              <span className="text-[7px] text-rose-400 font-mono uppercase font-black">Recomendado</span>
+                              <span className="text-[7px] text-brand-primary font-mono uppercase font-black">Recomendado</span>
                             </div>
                             <textarea
                               value={copyExtraContext}
                               onChange={(e) => setCopyExtraContext(e.target.value)}
                               placeholder="Ej: Lanzamiento de mi consultoría de tráfico. Destacar que solo hay 3 plazas libres y que garantizo resultados por contrato."
                               rows={3}
-                              className="w-full bg-black border border-white/5 focus:border-rose-500/50 rounded-xl p-3 text-xs text-white outline-none resize-none"
+                              className="w-full bg-black border border-white/5 focus:border-brand-primary/50 rounded-xl p-3 text-xs text-white outline-none resize-none"
                             />
                           </div>
 
@@ -2582,7 +2559,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                 onClick={() => setCopyGenLanguage('es')}
                                 className={cn(
                                   "px-3 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg cursor-pointer transition-all",
-                                  copyGenLanguage === 'es' ? "bg-rose-505 bg-rose-500 text-white" : "text-slate-400 hover:text-white"
+                                  copyGenLanguage === 'es' ? "bg-brand-primary text-white" : "text-slate-400 hover:text-white"
                                 )}
                               >
                                 Español
@@ -2591,7 +2568,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                 onClick={() => setCopyGenLanguage('en')}
                                 className={cn(
                                   "px-3 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg cursor-pointer transition-all",
-                                  copyGenLanguage === 'en' ? "bg-rose-505 bg-rose-500 text-white" : "text-slate-400 hover:text-white"
+                                  copyGenLanguage === 'en' ? "bg-brand-primary text-white" : "text-slate-400 hover:text-white"
                                 )}
                               >
                                 Inglés
@@ -2604,7 +2581,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                             onClick={handleGenerateSocialCopy}
                             disabled={copyGenerating}
                             className={cn(
-                              "w-full py-4 rounded-xl bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2.5 transition-all shadow-lg hover:shadow-rose-600/10 cursor-pointer disabled:opacity-50"
+                              "w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-brand-primary hover:from-brand-primary hover:to-purple-500 text-white text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2.5 transition-all shadow-lg hover:shadow-brand-primary/10 cursor-pointer disabled:opacity-50"
                             )}
                           >
                             {copyGenerating ? (
@@ -2623,26 +2600,26 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                         <div className="lg:col-span-7 flex flex-col h-full min-h-[450px]">
                           <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block font-mono mb-2">RESULTADO PREPARADO DE ALTO IMPACTO</span>
                           
-                          <div className="flex-1 bg-black/40 border border-white/5 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                          <div className="flex-grow bg-black/40 border border-white/5 rounded-2xl p-5 flex flex-col justify-between space-y-4">
                             
                             {copyGenerating ? (
                               <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3 py-16">
-                                <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-full animate-bounce">
-                                  <Sparkles className="w-6 h-6 text-rose-400" />
+                                <div className="p-4 bg-brand-primary/10 border border-brand-primary/20 rounded-full animate-bounce">
+                                  <Sparkles className="w-6 h-6 text-brand-primary" />
                                 </div>
                                 <div className="space-y-1">
                                   <p className="text-[11px] font-bold uppercase text-white tracking-widest font-mono">FUTURA Redactor de Élite...</p>
                                   <p className="text-[9px] text-slate-500 tracking-wider uppercase font-mono px-4">Estructurando ganchos, inyectando palancas de dolor y terminando el llamado de conversión</p>
                                 </div>
                                 <div className="w-48 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                  <div className="h-full bg-rose-500 animate-pulse rounded-full" style={{ width: '80%' }} />
+                                  <div className="h-full bg-brand-primary animate-pulse rounded-full" style={{ width: '80%' }} />
                                 </div>
                               </div>
                             ) : customGeneratedCopy ? (
                               <div className="flex-grow flex flex-col space-y-4 min-h-[300px]">
                                 <div className="flex items-center justify-between border-b border-white/5 pb-3">
                                   <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                                    <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
                                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">
                                       {copyPlatform.toUpperCase()} ({copyType.toUpperCase()})
                                     </span>
@@ -2650,7 +2627,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                   
                                   <button
                                     onClick={handleCopyToClipboardCustom}
-                                    className="px-3.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 active:bg-rose-500 text-slate-300 active:text-white text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all"
+                                    className="px-3.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 active:bg-brand-primary text-slate-300 active:text-white text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all"
                                   >
                                     {copiedCustom ? (
                                       <>
@@ -2670,20 +2647,20 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                   <textarea
                                     value={customGeneratedCopy}
                                     onChange={(e) => setCustomGeneratedCopy(e.target.value)}
-                                    className="flex-1 min-h-[250px] bg-surface-950/60 border border-white/10 rounded-xl p-4 text-xs font-sans text-slate-200 leading-relaxed outline-none focus:border-rose-500/30"
+                                    className="flex-1 min-h-[250px] bg-surface-950/60 border border-white/10 rounded-xl p-4 text-xs font-sans text-slate-200 leading-relaxed outline-none focus:border-brand-primary/30"
                                   />
                                 </div>
 
                                 {/* REFINAR CON IA CONTINUO */}
                                 <div className="border-t border-white/5 pt-4 space-y-2">
-                                  <span className="text-[8px] font-black text-rose-400 uppercase tracking-wider block font-mono">Refinar con el Experto de FUTURA</span>
+                                  <span className="text-[8px] font-black text-brand-primary uppercase tracking-wider block font-mono">Refinar con el Experto de FUTURA</span>
                                   <div className="flex gap-2">
                                     <input
                                       type="text"
                                       value={refinementPrompt}
                                       onChange={(e) => setRefinementPrompt(e.target.value)}
                                       placeholder="Pídele: 'hazlo más corto', 'cambia el llamado a la acción', 'agrega más dolor'..."
-                                      className="flex-1 bg-black border border-white/10 focus:border-rose-500/30 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                                      className="flex-1 bg-black border border-white/10 focus:border-brand-primary/30 rounded-xl px-3 py-2 text-xs text-white outline-none"
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                           handleRefineSocialCopy(refinementPrompt);
@@ -2693,7 +2670,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                                     <button
                                       onClick={() => handleRefineSocialCopy(refinementPrompt)}
                                       disabled={!refinementPrompt.trim() || copyGenerating}
-                                      className="px-4 py-2 bg-white text-black font-black uppercase text-[9px] tracking-wider rounded-xl hover:bg-rose-500 hover:text-white transition-all disabled:opacity-50 cursor-pointer"
+                                      className="px-4 py-2 bg-white text-black font-black uppercase text-[9px] tracking-wider rounded-xl hover:bg-brand-primary hover:text-white transition-all disabled:opacity-50 cursor-pointer"
                                     >
                                       REFINAR
                                     </button>
@@ -3459,17 +3436,17 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6 text-left"
         >
-          <div className="glass-panel p-6 md:p-8 rounded-[2rem] border-rose-500/10 bg-surface-950/40 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-rose-500">
+          <div className="glass-panel p-6 md:p-8 rounded-[2rem] border-brand-primary/10 bg-surface-950/40 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-brand-primary">
               <PenTool className="w-48 h-48" />
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-white/5 pb-6">
               <div className="text-left">
                 <h2 className="text-xl font-bold font-display tracking-tight text-white mb-1">Redactor Quirúrgico de Copys FUTURA</h2>
-                <span className="text-[10px] font-black text-rose-400 uppercase tracking-[0.25em] font-sans">Escribe copys de alto rendimiento con la metodología "Results over Aesthetics"</span>
+                <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.25em] font-sans">Escribe copys de alto rendimiento con la metodología "Results over Aesthetics"</span>
               </div>
-              <div className="flex items-center gap-2 bg-rose-500/10 border border-rose-500/20 px-3.5 py-1.5 rounded-full text-rose-400 text-xs font-bold font-mono tracking-widest uppercase">
+              <div className="flex items-center gap-2 bg-brand-primary/10 border border-brand-primary/20 px-3.5 py-1.5 rounded-full text-brand-primary text-xs font-bold font-mono tracking-widest uppercase">
                 <Check className="w-4 h-4" />
                 <span>Conversión Probada</span>
               </div>
@@ -3482,7 +3459,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                 <div className="bg-surface-900/40 border border-white/5 p-4 rounded-2xl space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-mono">ADN de Marca Activa</span>
-                    <span className="text-[7.5px] font-black px-1.5 py-0.5 rounded bg-teal-400/10 text-teal-400 font-mono font-sans font-sans">VINCULADO</span>
+                    <span className="text-[7.5px] font-black px-1.5 py-0.5 rounded bg-teal-400/10 text-teal-400 font-mono font-sans">VINCULADO</span>
                   </div>
                   
                   {activeBrand ? (
@@ -3520,7 +3497,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                         className={cn(
                           "p-3 rounded-xl border transition-all text-left flex flex-col justify-between space-y-1 cursor-pointer w-full outline-none",
                           copyType === opt.id 
-                            ? "bg-rose-500/10 border-rose-500 text-rose-400 shadow-sm" 
+                            ? "bg-brand-primary/10 border-brand-primary text-brand-primary shadow-sm" 
                             : "bg-surface-950/40 border-white/5 hover:border-white/15 text-slate-400 hover:text-white"
                         )}
                       >
@@ -3534,10 +3511,9 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                 {/* DESTINO PLATFORMS */}
                 <div className="space-y-2">
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Red Social del Destino</span>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {[
                       { id: 'instagram', label: 'Instagram' },
-                      { id: 'linkedin', label: 'LinkedIn' },
                       { id: 'facebook', label: 'Facebook' },
                       { id: 'twitter', label: 'Twitter / X' },
                       { id: 'tiktok', label: 'TikTok' },
@@ -3548,9 +3524,9 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                         type="button"
                         onClick={() => setCopyPlatform(plat.id as any)}
                         className={cn(
-                          "py-2 px-3 rounded-xl border text-[9px] font-black uppercase tracking-wider text-center transition-all cursor-pointer w-full outline-none",
+                          "py-2 px-3.5 rounded-xl border text-[9px] font-black uppercase tracking-wider text-center transition-all cursor-pointer outline-none",
                           copyPlatform === plat.id 
-                            ? "bg-rose-500 text-white border-rose-500" 
+                            ? "bg-brand-primary text-white border-brand-primary" 
                             : "bg-surface-950/20 border-white/5 hover:border-white/10 text-slate-400 hover:text-white"
                         )}
                       >
@@ -3576,7 +3552,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                         className={cn(
                           "p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between space-y-1 cursor-pointer w-full outline-none",
                           copyTone === tone.id 
-                            ? "bg-rose-500/5 border-rose-500/40 text-rose-400" 
+                            ? "bg-brand-primary/5 border-brand-primary/40 text-brand-primary" 
                             : "bg-surface-950/20 border-white/5 hover:border-white/10 text-slate-400 hover:text-white"
                         )}
                       >
@@ -3598,7 +3574,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                     value={copyClientDetails}
                     onChange={(e) => setCopyClientDetails(e.target.value)}
                     placeholder="Ej: Emprendedor digital, Dueños de agencias, Atletas de élite..."
-                    className="w-full bg-black border border-white/5 focus:border-rose-500/50 rounded-xl px-3 py-2.5 text-xs text-white outline-none"
+                    className="w-full bg-black border border-white/5 focus:border-brand-primary/50 rounded-xl px-3 py-2.5 text-xs text-white outline-none"
                   />
                 </div>
 
@@ -3606,14 +3582,14 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Objetivo de la Publicación / Temática Exacta</span>
-                    <span className="text-[7px] text-rose-400 font-mono uppercase font-black font-sans">Recomendado</span>
+                    <span className="text-[7px] text-brand-primary font-mono uppercase font-black">Recomendado</span>
                   </div>
                   <textarea
                     value={copyExtraContext}
                     onChange={(e) => setCopyExtraContext(e.target.value)}
                     placeholder="Ej: Lanzamiento de mi consultoría de tráfico. Destacar que solo hay 3 plazas libres y que garantizo resultados por contrato."
                     rows={4}
-                    className="w-full bg-black border border-white/5 focus:border-rose-500/50 rounded-xl p-3 text-xs text-white outline-none resize-none font-sans"
+                    className="w-full bg-black border border-white/5 focus:border-brand-primary/50 rounded-xl p-3 text-xs text-white outline-none resize-none font-sans"
                   />
                 </div>
 
@@ -3626,7 +3602,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                       onClick={() => setCopyGenLanguage('es')}
                       className={cn(
                         "px-3 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg cursor-pointer transition-all outline-none",
-                        copyGenLanguage === 'es' ? "bg-rose-500 text-white" : "text-slate-400 hover:text-white"
+                        copyGenLanguage === 'es' ? "bg-brand-primary text-white" : "text-slate-400 hover:text-white"
                       )}
                     >
                       Español
@@ -3636,7 +3612,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                       onClick={() => setCopyGenLanguage('en')}
                       className={cn(
                         "px-3 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg cursor-pointer transition-all outline-none",
-                        copyGenLanguage === 'en' ? "bg-rose-500 text-white" : "text-slate-400 hover:text-white"
+                        copyGenLanguage === 'en' ? "bg-brand-primary text-white" : "text-slate-400 hover:text-white"
                       )}
                     >
                       Inglés
@@ -3650,7 +3626,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                   onClick={handleGenerateSocialCopy}
                   disabled={copyGenerating}
                   className={cn(
-                    "w-full py-4 rounded-xl bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2.5 transition-all shadow-lg hover:shadow-rose-600/10 cursor-pointer disabled:opacity-50 outline-none"
+                    "w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-brand-primary hover:from-brand-primary hover:to-purple-500 text-white text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2.5 transition-all shadow-lg hover:shadow-brand-primary/10 cursor-pointer disabled:opacity-50 outline-none"
                   )}
                 >
                   {copyGenerating ? (
@@ -3672,22 +3648,22 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                 <div className="flex-grow bg-black/40 border border-white/5 rounded-2xl p-5 flex flex-col justify-between space-y-4">
                   {copyGenerating ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 py-24">
-                      <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-full animate-bounce">
-                        <Sparkles className="w-6 h-6 text-rose-400" />
+                      <div className="p-4 bg-brand-primary/10 border border-brand-primary/20 rounded-full animate-bounce">
+                        <Sparkles className="w-6 h-6 text-brand-primary" />
                       </div>
                       <div className="space-y-1">
                         <p className="text-[11px] font-bold uppercase text-white tracking-widest font-mono">FUTURA Redactor de Élite...</p>
                         <p className="text-[9px] text-slate-500 tracking-wider uppercase font-mono px-4">Estructurando ganchos, inyectando palancas de dolor y terminando el llamado de conversión</p>
                       </div>
                       <div className="w-48 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full bg-rose-500 animate-pulse rounded-full" style={{ width: '85%' }} />
+                        <div className="h-full bg-brand-primary animate-pulse rounded-full" style={{ width: '85%' }} />
                       </div>
                     </div>
                   ) : customGeneratedCopy ? (
                     <div className="flex-grow flex flex-col space-y-4 min-h-[350px]">
                       <div className="flex items-center justify-between border-b border-white/5 pb-3">
                         <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                          <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
                           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">
                             {copyPlatform.toUpperCase()} ({copyType.toUpperCase()})
                           </span>
@@ -3696,7 +3672,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                         <button
                           type="button"
                           onClick={handleCopyToClipboardCustom}
-                          className="px-3.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 active:bg-rose-500 text-slate-300 active:text-white text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all outline-none"
+                          className="px-3.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 active:bg-brand-primary text-slate-300 active:text-white text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all outline-none"
                         >
                           {copiedCustom ? (
                             <>
@@ -3715,19 +3691,19 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                         <textarea
                           value={customGeneratedCopy}
                           onChange={(e) => setCustomGeneratedCopy(e.target.value)}
-                          className="w-full flex-grow min-h-[300px] bg-surface-950/60 border border-white/10 rounded-xl p-4 text-xs font-sans text-slate-200 leading-relaxed outline-none focus:border-rose-500/30"
+                          className="w-full flex-grow min-h-[300px] bg-surface-950/60 border border-white/10 rounded-xl p-4 text-xs font-sans text-slate-200 leading-relaxed outline-none focus:border-brand-primary/30"
                         />
                       </div>
 
                       <div className="border-t border-white/5 pt-4 space-y-2">
-                        <span className="text-[8px] font-black text-rose-400 uppercase tracking-wider block font-mono font-sans font-sans">Refinar con el Experto de FUTURA</span>
+                        <span className="text-[8px] font-black text-brand-primary uppercase tracking-wider block font-mono">Refinar con el Experto de FUTURA</span>
                         <div className="flex gap-2">
                           <input
                             type="text"
                             value={refinementPrompt}
                             onChange={(e) => setRefinementPrompt(e.target.value)}
                             placeholder="Pídele: 'hazlo más corto', 'cambia el llamado a la acción', 'agrega más dolor'..."
-                            className="flex-1 bg-black border border-white/10 focus:border-rose-500/30 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                            className="flex-1 bg-black border border-white/10 focus:border-brand-primary/30 rounded-xl px-3 py-2 text-xs text-white outline-none"
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
                                 handleRefineSocialCopy(refinementPrompt);
@@ -3738,7 +3714,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                             type="button"
                             onClick={() => handleRefineSocialCopy(refinementPrompt)}
                             disabled={!refinementPrompt.trim() || copyGenerating}
-                            className="px-4 py-2 bg-white text-black font-black uppercase text-[9px] tracking-wider rounded-xl hover:bg-rose-500 hover:text-white transition-all disabled:opacity-50 cursor-pointer outline-none"
+                            className="px-4 py-2 bg-white text-black font-black uppercase text-[9px] tracking-wider rounded-xl hover:bg-brand-primary hover:text-white transition-all disabled:opacity-50 cursor-pointer outline-none"
                           >
                             REFINAR
                           </button>

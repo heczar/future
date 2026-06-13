@@ -5,8 +5,23 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-const geminiApiKey = process.env.GEMINI_API_KEY || ((import.meta as any).env?.VITE_GEMINI_API_KEY as string) || "";
-const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+let aiClient: GoogleGenAI | null = null;
+function getAiClient(): GoogleGenAI {
+  if (!aiClient) {
+    const key = (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined) || 
+                ((import.meta as any).env?.VITE_GEMINI_API_KEY as string) || 
+                "";
+    aiClient = new GoogleGenAI({
+      apiKey: key,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
+  }
+  return aiClient;
+}
 
 function robustJsonParse(text: string, defaultPrompt: string): { strategy: string; copy: string; imagePrompt: string } {
   // 1. Limpieza de bloques de markdown comunes
@@ -221,7 +236,7 @@ export async function generateContentStrategy(prompt: string, context: string, s
 
     contents.push({ role: 'user', parts: currentMessageParts });
 
-    const response = await ai.models.generateContent({
+    const response = await getAiClient().models.generateContent({
       model,
       contents,
       config: {
@@ -273,7 +288,7 @@ export async function generateCreativeImage(prompt: string, aspectRatio: string 
 
     parts.push({ text: enhancedPrompt });
 
-    const response = await ai.models.generateContent({
+    const response = await getAiClient().models.generateContent({
       model,
       contents: { parts },
       config: {
@@ -327,7 +342,7 @@ export async function chatWithAdvisor(message: string, history: { role: 'user' |
 
     contents.push({ role: 'user', parts: [{ text: message }] });
 
-    const response = await ai.models.generateContent({
+    const response = await getAiClient().models.generateContent({
       model,
       contents,
       config: {
@@ -365,7 +380,7 @@ export async function chatAboutPhase(phase: string, history: any[], message: str
 
     contents.push({ role: 'user', parts: [{ text: message }] });
 
-    const response = await ai.models.generateContent({
+    const response = await getAiClient().models.generateContent({
       model,
       contents,
       config: {
@@ -443,7 +458,7 @@ export async function generateSocialCopy(params: {
       4. Conjunto de hashtags de nicho estratégicos y relevantes (máximo 5-6 hashtags efectivos)
     `;
 
-    const response = await ai.models.generateContent({
+    const response = await getAiClient().models.generateContent({
       model,
       contents: [{ parts: [{ text: prompt }] }],
       config: {
@@ -455,6 +470,36 @@ export async function generateSocialCopy(params: {
   } catch (error) {
     console.error("Error in generateSocialCopy:", error);
     throw error;
+  }
+}
+
+export async function refineSocialCopy(currentCopy: string, refineInstructions: string) {
+  const model = "gemini-3.5-flash";
+  const systemInstruction = "Eres un editor experto de copywriting. Refina el copy provisto siguiendo las instrucciones brutales del usuario, manteniendo la fuerza persuasiva, el gancho magnético, el formato cómodo para móvil y la filosofía pragmática 'Results over Aesthetics'.";
+  try {
+    const response = await getAiClient().models.generateContent({
+      model,
+      contents: [{
+        parts: [{
+          text: `
+            COPY ACTUAL:
+            """
+            ${currentCopy}
+            """
+
+            INSTRUCCIONES DE REFINAMIENTO:
+            "${refineInstructions}"
+
+            Genera el copy refinado final directamente en un impecable formato Markdown.
+          `
+        }]
+      }],
+      config: { systemInstruction }
+    });
+    return response.text || currentCopy;
+  } catch (err) {
+    console.error("Failed to refine copy:", err);
+    throw err;
   }
 }
 

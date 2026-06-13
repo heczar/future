@@ -62,38 +62,85 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
   const [pM_ref, setPM_ref] = useState('');
   const [toast, setToast] = useState<string | null>(null);
 
+  // Binance & ETH States
+  const [paymentMethod, setPaymentMethod] = useState<'pago_movil' | 'binance_eth'>('pago_movil');
+  const [binanceMethod, setBinanceMethod] = useState('Binance Pay / Binance Direct');
+  const [binanceWallet, setBinanceWallet] = useState('');
+  const [binanceHash, setBinanceHash] = useState('');
+  const [copiedWallet, setCopiedWallet] = useState(false);
+  const userWalletDest = "0x9C84AdFD95062d5ECED4068b3a190912DdB3f841";
+
+  const handleCopyWallet = () => {
+    navigator.clipboard.writeText(userWalletDest);
+    setCopiedWallet(true);
+    setTimeout(() => setCopiedWallet(false), 2000);
+  };
+
   const bcvTasa = 582.68;
   const planCostUsd = 10;
   const planCostBs = planCostUsd * bcvTasa;
 
-  const handleSubmitPagoMovil = (e: React.FormEvent) => {
+  const handleSubmitPayment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pM_phone || !pM_id || !pM_ref) {
-      setToast('⚠️ Por favor completa todos los campos del Pago Móvil.');
-      setTimeout(() => setToast(null), 3000);
-      return;
-    }
-    
-    if (onUpdateProfile && profile) {
-      onUpdateProfile({
-        ...profile,
-        pagoMovilRequest: {
-          bank: pM_bank,
-          phone: pM_phone,
-          id: pM_id,
-          reference: pM_ref,
-          amountUsd: planCostUsd,
-          amountBs: planCostBs,
-          timestamp: new Date().toISOString(),
-          status: 'pending'
-        }
-      });
-      setToast('✅ ¡Reporte de Pago Móvil enviado con éxito! Su cuenta está en verificación.');
-      setTimeout(() => setToast(null), 5000);
-      setShowPagoMovilForm(false);
+    if (paymentMethod === 'pago_movil') {
+      if (!pM_phone || !pM_id || !pM_ref) {
+        setToast('⚠️ Por favor completa todos los campos del Pago Móvil.');
+        setTimeout(() => setToast(null), 3000);
+        return;
+      }
       
-      // Attempt to play notification sound
-      playNotificationSound();
+      if (onUpdateProfile && profile) {
+        onUpdateProfile({
+          ...profile,
+          pagoMovilRequest: {
+            bank: pM_bank,
+            phone: pM_phone,
+            id: pM_id,
+            reference: pM_ref,
+            amountUsd: planCostUsd,
+            amountBs: planCostBs,
+            timestamp: new Date().toISOString(),
+            status: 'pending',
+            paymentType: 'pago_movil'
+          }
+        });
+        setToast('✅ ¡Reporte de Pago Móvil enviado con éxito! Su cuenta está en verificación.');
+        setTimeout(() => setToast(null), 5000);
+        setShowPagoMovilForm(false);
+        
+        // Attempt to play notification sound
+        playNotificationSound();
+      }
+    } else {
+      // Binance ETH L2 Base
+      if (!binanceWallet || !binanceHash) {
+        setToast('⚠️ Por favor completa los campos del reporte para verificar su pago en Crypto.');
+        setTimeout(() => setToast(null), 3000);
+        return;
+      }
+
+      if (onUpdateProfile && profile) {
+        onUpdateProfile({
+          ...profile,
+          pagoMovilRequest: {
+            bank: `Binance ETH Base (${binanceMethod})`,
+            phone: binanceWallet,
+            id: 'Web3 Wallet L2 Base Direct',
+            reference: binanceHash,
+            amountUsd: planCostUsd,
+            amountBs: 0,
+            timestamp: new Date().toISOString(),
+            status: 'pending',
+            paymentType: 'binance_eth'
+          }
+        });
+        setToast('✅ ¡Reporte de Pago Crypto enviado con éxito! Su cuenta está en verificación.');
+        setTimeout(() => setToast(null), 5000);
+        setShowPagoMovilForm(false);
+        
+        // Attempt to play notification sound
+        playNotificationSound();
+      }
     }
   };
 
@@ -390,146 +437,278 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
           className="max-w-4xl mx-auto bg-surface-950 p-6 sm:p-10 rounded-[3rem] border border-brand-primary/20 shadow-2xl space-y-8 text-left relative"
           id="conector-pago-movil"
         >
-          <div className="flex items-center justify-between border-b border-white/5 pb-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-5">
             <div className="flex items-center gap-3 text-left">
               <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
-                <CreditCard className="w-5 h-5" />
+                <CreditCard className="w-5 h-5 animate-pulse" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white">Canal de Activación: Pago Móvil</h3>
-                <p className="text-[9px] text-slate-500 uppercase tracking-widest font-mono mt-0.5">Procedimiento Oficial en Bolívares (VES)</p>
+                <h3 className="text-xl font-bold text-white">Canal de Activación Plan PRO</h3>
+                <p className="text-[9px] text-slate-500 uppercase tracking-widest font-mono mt-0.5">Selecciona tu método de pago preferido</p>
               </div>
             </div>
             
             <button
               onClick={() => setShowPagoMovilForm(false)}
-              className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
             >
               <ArrowLeft className="w-4 h-4" /> VOLVER A PLANES
             </button>
           </div>
 
+          {/* Selector de Método de Pago */}
+          <div className="flex bg-black/40 p-1 rounded-2xl border border-white/5 max-w-md">
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('pago_movil')}
+              className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                paymentMethod === 'pago_movil'
+                  ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/25"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>Pago Móvil (VES)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('binance_eth')}
+              className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                paymentMethod === 'binance_eth'
+                  ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/25"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <Zap className="w-4 h-4 text-amber-400" />
+              <span>Binance ETH (Base)</span>
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* IZQUIERDA: DATOS DESTINATARIO E INSTRUCCIONES DEL CAMINO */}
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block font-mono">1. DATOS DE DESTINO (A DÓNDE ENVIAR)</span>
-                
-                <div className="bg-black/45 border border-white/5 p-5 rounded-2xl space-y-4">
-                  <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
-                    <span className="text-slate-400 font-sans">Banco Receptor:</span>
-                    <strong className="text-white font-mono">Banco de Venezuela 0102</strong>
+            {paymentMethod === 'pago_movil' ? (
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block font-mono">1. DATOS DE DESTINO (A DÓNDE ENVIAR)</span>
+                  
+                  <div className="bg-black/45 border border-white/5 p-5 rounded-2xl space-y-4">
+                    <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
+                      <span className="text-slate-400 font-sans">Banco Receptor:</span>
+                      <strong className="text-white font-mono">Banco de Venezuela 0102</strong>
+                    </div>
+                    <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
+                      <span className="text-slate-400 font-sans">Teléfono Destinatario:</span>
+                      <strong className="text-white font-mono">0412-948.62.39</strong>
+                    </div>
+                    <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
+                      <span className="text-slate-400 font-sans">Cédula:</span>
+                      <strong className="text-white font-mono">V-24.829.302</strong>
+                    </div>
+                    <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
+                      <span className="text-slate-400 font-sans">Tasa de Cambio Oficial:</span>
+                      <strong className="text-amber-400 font-mono">{bcvTasa.toFixed(2)} Ves / Usd</strong>
+                    </div>
+                    <div className="flex justify-between items-center text-xs pt-2">
+                      <span className="text-slate-200 font-bold uppercase text-[10px] tracking-wider font-sans">Monto Exacto a Transferir:</span>
+                      <strong className="text-brand-primary font-display text-base tracking-tight font-sans">{planCostBs.toFixed(2)} Bs. <span className="text-xs text-slate-500">(${planCostUsd} USD)</span></strong>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
-                    <span className="text-slate-400 font-sans">Teléfono Destinatario:</span>
-                    <strong className="text-white font-mono">0412-948.62.39</strong>
-                  </div>
-                  <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
-                    <span className="text-slate-400 font-sans">Cédula:</span>
-                    <strong className="text-white font-mono">V-24.829.302</strong>
-                  </div>
-                  <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
-                    <span className="text-slate-400 font-sans">Tasa de Cambio Oficial:</span>
-                    <strong className="text-amber-400 font-mono">{bcvTasa.toFixed(2)} Ves / Usd</strong>
-                  </div>
-                  <div className="flex justify-between items-center text-xs pt-2">
-                    <span className="text-slate-200 font-bold uppercase text-[10px] tracking-wider font-sans">Monto Exacto a Transferir:</span>
-                    <strong className="text-brand-primary font-display text-base tracking-tight font-sans">{planCostBs.toFixed(2)} Bs. <span className="text-xs text-slate-500">(${planCostUsd} USD)</span></strong>
+                </div>
+
+                <div className="space-y-3">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block font-mono">2. EL CAMINO A SEGUIR PARA LA ACTIVACIÓN</span>
+                  <div className="space-y-3 text-xs text-slate-300 leading-relaxed bg-white/[0.01] p-4 rounded-xl border border-white/5 text-left font-sans">
+                    <div className="flex gap-2.5 items-start">
+                      <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                      <p>Realiza tu Pago Móvil desde la aplicación de tu banco nacional por el monto completo de <strong>{planCostBs.toFixed(2)} Bs</strong>.</p>
+                    </div>
+                    <div className="flex gap-2.5 items-start">
+                      <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                      <p>Copia el **Número de Referencia** único de la transacción emitida por tu banco.</p>
+                    </div>
+                    <div className="flex gap-2.5 items-start">
+                      <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
+                      <p>Llena el formulario de reporte de Pago Móvil de la derecha y haz clic en <strong>"Enviar Reporte de Pago"</strong>.</p>
+                    </div>
+                    <div className="flex gap-2.5 items-start">
+                      <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">4</span>
+                      <p>Nuestro asistente SPE validará la transacción en minutos para activar tu Suite de Agentes.</p>
+                    </div>
                   </div>
                 </div>
               </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest block font-mono">1. DATOS DE DESTINO (CRIPTOMONEDAS)</span>
+                  
+                  <div className="bg-black/45 border border-amber-500/10 p-5 rounded-2xl space-y-4">
+                    <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
+                      <span className="text-slate-400 font-sans">Red de Destino:</span>
+                      <strong className="text-amber-400 font-mono">BASE (Ethereum L2) o Binance Pay</strong>
+                    </div>
 
-              <div className="space-y-3">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block font-mono">2. EL CAMINO A SEGUIR PARA LA ACTIVACIÓN</span>
-                <div className="space-y-3 text-xs text-slate-300 leading-relaxed bg-white/[0.01] p-4 rounded-xl border border-white/5 text-left font-sans">
-                  <div className="flex gap-2.5 items-start">
-                    <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
-                    <p>Realiza tu Pago Móvil desde la aplicación de tu banco nacional por el monto completo de <strong>{planCostBs.toFixed(2)} Bs</strong>.</p>
+                    <div className="border-b border-white/5 pb-2 space-y-1.5text-left">
+                      <span className="text-slate-400 text-xs font-sans block">Dirección de Billetera Oficial:</span>
+                      <div className="flex items-center gap-2 bg-slate-900/90 rounded-xl p-2.5 border border-white/10">
+                        <span className="text-white font-mono text-[10.5px] truncate select-all">{userWalletDest}</span>
+                        <button
+                          type="button"
+                          onClick={handleCopyWallet}
+                          className="px-2.5 py-1 bg-brand-primary hover:bg-brand-primary/80 text-white font-bold text-[9px] uppercase tracking-wider rounded-lg transition-all shrink-0 cursor-pointer"
+                        >
+                          {copiedWallet ? '¡Copiado!' : 'Copiar'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center text-xs pt-2">
+                      <span className="text-slate-200 font-bold uppercase text-[10px] tracking-wider font-sans">Monto a Transferir:</span>
+                      <strong className="text-brand-primary font-display text-base tracking-tight font-sans">$10.00 USD <span className="text-xs text-slate-500">(en ETH o Stablecoin)</span></strong>
+                    </div>
                   </div>
-                  <div className="flex gap-2.5 items-start">
-                    <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
-                    <p>Copia el **Número de Referencia** único de la transacción emitida por tu banco.</p>
-                  </div>
-                  <div className="flex gap-2.5 items-start">
-                    <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
-                    <p>Llena el formulario de reporte de Pago Móvil de la derecha y haz clic en <strong>"Enviar Reporte de Pago"</strong>.</p>
-                  </div>
-                  <div className="flex gap-2.5 items-start">
-                    <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">4</span>
-                    <p>Nuestro asistente SPE validará la transacción en minutos para activar tu Suite de Agentes.</p>
+                </div>
+
+                <div className="space-y-3">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block font-mono">2. EL CAMINO DE ACTIVACIÓN CON CRIPTO</span>
+                  <div className="space-y-3 text-xs text-slate-300 leading-relaxed bg-white/[0.01] p-4 rounded-xl border border-white/5 text-left font-sans">
+                    <div className="flex gap-2.5 items-start">
+                      <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                      <p>Envía <strong>$10 USD</strong> en Ethereum (ETH) utilizando la red <strong>Base</strong>, o vía Binance Pay directo a la wallet.</p>
+                    </div>
+                    <div className="flex gap-2.5 items-start">
+                      <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                      <p>Copia el <strong>Hash de la Transacción (Tx Hash)</strong> o ID de transferencia de Binance.</p>
+                    </div>
+                    <div className="flex gap-2.5 items-start">
+                      <span className="w-5 h-5 rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
+                      <p>Completa el reporte de Binance ETH Base con su hash de depósito para acreditar tu Suite.</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* DERECHA: FORMULARIO DE REPORTE */}
-            <form onSubmit={handleSubmitPagoMovil} className="bg-black/35 p-6 rounded-2xl border border-white/5 space-y-4 text-left font-sans">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block font-mono">3. FORMULARIO DE REPORTE PAGO MÓVIL</span>
+            {/* DERECHA: FORMULARIO DE REPORTE DINÁMICO */}
+            <form onSubmit={handleSubmitPayment} className="bg-black/35 p-6 rounded-2xl border border-white/5 space-y-4 text-left font-sans">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block font-mono">
+                {paymentMethod === 'pago_movil' ? '3. FORMULARIO REPORTE PAGO MÓVIL' : '3. REPORTE DE DEPÓSITO CRYPTO'}
+              </span>
 
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Banco Emisor desde donde pagaste:</label>
-                <select
-                  value={pM_bank}
-                  onChange={(e) => setPM_bank(e.target.value)}
-                  className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none cursor-pointer"
-                >
-                  <option value="Banesco">Banesco</option>
-                  <option value="Banco de Venezuela">Banco de Venezuela (BDV)</option>
-                  <option value="Mercantil">Mercantil</option>
-                  <option value="Provincial">BBVA Provincial</option>
-                  <option value="BNC">Banco Nacional de Crédito (BNC)</option>
-                  <option value="Bancaribe">Bancaribe</option>
-                  <option value="BOD">BOD / Banco Occidental de Descuento</option>
-                  <option value="Otro">Otro Banco Nacional</option>
-                </select>
-              </div>
+              {paymentMethod === 'pago_movil' ? (
+                <>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Banco Emisor desde donde pagaste:</label>
+                    <select
+                      value={pM_bank}
+                      onChange={(e) => setPM_bank(e.target.value)}
+                      className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none cursor-pointer"
+                    >
+                      <option value="Banesco">Banesco</option>
+                      <option value="Banco de Venezuela">Banco de Venezuela (BDV)</option>
+                      <option value="Mercantil">Mercantil</option>
+                      <option value="Provincial">BBVA Provincial</option>
+                      <option value="BNC">Banco Nacional de Crédito (BNC)</option>
+                      <option value="Bancaribe">Bancaribe</option>
+                      <option value="BOD">BOD / Banco Occidental de Descuento</option>
+                      <option value="Otro">Otro Banco Nacional</option>
+                    </select>
+                  </div>
 
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Número de Teléfono Emisor:</label>
-                <input
-                  type="tel"
-                  placeholder="Ej: 0412-1234567"
-                  value={pM_phone}
-                  onChange={(e) => setPM_phone(e.target.value)}
-                  className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none"
-                  required
-                />
-              </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Número de Teléfono Emisor:</label>
+                    <input
+                      type="tel"
+                      placeholder="Ej: 0412-1234567"
+                      value={pM_phone}
+                      onChange={(e) => setPM_phone(e.target.value)}
+                      className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none"
+                      required={paymentMethod === 'pago_movil'}
+                    />
+                  </div>
 
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">ID / Cédula del Pagador:</label>
-                <input
-                  type="text"
-                  placeholder="Ej: V-12345678"
-                  value={pM_id}
-                  onChange={(e) => setPM_id(e.target.value)}
-                  className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none"
-                  required
-                />
-              </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">ID / Cédula del Pagador:</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: V-12345678"
+                      value={pM_id}
+                      onChange={(e) => setPM_id(e.target.value)}
+                      className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none"
+                      required={paymentMethod === 'pago_movil'}
+                    />
+                  </div>
 
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Número de Referencia (Últimos 4-6 dígitos):</label>
-                <input
-                  type="text"
-                  placeholder="Ej: 981245"
-                  value={pM_ref}
-                  onChange={(e) => setPM_ref(e.target.value)}
-                  className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none"
-                  required
-                />
-              </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Número de Referencia (Últimos 4-6 dígitos):</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: 981245"
+                      value={pM_ref}
+                      onChange={(e) => setPM_ref(e.target.value)}
+                      className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none"
+                      required={paymentMethod === 'pago_movil'}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Canal Utilizado:</label>
+                    <select
+                      value={binanceMethod}
+                      onChange={(e) => setBinanceMethod(e.target.value)}
+                      className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none cursor-pointer"
+                    >
+                      <option value="Binance Pay / Binance Direct">Binance Pay / Binance Direct</option>
+                      <option value="Web3 Wallet direct ETH (Base Network)">Metamask / TrustWallet direct ETH L2</option>
+                      <option value="Coinbase Direct Transfer">Coinbase Direct Transfer</option>
+                      <option value="Otro Proveedor / Red Base L2">Otro Proveedor / Red Base L2</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Tu Billetera o ID de Envío (Para verificar origen):</label>
+                    <input
+                      type="text"
+                      placeholder="Tu wallet: 0x... o ID de cuenta Binance"
+                      value={binanceWallet}
+                      onChange={(e) => setBinanceWallet(e.target.value)}
+                      className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none"
+                      required={paymentMethod === 'binance_eth'}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Hash de Transacción / ID de Pago (Tx ID / Tx Hash):</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: 0xc182bd... o Binance TxID"
+                      value={binanceHash}
+                      onChange={(e) => setBinanceHash(e.target.value)}
+                      className="w-full bg-surface-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-brand-primary outline-none"
+                      required={paymentMethod === 'binance_eth'}
+                    />
+                  </div>
+
+                  <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
+                    <p className="text-[9.5px] text-amber-300 leading-normal font-sans">
+                      ⚠️ Asegúrese de enviar su transacción en la red **Base** (L2) para evitar pérdida de fondos.
+                    </p>
+                  </div>
+                </>
+              )}
 
               <div className="pt-2 border-t border-white/5 space-y-3">
                 <p className="text-[10px] text-slate-500 leading-normal font-sans">
-                  Al presionar el botón de abajo, se enviarán estos datos para acoplarse con la contabilidad de FUTURA Core.
+                  Al presionar el botón de abajo, se enviará el reporte del depósito para su validación inmediata por nuestro robot administrador.
                 </p>
 
                 <button
                   type="submit"
                   className="w-full py-4 bg-brand-primary hover:bg-brand-primary/90 hover:shadow-2xl hover:shadow-brand-primary/20 font-bold uppercase tracking-widest text-xs text-white rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
                 >
-                  <Send className="w-4 h-4" /> ENVIAR REPORTE DE PAGO
+                  <Send className="w-4 h-4" /> REPORTAR DEPÓSITO PRO
                 </button>
               </div>
             </form>
