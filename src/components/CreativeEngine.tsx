@@ -140,8 +140,32 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
 
   useEffect(() => {
     // Scroll only the internal chat container so it doesn't jump the main webpage scroll position
-    if (futuraChatContainerRef.current) {
-      futuraChatContainerRef.current.scrollTop = futuraChatContainerRef.current.scrollHeight;
+    if (futuraChatContainerRef.current && futuraMessages.length > 0) {
+      const lastMsg = futuraMessages[futuraMessages.length - 1];
+      if (lastMsg.role === 'model') {
+        const lastMsgIndex = futuraMessages.length - 1;
+        const scrollToMsgStart = () => {
+          const element = document.getElementById(`futura-chat-msg-${lastMsgIndex}`);
+          const container = futuraChatContainerRef.current;
+          if (element && container) {
+            container.scrollTo({
+              top: element.offsetTop - 12,
+              behavior: 'smooth'
+            });
+          }
+        };
+        scrollToMsgStart();
+        const t1 = setTimeout(scrollToMsgStart, 40);
+        const t2 = setTimeout(scrollToMsgStart, 120);
+        const t3 = setTimeout(scrollToMsgStart, 250);
+        return () => {
+          clearTimeout(t1);
+          clearTimeout(t2);
+          clearTimeout(t3);
+        };
+      } else {
+        futuraChatContainerRef.current.scrollTop = futuraChatContainerRef.current.scrollHeight;
+      }
     }
   }, [futuraMessages]);
 
@@ -1621,7 +1645,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                     className="flex-1 overflow-y-auto p-3.5 space-y-3 font-sans text-xs scrollbar-thin scrollbar-thumb-white/5 text-left"
                   >
                     {futuraMessages.map((msg, i) => (
-                      <div key={i} className={cn(
+                      <div key={i} id={`futura-chat-msg-${i}`} className={cn(
                         "flex items-start gap-2.5 max-w-[90%]",
                         msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'
                       )}>

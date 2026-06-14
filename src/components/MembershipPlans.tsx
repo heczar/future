@@ -55,7 +55,10 @@ interface NotificationItem {
 export default function MembershipPlans({ profile, onUpdateProfile }: MembershipPlansProps) {
   const isPremiumActive = profile?.isPremium || false;
 
-  // Scroll to top when view mounts
+  // Pago Móvil States
+  const [showPagoMovilForm, setShowPagoMovilForm] = useState(false);
+
+  // Scroll to top when view mounts, payment form state toggles, or payment status updates
   useEffect(() => {
     const forceScroll = () => {
       window.scrollTo(0, 0);
@@ -73,10 +76,8 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, []);
+  }, [showPagoMovilForm, profile?.pagoMovilRequest?.status, profile?.isPremium]);
 
-  // Pago Móvil States
-  const [showPagoMovilForm, setShowPagoMovilForm] = useState(false);
   const [pM_bank, setPM_bank] = useState('Banesco');
   const [pM_phone, setPM_phone] = useState('');
   const [pM_id, setPM_id] = useState('');
