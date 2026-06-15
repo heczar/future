@@ -8,7 +8,7 @@ import { GoogleGenAI } from "@google/genai";
 let aiClient: GoogleGenAI | null = null;
 function getAiClient(): GoogleGenAI {
   if (!aiClient) {
-    const key = (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined) || 
+    const key = process.env.GEMINI_API_KEY || 
                 ((import.meta as any).env?.VITE_GEMINI_API_KEY as string) || 
                 "";
     aiClient = new GoogleGenAI({
