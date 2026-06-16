@@ -70,6 +70,16 @@ export interface UserProfile {
     rejectedAt?: string;
     paymentType?: 'pago_movil' | 'binance_eth';
   } | null;
+  openwaConfig?: {
+    webhookUrl: string;
+    apiHost: string;
+    apiPort: number;
+    sessionName: string;
+    isEnabled: boolean;
+    aiResponderEnabled: boolean;
+    aiPromptRules: string;
+    triggerKeywords: { id: string; keyword: string; response: string }[];
+  };
 }
 
 export interface GeneratedContent {

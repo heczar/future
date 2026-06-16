@@ -13,7 +13,8 @@ import {
   Crown,
   ShieldCheck,
   Shield,
-  Rocket
+  Rocket,
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -47,6 +48,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
       title: "Planificación y Datos",
       items: [
         { id: 'content', label: 'Contenido Listo', icon: Calendar },
+        { id: 'openwa', label: 'WhatsApp OpenWA', icon: MessageSquare },
         { id: 'security', label: 'Seguridad y Cifrado', icon: Shield },
       ]
     },
