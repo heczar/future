@@ -16,7 +16,6 @@ import MasterControlEpicenter from './components/MasterControlEpicenter';
 import Profile from './components/Profile';
 import AuthWrapper from './components/AuthWrapper';
 import LaunchGuide from './components/LaunchGuide';
-import OpenWAConfig from './components/OpenWAConfig';
 import { UserProfile, ProjectContext } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -399,8 +398,6 @@ function AppContent() {
         return <Gallery />;
       case 'content':
         return <ContentReady />;
-      case 'openwa':
-        return <OpenWAConfig profile={profile} onUpdateProfile={handleUpdateProfile} />;
       case 'pro':
         return <MembershipPlans profile={profile} onUpdateProfile={handleUpdateProfile} />;
       case 'launch-guide':

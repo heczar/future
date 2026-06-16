@@ -48,7 +48,6 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
       title: "Planificación y Datos",
       items: [
         { id: 'content', label: 'Contenido Listo', icon: Calendar },
-        { id: 'openwa', label: 'WhatsApp OpenWA', icon: MessageSquare },
         { id: 'security', label: 'Seguridad y Cifrado', icon: Shield },
       ]
     },

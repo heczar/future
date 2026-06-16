@@ -504,33 +504,4 @@ export async function refineSocialCopy(currentCopy: string, refineInstructions: 
   }
 }
 
-export async function chatWithOpenWASimulator(
-  message: string,
-  systemInstruction: string,
-  history: { role: 'user' | 'model'; text: string }[] = []
-) {
-  const model = "gemini-3.5-flash";
-  try {
-    const contents: any[] = history.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.text }]
-    }));
-
-    contents.push({ role: 'user', parts: [{ text: message }] });
-
-    const response = await getAiClient().models.generateContent({
-      model,
-      contents,
-      config: {
-        systemInstruction,
-      }
-    });
-
-    return response.text || "Disculpe, hubo un error temporal en el motor.";
-  } catch (error) {
-    console.error("OpenWA Simulator Chat Error:", error);
-    return "Error de comunicación con el motor de IA de WhatsApp.";
-  }
-}
-
 
