@@ -4,7 +4,7 @@
  */
 
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // Setup highly robust default configuration values from our stable Firebase workspace
@@ -40,3 +40,4 @@ googleProvider.addScope('https://www.googleapis.com/auth/drive.readonly');
 
 export const signIn = () => signInWithPopup(auth, googleProvider);
 export const signOut = () => auth.signOut();
+export { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously };

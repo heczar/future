@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { auth, signIn as firebaseSignIn } from '../lib/firebase';
+import { auth, signIn as firebaseSignIn, signInWithEmailAndPassword, createUserWithEmailAndPassword } from '../lib/firebase';
 import { onAuthStateChanged, User, GoogleAuthProvider } from 'firebase/auth';
 import { Shield, Lock, Loader2 } from 'lucide-react';
 
@@ -12,6 +12,8 @@ interface AuthContextType {
   user: User | null;
   accessToken: string | null;
   signIn: () => Promise<void>;
+  signInWithEmail: (email: string, pass: string) => Promise<void>;
+  signUpWithEmail: (email: string, pass: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -52,6 +54,24 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
     }
   };
 
+  const signInWithEmail = async (email: string, pass: string) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (error) {
+      console.error('Sign-in email error:', error);
+      throw error;
+    }
+  };
+
+  const signUpWithEmail = async (email: string, pass: string) => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, pass);
+    } catch (error) {
+      console.error('Sign-up email error:', error);
+      throw error;
+    }
+  };
+
   const logout = () => {
     setAccessToken(null);
     auth.signOut();
@@ -66,7 +86,7 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
   }
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, signIn, logout }}>
+    <AuthContext.Provider value={{ user, accessToken, signIn, signInWithEmail, signUpWithEmail, logout }}>
       {children}
     </AuthContext.Provider>
   );

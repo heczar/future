@@ -16,6 +16,7 @@ import MasterControlEpicenter from './components/MasterControlEpicenter';
 import Profile from './components/Profile';
 import AuthWrapper from './components/AuthWrapper';
 import LaunchGuide from './components/LaunchGuide';
+import AccountAuthPortal from './components/AccountAuthPortal';
 import { UserProfile, ProjectContext } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -852,13 +853,7 @@ function AppContent() {
                     </div>
                   ) : (
                     <div className="pt-6">
-                      <button 
-                        onClick={signIn}
-                        className="px-10 py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition-all shadow-2xl flex items-center gap-4 mx-auto hover:scale-105 active:scale-95 cursor-pointer"
-                      >
-                        INGRESAR AL HUB ESTRATÉGICO
-                        <ShieldCheck className="w-5 h-5" />
-                      </button>
+                      <AccountAuthPortal />
                     </div>
                   )}
 

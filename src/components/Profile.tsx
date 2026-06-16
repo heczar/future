@@ -57,23 +57,41 @@ export default function Profile() {
         <div className="md:col-span-2 space-y-8">
           <div className="glass-panel p-8 rounded-3xl space-y-6">
              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 border-b border-white/5 pb-4">Detalles de Cuenta</h3>
-             <div className="grid grid-cols-2 gap-6">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Email Principal</p>
-                  <p className="text-sm text-white font-mono">{user?.email}</p>
+                  <p className="text-sm text-white font-mono break-all">{user?.email || 'e-correo'}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">UID Sistema</p>
-                  <p className="text-[10px] text-slate-500 font-mono truncate">{user?.uid}</p>
+                  <p className="text-[10px] text-slate-400 font-mono truncate select-all">{user?.uid}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Método de Auth</p>
-                  <p className="text-sm text-white">Google OAuth 2.0</p>
+                  <p className="text-sm text-white">
+                    {user?.providerData?.[0]?.providerId === 'password' ? 'Email & Contraseña' : 'Google OAuth 2.0'}
+                  </p>
                 </div>
                 <div>
                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Estado</p>
-                   <span className="px-2 py-0.5 bg-green-500/10 text-green-400 text-[10px] font-bold rounded uppercase">Activo</span>
+                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-black rounded-lg uppercase">
+                     <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                     Sincronizado
+                   </span>
                 </div>
+             </div>
+
+             {/* Informative individual workspace message */}
+             <div className="p-5 bg-brand-primary/5 border border-brand-primary/20 rounded-2xl flex flex-col sm:flex-row gap-4 items-start sm:items-center mt-6">
+               <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0">
+                 <Shield className="w-5 h-5" />
+               </div>
+               <div className="space-y-1 text-left">
+                 <h4 className="text-xs font-black text-white uppercase tracking-wider">Administración Individual de Cuentas</h4>
+                 <p className="text-[11px] text-slate-400 leading-normal">
+                   Tu sesión de correo actual tiene una base de datos <b>única de administración</b> en Firestore. Los proyectos de tu baúl de marcas, la galería de diseños y los calendarios programados se guardan de forma exclusiva para tu email.
+                 </p>
+               </div>
              </div>
           </div>
 
