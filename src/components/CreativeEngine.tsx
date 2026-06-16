@@ -414,14 +414,14 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
         copyType,
         platform: copyPlatform,
         tone: copyTone,
-        clientDetails: copyClientDetails,
+        clientDetails: '',
         extraContext: copyExtraContext,
         language: copyGenLanguage,
-        userRole: profile?.roles?.join(', ') || '',
-        userBio: profile?.bio || '',
-        userPhilosophy: profile?.philosophy || '',
-        projectName: activeBrand?.name || '',
-        projectDescription: activeBrand?.description || '',
+        userRole: '',
+        userBio: '',
+        userPhilosophy: '',
+        projectName: '',
+        projectDescription: '',
       });
       setCustomGeneratedCopy(resultCopy);
     } catch (err) {
@@ -2622,32 +2622,6 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                         {/* CONFIGURACIÓN DEL COPY (Opciones) */}
                         <div className="lg:col-span-5 space-y-5">
                           
-                          {/* Marca Activa Vinculada Context Info */}
-                          <div className="bg-surface-900/40 border border-white/5 p-4 rounded-2xl space-y-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-mono">ADN de Marca Activa</span>
-                              <span className="text-[7.5px] font-black px-1.5 py-0.5 rounded bg-teal-400/10 text-teal-400 font-mono">VINCULADO</span>
-                            </div>
-                            
-                            {activeBrand ? (
-                              <div className="space-y-1.5">
-                                <h5 className="text-[11px] font-bold text-white uppercase tracking-wider">{activeBrand.name}</h5>
-                                <p className="text-[10px] text-slate-400 line-clamp-2 leading-relaxed">{activeBrand.description}</p>
-                              </div>
-                            ) : (
-                              <p className="text-[10px] text-slate-400 leading-relaxed font-mono">
-                                No se ha detectado una marca del Baúl activa. Se utilizarán tus datos de Mi Perfil (Rol/Bio).
-                              </p>
-                            )}
-
-                            {profile && (
-                              <div className="border-t border-white/5 pt-2 text-[9px] text-slate-500 font-mono uppercase space-y-1">
-                                <div>Rol: <span className="text-slate-300 font-bold">{profile.roles?.[0] || 'Consultor / Creador'}</span></div>
-                                <div>Filosofía: <span className="text-slate-300 font-bold">{profile.philosophy || 'Results Over Aesthetics'}</span></div>
-                              </div>
-                            )}
-                          </div>
-
                           {/* CATEGORÍA DE COPY */}
                           <div className="space-y-2">
                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Tipo de Copy de Redes</label>
@@ -2727,33 +2701,22 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                             </div>
                           </div>
 
-                          {/* CLIENTE IDEAL */}
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between items-center">
-                              <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Perfil de tu Cliente Ideal (Buyer Persona)</label>
-                              <span className="text-[7px] text-slate-500 font-mono uppercase">Opcional</span>
-                            </div>
-                            <input
-                              type="text"
-                              value={copyClientDetails}
-                              onChange={(e) => setCopyClientDetails(e.target.value)}
-                              placeholder="Ej: Emprendedor digital, Dueños de agencias, Atletas de élite..."
-                              className="w-full bg-black border border-white/5 focus:border-brand-primary/50 rounded-xl px-3 py-2.5 text-xs text-white outline-none"
-                            />
-                          </div>
-
                           {/* CONTEXTO EXTRA */}
                           <div className="space-y-1.5">
                             <div className="flex justify-between items-center">
-                              <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Objetivo de la Publicación / Temática Exacta</label>
-                              <span className="text-[7px] text-brand-primary font-mono uppercase font-black">Recomendado</span>
+                              <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Objetivo, Detalles de Marca y Público de tu Publicación</label>
+                              <span className="text-[7px] text-brand-primary font-mono uppercase font-black font-sans font-bold">Requerido</span>
                             </div>
                             <textarea
                               value={copyExtraContext}
                               onChange={(e) => setCopyExtraContext(e.target.value)}
-                              placeholder="Ej: Lanzamiento de mi consultoría de tráfico. Destacar que solo hay 3 plazas libres y que garantizo resultados por contrato."
-                              rows={3}
-                              className="w-full bg-black border border-white/5 focus:border-brand-primary/50 rounded-xl p-3 text-xs text-white outline-none resize-none"
+                              placeholder="Describe aquí TODA la información que necesitas que tenga tu copy. Por ejemplo: 
+- De qué trata la marca / producto.
+- Quién es tu público objetivo o cliente ideal.
+- Cuál es la temática exacta y el objetivo de este copy (ej. Agendar llamadas, comentar la palabra 'ADN', venta cruda).
+- Datos específicos de la oferta."
+                              rows={6}
+                              className="w-full bg-black border border-white/5 focus:border-brand-primary/50 rounded-xl p-3 text-xs text-white outline-none resize-none font-sans"
                             />
                           </div>
 
@@ -3661,32 +3624,6 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left mt-8">
               {/* COPY CONFIGURATOR PANEL */}
               <div className="lg:col-span-5 space-y-5">
-                {/* Brand active info lock */}
-                <div className="bg-surface-900/40 border border-white/5 p-4 rounded-2xl space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-mono">ADN de Marca Activa</span>
-                    <span className="text-[7.5px] font-black px-1.5 py-0.5 rounded bg-teal-400/10 text-teal-400 font-mono font-sans">VINCULADO</span>
-                  </div>
-                  
-                  {activeBrand ? (
-                    <div className="space-y-1.5">
-                      <h5 className="text-[11px] font-bold text-white uppercase tracking-wider">{activeBrand.name}</h5>
-                      <p className="text-[10px] text-slate-400 line-clamp-2 leading-relaxed">{activeBrand.description}</p>
-                    </div>
-                  ) : (
-                    <p className="text-[10px] text-slate-400 leading-relaxed font-mono">
-                      No se ha detectado una marca del Baúl activa. Se utilizarán tus datos de Mi Perfil (Rol/Bio).
-                    </p>
-                  )}
-
-                  {profile && (
-                    <div className="border-t border-white/5 pt-2 text-[9px] text-slate-500 font-mono uppercase space-y-1">
-                      <div>Rol: <span className="text-slate-300 font-bold">{profile.roles?.[0] || 'Consultor / Creador'}</span></div>
-                      <div>Filosofía: <span className="text-slate-300 font-bold">{profile.philosophy || 'Results Over Aesthetics'}</span></div>
-                    </div>
-                  )}
-                </div>
-
                 {/* CATEGORÍA DE COPY */}
                 <div className="space-y-2">
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Tipo de Copy de Redes</span>
@@ -3769,32 +3706,21 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                   </div>
                 </div>
 
-                {/* CLIENTE IDEAL */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Perfil de tu Cliente Ideal (Buyer Persona)</span>
-                    <span className="text-[7px] text-slate-500 font-mono uppercase">Opcional</span>
-                  </div>
-                  <input
-                    type="text"
-                    value={copyClientDetails}
-                    onChange={(e) => setCopyClientDetails(e.target.value)}
-                    placeholder="Ej: Emprendedor digital, Dueños de agencias, Atletas de élite..."
-                    className="w-full bg-black border border-white/5 focus:border-brand-primary/50 rounded-xl px-3 py-2.5 text-xs text-white outline-none"
-                  />
-                </div>
-
                 {/* CONTEXTO EXTRA */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Objetivo de la Publicación / Temática Exacta</span>
-                    <span className="text-[7px] text-brand-primary font-mono uppercase font-black">Recomendado</span>
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Objetivo, Detalles de Marca y Público de tu Publicación</span>
+                    <span className="text-[7px] text-brand-primary font-mono uppercase font-black">Requerido</span>
                   </div>
                   <textarea
                     value={copyExtraContext}
                     onChange={(e) => setCopyExtraContext(e.target.value)}
-                    placeholder="Ej: Lanzamiento de mi consultoría de tráfico. Destacar que solo hay 3 plazas libres y que garantizo resultados por contrato."
-                    rows={4}
+                    placeholder="Describe aquí TODA la información que necesitas que tenga tu copy. Por ejemplo: 
+- De qué trata la marca / producto.
+- Quién es tu público objetivo o cliente ideal.
+- Cuál es la temática exacta y el objetivo de este copy (ej. Agendar llamadas, comentar la palabra 'ADN', venta cruda).
+- Datos específicos de la oferta."
+                    rows={6}
                     className="w-full bg-black border border-white/5 focus:border-brand-primary/50 rounded-xl p-3 text-xs text-white outline-none resize-none font-sans"
                   />
                 </div>

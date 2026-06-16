@@ -439,18 +439,8 @@ export async function generateSocialCopy(params: {
       - Tono/Estilo: ${params.tone}
       - Idioma: ${params.language === 'en' ? 'Inglés' : 'Español'}
 
-      INFORMACIÓN DEL CREADOR (Incorpórala orgánicamente para que suene natural):
-      ${params.userRole ? `- Mi Rol: ${params.userRole}` : ''}
-      ${params.userBio ? `- Mi Bio: ${params.userBio}` : ''}
-      ${params.userPhilosophy ? `- Mi Filosofía de trabajo: ${params.userPhilosophy}` : ''}
-
-      INFORMACIÓN DEL PROYECTO O MARCA (Usa esta base como producto/servicio principal):
-      ${params.projectName ? `- Nombre del Proyecto/Marca: ${params.projectName}` : ''}
-      ${params.projectDescription ? `- ADN y Descripción de Marca: ${params.projectDescription}` : ''}
-
-      INFORMACIÓN ADICIONAL DE LA CAMPAÑA:
-      - Público Objetivo / Cliente Ideal: ${params.clientDetails || 'Público general calificado de redes'}
-      - Contexto u objetivo específico de esta publicación: ${params.extraContext || 'Posicionamiento estratégico y generación de demanda calificada'}
+      INDICACIONES DETALLADAS, OBJETIVOS, DETALLES DE CORRESPONDENCIA DE MARCA Y AUDIENCIA (Escritas directamente por el usuario):
+      ${params.extraContext || 'Posicionamiento estratégico y generación de demanda calificada'}
 
       Genera una respuesta perfecta con formato Markdown pulido. Incluye:
       1. Título llamativo (Gancho de scroll / Hook impactante)
