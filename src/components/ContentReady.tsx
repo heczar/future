@@ -92,11 +92,20 @@ export default function ContentReady() {
   
   // UI states
   const [showForm, setShowForm] = useState(false);
-  const [activeDate, setActiveDate] = useState<Date>(new Date('2026-05-27T12:00:00')); // default around matching local timeline
+  const [activeDate, setActiveDate] = useState<Date>(new Date()); // dynamic current date/time
   const [simulationLog, setSimulationLog] = useState<string[]>([]);
   const [simulatingId, setSimulatingId] = useState<string | null>(null);
   const [selectedPubForDetail, setSelectedPubForDetail] = useState<Publication | null>(null);
-  const [selectedDay, setSelectedDay] = useState<number>(27);
+  const [selectedDay, setSelectedDay] = useState<number>(new Date().getDate());
+
+  // Live clock state for reference in scheduling section
+  const [liveClock, setLiveClock] = useState<Date>(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLiveClock(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Saved Assets from Creative Engine
   const [savedAssets, setSavedAssets] = useState<any[]>([]);
@@ -500,20 +509,27 @@ export default function ContentReady() {
     saveLocalFallback(nextList);
   };
 
-  // Helper to resolve weekdays in May 2026 accurately (May 1st, 2026 is a Friday)
-  const getWeekdayNameObj = (dayNum: number) => {
+  // Helper to resolve weekdays dynamically based on dynamic year and month
+  const getWeekdayNameObj = (dayNum: number, targetYear = activeDate.getFullYear(), targetMonth = activeDate.getMonth()) => {
     const weekdaysLong = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const weekdaysShort = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    const index = (dayNum + 4) % 7; // Friday is offset index 5: (1 + 4) % 7 = 5
-    return {
-      long: weekdaysLong[index],
-      short: weekdaysShort[index]
-    };
+    try {
+      const date = new Date(targetYear, targetMonth, dayNum);
+      const index = date.getDay(); // 0 is Sunday, 1 is Monday ...
+      return {
+        long: weekdaysLong[index] || 'Domingo',
+        short: weekdaysShort[index] || 'Dom'
+      };
+    } catch (e) {
+      return { long: 'Lunes', short: 'Lun' };
+    }
   };
 
   // Mobile horizontal day-strip slider and detailed agenda queue layout
   const renderMobileCalendar = () => {
-    const daysInMonth = 31;
+    const year = activeDate.getFullYear();
+    const month = activeDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
     
     return (
@@ -525,13 +541,18 @@ export default function ContentReady() {
           </label>
           <div className="flex gap-2.5 pb-3 overflow-x-auto snap-x scrollbar-none hover:scrollbar-thin scrollbar-thumb-brand-primary/20">
             {daysArray.map((day) => {
-              const dateStr = `2026-05-${day < 10 ? '0' + day : day}`;
+              const monthStr = (month + 1) < 10 ? `0${month + 1}` : `${month + 1}`;
+              const dateStr = `${year}-${monthStr}-${day < 10 ? '0' + day : day}`;
               const dailyPubs = publications.filter(p => p.scheduledTime.startsWith(dateStr));
               const isSelected = selectedDay === day;
-              const { short } = getWeekdayNameObj(day);
+              const { short } = getWeekdayNameObj(day, year, month);
               const hasPending = dailyPubs.some(p => p.status === 'pending');
               const hasPublished = dailyPubs.some(p => p.status === 'published');
-              const isToday = day === 27;
+              
+              const todayDate = new Date();
+              const isToday = todayDate.getFullYear() === year && 
+                              todayDate.getMonth() === month && 
+                              todayDate.getDate() === day;
               
               return (
                 <button
@@ -577,16 +598,28 @@ export default function ContentReady() {
                 Agenda para el día
               </span>
               <h4 className="text-sm font-bold text-white uppercase tracking-tight font-display">
-                {getWeekdayNameObj(selectedDay).long}, {selectedDay} de Mayo
+                {getWeekdayNameObj(selectedDay, year, month).long}, {selectedDay} de {activeDate.toLocaleString('es-ES', { month: 'long' })}
               </h4>
             </div>
             <span className="text-[9px] font-mono bg-white/5 border border-white/10 text-slate-400 px-2.5 py-1 rounded-xl">
-              {publications.filter(p => p.scheduledTime.startsWith(`2026-05-${selectedDay < 10 ? '0' + selectedDay : selectedDay}`)).length} Post(s)
+              {publications.filter(p => {
+                const y = activeDate.getFullYear();
+                const m = activeDate.getMonth() + 1;
+                const mStr = m < 10 ? '0' + m : m;
+                const dStr = selectedDay < 10 ? '0' + selectedDay : selectedDay;
+                return p.scheduledTime.startsWith(`${y}-${mStr}-${dStr}`);
+              }).length} Post(s)
             </span>
           </div>
 
           <div className="space-y-3">
-            {publications.filter(p => p.scheduledTime.startsWith(`2026-05-${selectedDay < 10 ? '0' + selectedDay : selectedDay}`)).length === 0 ? (
+            {publications.filter(p => {
+              const y = activeDate.getFullYear();
+              const m = activeDate.getMonth() + 1;
+              const mStr = m < 10 ? '0' + m : m;
+              const dStr = selectedDay < 10 ? '0' + selectedDay : selectedDay;
+              return p.scheduledTime.startsWith(`${y}-${mStr}-${dStr}`);
+            }).length === 0 ? (
               <div className="text-center p-8 bg-black/25 rounded-2xl border border-dashed border-white/5 space-y-2">
                 <p className="text-[9px] text-slate-500 uppercase tracking-wider font-black font-mono">
                   No hay publicaciones para esta fecha
@@ -597,7 +630,13 @@ export default function ContentReady() {
               </div>
             ) : (
               publications
-                .filter(p => p.scheduledTime.startsWith(`2026-05-${selectedDay < 10 ? '0' + selectedDay : selectedDay}`))
+                .filter(p => {
+                  const y = activeDate.getFullYear();
+                  const m = activeDate.getMonth() + 1;
+                  const mStr = m < 10 ? '0' + m : m;
+                  const dStr = selectedDay < 10 ? '0' + selectedDay : selectedDay;
+                  return p.scheduledTime.startsWith(`${y}-${mStr}-${dStr}`);
+                })
                 .map((pub) => (
                   <div 
                     key={pub.id}
@@ -677,13 +716,20 @@ export default function ContentReady() {
     );
   };
 
-  // Calendar logic around current selected month (e.g. May 2026)
+  // Calendar logic around current selected month dynamically computed
   const renderCalendarDays = () => {
-    const daysInMonth = 31; // May
-    const startOffset = 4; // May 2026 starts on Friday (4 empty slots: Mon, Tue, Wed, Thu)
+    const year = activeDate.getFullYear();
+    const month = activeDate.getMonth(); // 0-indexed
+    
+    // Days in current activeMonth
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // First day index (0 = Sunday, 1 = Monday ...)
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    // Week starts with Monday: Lun, Mar, Mié, Jue, Vie, Sáb, Dom
+    const startOffset = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+    
     const grid = [];
-
-    // Header labels
     const weekdays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
     // Render empty spaces
@@ -691,14 +737,20 @@ export default function ContentReady() {
       grid.push(<div key={`empty-${i}`} className="bg-white/[0.01] border border-white/5 min-h-[90px] rounded-xl opacity-20" />);
     }
 
-    // Render actual days of May 2026
+    // Render actual days of the current month
     for (let day = 1; day <= daysInMonth; day++) {
       const dayStr = day < 10 ? `0${day}` : `${day}`;
-      const fullDateStr = `2026-05-${dayStr}`;
+      const monthStr = (month + 1) < 10 ? `0${month + 1}` : `${month + 1}`;
+      const fullDateStr = `${year}-${monthStr}-${dayStr}`;
       
       // Filter publications on this day
       const dailyPubs = publications.filter(p => p.scheduledTime.startsWith(fullDateStr));
-      const isToday = day === 27; // matching simulation local date
+      
+      const todayDate = new Date();
+      const isToday = todayDate.getFullYear() === year && 
+                      todayDate.getMonth() === month && 
+                      todayDate.getDate() === day;
+                      
       const isSelected = selectedDay === day;
 
       grid.push(
@@ -919,20 +971,34 @@ export default function ContentReady() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold font-display text-white">Calendario de Publicación Auto-Asistida</h2>
-                  <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Mayo 2026 — Sincronía en Vivo</p>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">
+                    {activeDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })} — Sincronía en Vivo
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={() => setActiveDate(new Date('2026-04-27'))}
+                  type="button"
+                  onClick={() => {
+                    const prev = new Date(activeDate.getFullYear(), activeDate.getMonth() - 1, 1);
+                    setActiveDate(prev);
+                    setSelectedDay(1);
+                  }}
                   className="p-2 hover:bg-white/5 rounded-lg border border-white/5 cursor-pointer text-slate-400 hover:text-white"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span className="text-xs font-mono font-bold px-3 py-1 bg-white/5 rounded-lg text-white">MAYO 2026</span>
+                <span className="text-xs font-mono font-bold px-3 py-1 bg-white/5 rounded-lg text-white uppercase tracking-wider">
+                  {activeDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                </span>
                 <button 
-                  onClick={() => setActiveDate(new Date('2026-06-27'))}
+                  type="button"
+                  onClick={() => {
+                    const next = new Date(activeDate.getFullYear(), activeDate.getMonth() + 1, 1);
+                    setActiveDate(next);
+                    setSelectedDay(1);
+                  }}
                   className="p-2 hover:bg-white/5 rounded-lg border border-white/5 cursor-pointer text-slate-400 hover:text-white"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -954,7 +1020,7 @@ export default function ContentReady() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-brand-primary inline-block animate-pulse" />
-                <span>HOY (27 DE MAYO DE 2026)</span>
+                <span>HOY ({new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()})</span>
               </div>
             </div>
           </div>
@@ -1241,8 +1307,17 @@ export default function ContentReady() {
               </div>
 
               {/* Selector de Fecha */}
-              <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">¿Cuándo quieres publicarlo?</label>
+              <div className="space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">¿Cuándo quieres publicarlo?</label>
+                  {/* Dynamic premium live timer/clock widget */}
+                  <div className="flex items-center gap-2.5 bg-gradient-to-r from-indigo-950/40 via-brand-primary/10 to-indigo-950/40 border-2 border-brand-primary/40 px-4 py-2 rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:scale-[1.02] transition-all">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0 shadow-[0_0_10px_#34d399]" />
+                    <span className="text-[10px] sm:text-xs font-mono font-black text-white tracking-wide">
+                      🕰️ EN VIVO: <span className="text-brand-primary uppercase">{liveClock.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}</span> — <span className="text-emerald-400">{liveClock.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                    </span>
+                  </div>
+                </div>
                 <input
                   type="datetime-local"
                   value={scheduledTime}
