@@ -19,7 +19,11 @@ import {
   ChevronRight,
   Upload,
   Image as ImageIcon,
-  Play
+  Play,
+  Bell,
+  BellRing,
+  Volume2,
+  Smartphone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { db, auth } from '../lib/firebase';
@@ -59,16 +63,32 @@ const REQUISITES_SAMPLES = [
 ];
 
 export default function ContentReady() {
+  const getNowIsoString = () => {
+    try {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      return now.toISOString().slice(0, 16);
+    } catch (e) {
+      return '2026-05-28T12:00';
+    }
+  };
+
   const [publications, setPublications] = useState<Publication[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Form states
   const [title, setTitle] = useState('');
   const [copy, setCopy] = useState('');
-  const [scheduledTime, setScheduledTime] = useState('2026-05-28T12:00');
+  const [scheduledTime, setScheduledTime] = useState(getNowIsoString());
   const [selectedChannels, setSelectedChannels] = useState<string[]>(['Instagram', 'WhatsApp Business']);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageInputUrl, setImageInputUrl] = useState('');
+
+  // Notification states
+  const [notificationPermission, setNotificationPermission] = useState<string>('default');
+  const [nextNotificationCountdown, setNextNotificationCountdown] = useState<string>('Buscando próximas publicaciones...');
+  const [notifiedPubIds, setNotifiedPubIds] = useState<string[]>([]);
+  const [activeInAppAlert, setActiveInAppAlert] = useState<Publication | null>(null);
   
   // UI states
   const [showForm, setShowForm] = useState(false);
@@ -153,6 +173,131 @@ export default function ContentReady() {
 
     return () => unsubscribe();
   }, []);
+
+  // Notifications startup check
+  useEffect(() => {
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  // Generate tactical synth audio cue for alarms
+  const playNotificationSound = () => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // A5
+      
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.45);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.45);
+    } catch (e) {
+      console.log("Audio API blocked or inactive in background:", e);
+    }
+  };
+
+  const requestNotificationPermission = async () => {
+    if (!('Notification' in window)) {
+      alert("Tu navegador o dispositivo no soporta alertas de sistema nativas.");
+      return;
+    }
+    try {
+      const res = await Notification.requestPermission();
+      setNotificationPermission(res);
+      if (res === 'granted') {
+        playNotificationSound();
+        new Notification("🎯 ¡ALERTA PUSH EXCELENTE!", {
+          body: "FUTURA enviará las notificaciones de agenda de copys y distribución directo a esta pantalla.",
+          icon: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80"
+        });
+      }
+    } catch (e) {
+      console.warn("Could not retrieve notification permission:", e);
+    }
+  };
+
+  const triggerTestNotification = () => {
+    playNotificationSound();
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification("📌 FUTURA — Mensaje de Prueba", {
+          body: "Esta es una alerta de prueba. Muy pronto recibirás un aviso similar cuando se cumpla la hora de tu publicación.",
+          icon: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=120&q=80"
+        });
+      } catch (err) {
+        console.warn("Failed sending notification:", err);
+      }
+    } else {
+      alert("🔊 El aviso sonoro de la agenda funciona. Para ver la notificación en Chrome, toca el botón de 'Permitir Notificaciones' arriba a la derecha.");
+    }
+  };
+
+  // Real-Time Scheduler checker loop (Ticks every second to handle alerts perfectly)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      
+      // Calculate Countdown to the closest future pending publication
+      const futurePubs = publications
+        .filter(p => p.status === 'pending' && new Date(p.scheduledTime) > now)
+        .sort((a, b) => new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime());
+      
+      if (futurePubs.length > 0) {
+        const diffMs = new Date(futurePubs[0].scheduledTime).getTime() - now.getTime();
+        const totalSecs = Math.floor(diffMs / 1000);
+        const hrs = Math.floor(totalSecs / 3600);
+        const mins = Math.floor((totalSecs % 3600) / 60);
+        const secs = totalSecs % 60;
+        
+        let cdText = "Siguiente alerta de publicación (\"" + futurePubs[0].title + "\") en: ";
+        if (hrs > 0) cdText += `${hrs}h `;
+        if (mins > 0 || hrs > 0) cdText += `${mins}m `;
+        cdText += `${secs}s`;
+        setNextNotificationCountdown(cdText);
+      } else {
+        setNextNotificationCountdown('No hay futuras publicaciones agendadas para el día de hoy');
+      }
+
+      // Check for arrived pending times
+      publications.forEach(p => {
+        if (p.status === 'pending' && !notifiedPubIds.includes(p.id)) {
+          const sTime = new Date(p.scheduledTime);
+          const diffSeconds = (now.getTime() - sTime.getTime()) / 1000;
+          
+          // Trigger alert if scheduled time is reached (allow up to 2 minutes margin for offline catching)
+          if (diffSeconds >= 0 && diffSeconds < 120) {
+            setNotifiedPubIds(prev => [...prev, p.id]);
+            setActiveInAppAlert(p);
+            playNotificationSound();
+            
+            if ('Notification' in window && Notification.permission === 'granted') {
+              try {
+                new Notification(`🚨 ¡HORA DE PUBLICAR CONTENIDO!`, {
+                  body: `Tu copy para "${p.title}" está listo para ser publicado en: ${p.channels.join(', ')}.`,
+                  icon: p.imageUrl || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80",
+                  requireInteraction: true
+                });
+               } catch (err) {
+                 console.warn("Could not push Chrome notification:", err);
+               }
+            }
+          }
+        }
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [publications, notifiedPubIds]);
 
   const loadLocalFallback = () => {
     const saved = localStorage.getItem('futura_content_ready');
@@ -666,6 +811,99 @@ export default function ContentReady() {
           <div className="bg-black/35 border border-white/5 p-4 rounded-2xl flex flex-col items-center">
             <span className="text-2xl font-black text-purple-400 font-mono leading-none mb-1">95% TIEMPO SALVADO</span>
             <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Planificación de Campañas IA</span>
+          </div>
+        </div>
+      </section>
+
+      {/* CENTRO DE CONTROL DE ALERTAS Y NOTIFICACIONES DE CHROME & MÓVIL */}
+      <section className="glass-panel p-6 rounded-[2.5rem] border-brand-primary/20 bg-black/40 shadow-xl space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/30 flex items-center justify-center text-brand-primary shrink-0">
+              {notificationPermission === 'granted' ? (
+                <BellRing className="w-5.5 h-5.5 text-brand-primary animate-bounce" />
+              ) : (
+                <Bell className="w-5.5 h-5.5 text-slate-500" />
+              )}
+            </div>
+            <div className="space-y-1 text-left">
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-bold text-white uppercase tracking-wider font-display">Sistema de Notificaciones Activo</h4>
+                {notificationPermission === 'granted' ? (
+                  <span className="text-[8px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-black uppercase">
+                    ALERTA CHROME ACTIVA
+                  </span>
+                ) : notificationPermission === 'denied' ? (
+                  <span className="text-[8px] font-mono bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded font-black uppercase">
+                    BLOQUEADAS POR NAVEGADOR
+                  </span>
+                ) : (
+                  <span className="text-[8px] font-mono bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded font-black uppercase">
+                    PENDIENTE AUTORIZAR
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed max-w-xl">
+                Recibe alertas en Chrome y en tu celular al llegar la hora exacta de publicar. El aviso contendrá un botón de un solo clic para copiar el copy estratégico y descargar la imagen correspondiente.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            {notificationPermission !== 'granted' && (
+              <button
+                type="button"
+                onClick={requestNotificationPermission}
+                className="py-2.5 px-4 bg-brand-primary hover:bg-brand-primary/80 text-white rounded-xl text-[10px] uppercase font-black tracking-widest cursor-pointer transition-all shadow-md shadow-brand-primary/20 flex items-center gap-1.5"
+              >
+                <Bell className="w-3.5 h-3.5" />
+                Permitir Notificaciones
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={triggerTestNotification}
+              className="py-2.5 px-4 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-[10px] uppercase font-black tracking-widest border border-white/5 cursor-pointer transition-all flex items-center gap-1.5"
+            >
+              <Volume2 className="w-3.5 h-3.5" />
+              Probar Sonido y Alerta
+            </button>
+          </div>
+        </div>
+
+        {/* Ticker de cuenta regresiva en vivo */}
+        <div className="bg-gradient-to-r from-indigo-950/30 to-brand-primary/10 border border-white/5 p-3 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
+            </span>
+            <span className="text-[10px] font-mono text-slate-300">
+              {nextNotificationCountdown}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                // Schedule a demo item for 30 seconds from now
+                const now = new Date();
+                now.setSeconds(now.getSeconds() + 30);
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                const targetIsoStr = now.toISOString().slice(0, 16);
+                
+                setTitle("🚀 Demo Notificación Instantánea");
+                setCopy("🔥 ¡Esto es un Copy de Prueba de FUTURA! Logramos configurar tu sistema de notificaciones en Chrome y Móvil con éxito. Comparte esto ahora.");
+                setScheduledTime(targetIsoStr);
+                
+                alert("⏰ Rellenado: Todo listo. Toca abajo en 'AGENDAR PUBLICACIÓN COLA'. Al transcurrir los 30 segundos, el sistema disparará la alarma y el modal interactivo de copiado automático.");
+              }}
+              className="py-1 px-2.5 bg-brand-primary/20 hover:bg-brand-primary text-brand-primary hover:text-white rounded-lg border border-brand-primary/20 transition-all text-[9.5px] font-black uppercase tracking-wider cursor-pointer"
+            >
+              ⚡ Programar Demo de 30s
+            </button>
           </div>
         </div>
       </section>
@@ -1265,6 +1503,99 @@ export default function ContentReady() {
                     </button>
                   </div>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* FLOATING ACTIVE IN-APP ALREADY ALERT */}
+      <AnimatePresence>
+        {activeInAppAlert && (
+          <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 pt-16 pointer-events-none">
+            <motion.div
+              initial={{ opacity: 0, y: -50, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.9 }}
+              className="w-full max-w-lg bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 border-2 border-brand-primary p-6 rounded-3xl shadow-[0_10px_60px_rgba(139,92,246,0.35)] space-y-4 pointer-events-auto"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex gap-3">
+                  <div className="w-10 h-10 bg-brand-primary/20 rounded-xl flex items-center justify-center text-brand-primary shrink-0">
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-primary"></span>
+                    </span>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-[9px] font-black tracking-widest text-brand-primary block uppercase font-mono">🚨 ¡HORA DE PUBLICAR AHORA!</span>
+                    <h4 className="text-sm font-bold text-white uppercase">{activeInAppAlert.title}</h4>
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setActiveInAppAlert(null)}
+                  className="text-slate-400 hover:text-white text-xs cursor-pointer bg-white/5 hover:bg-white/15 p-1 rounded-lg transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="bg-black/40 border border-white/5 p-3 rounded-xl text-left">
+                <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed font-sans">
+                  {activeInAppAlert.copy}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1.5 flex-wrap justify-start">
+                <span className="text-[9px] font-mono text-slate-500 uppercase">Canales programados:</span>
+                {activeInAppAlert.channels.map(c => (
+                  <span key={c} className="text-[8px] font-mono font-bold bg-white/10 px-2.5 py-0.5 rounded-md text-white border border-white/5">{c}</span>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2.5 pt-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(activeInAppAlert.copy);
+                    alert("📋 ¡Mensaje publicitario copiado al portapapeles! Listo para pegar.");
+                  }}
+                  className="py-2.5 px-3 bg-indigo-600 hover:bg-brand-primary text-white font-black rounded-xl text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <FileText className="w-3.5 h-3.5" /> Copiar Copy
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (activeInAppAlert.imageUrl) {
+                      const link = document.createElement('a');
+                      link.href = activeInAppAlert.imageUrl;
+                      link.target = '_blank';
+                      link.download = `foto_${activeInAppAlert.title}.jpg`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    } else {
+                      alert("Esta publicación no requiere imagen.");
+                    }
+                  }}
+                  className="py-2.5 px-3 bg-white/5 hover:bg-white/15 text-slate-200 font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 border border-white/15"
+                >
+                  <ImageIcon className="w-3.5 h-3.5" /> Descargar Foto
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleMarkAsPublished(activeInAppAlert.id);
+                    setActiveInAppAlert(null);
+                  }}
+                  className="py-2.5 px-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" /> Marcar Listo
+                </button>
               </div>
             </motion.div>
           </div>
