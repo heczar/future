@@ -24,11 +24,17 @@
 }
 
 .glass-panel {
-  @apply bg-surface-800/75 backdrop-blur-md border border-white/5;
+  @apply bg-surface-800 border border-white/5 shadow-lg;
 }
 
 .gradient-text {
   @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-primary to-brand-secondary;
+}
+
+/* Disable expensive backdrop-filters globally to eliminate black flickering/rendering lag on scrolling inside iframe containers */
+* {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .markdown-body {
@@ -97,5 +103,28 @@ html, body {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
   scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch !important;
 }
+
+/* ELIMINATE PAINT DELAYS AND BLACK FLICKERING ON SCROLL BY FORCING GPU TILE PERSISTENCE */
+main, .flex-1.overflow-y-auto {
+  background-color: #050505;
+  -webkit-overflow-scrolling: touch !important;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  will-change: scroll-position, transform;
+}
+
+/* Force GPU promotion on sections and key layout cards so they stay permanently rasterized and painted even when off-screen */
+main > *, 
+main section, 
+main .glass-panel,
+main .grid,
+main div[class*="grid"],
+main div[class*="flex"] {
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+

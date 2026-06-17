@@ -1076,7 +1076,7 @@ function AppContent() {
         setIsOpen={setIsSidebarOpen} 
       />
       
-      <main ref={mainRef} className="flex-1 overflow-y-auto p-4 md:p-12 relative scroll-smooth">
+      <main ref={mainRef} className="flex-1 overflow-y-auto p-4 md:p-12 relative scroll-smooth bg-surface-900">
         <header className="mb-8 md:mb-12">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
