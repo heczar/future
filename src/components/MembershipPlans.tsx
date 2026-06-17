@@ -231,38 +231,6 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                 </ul>
               </div>
             </div>
-
-            {/* Simulated direct switch only for quick mock testing */}
-            <div className="border-t border-white/5 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-              <p className="font-sans">¿Deseas probar la experiencia completa de forma inmediata?</p>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (onUpdateProfile) {
-                    const newMode = !profile.isPremium;
-                    await onUpdateProfile({
-                      ...profile,
-                      isPremium: newMode,
-                      pagoMovilRequest: newMode ? {
-                        bank: 'Auto-Activación de Prueba',
-                        phone: 'PRO_USER',
-                        id: 'PRO_USER',
-                        reference: 'AUTO_PRO_ACTIVATE',
-                        amountUsd: 10,
-                        amountBs: 0,
-                        timestamp: new Date().toISOString(),
-                        status: 'approved',
-                        paymentType: 'binance_eth'
-                      } : null
-                    });
-                    triggerToast(`Simulación: Cuenta cambiada a ${newMode ? 'PRO' : 'DEMO'}`);
-                  }
-                }}
-                className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg font-mono text-[9px] uppercase tracking-wider border border-white/5 shrink-0 transition-colors cursor-pointer"
-              >
-                {profile.isPremium ? 'Cambiar a Demo 🔄' : 'Hacer Premium Seguro Pro ✨'}
-              </button>
-            </div>
           </div>
         </div>
 
