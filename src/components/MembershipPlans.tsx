@@ -477,7 +477,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                       BINANCE PAY (USDT)
                     </span>
                     <p className="text-slate-400 leading-normal font-sans text-xs">
-                      Envía exactamente <strong>10.00 USDT</strong> a través de Binance Pay de la forma más rápida utilizando cualquiera de estos métodos:
+                      Envía exactamente <strong>10.00 USDT</strong> a través de Binance Pay de la forma más rápida utilizando cualquiera de estas opciones:
                     </p>
 
                     {/* Direct Link CTA Button */}
@@ -523,24 +523,6 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                           <Copy className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                    </div>
-
-                    {/* QR Code Visualization */}
-                    <div className="bg-black/30 p-4 rounded-xl border border-white/5 flex flex-col items-center gap-2">
-                      <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest text-center">
-                        Opción 3: Código QR Oficial
-                      </span>
-                      <div className="p-2 bg-slate-900 border border-white/10 rounded-xl max-w-[200px]">
-                        <img 
-                          src="/binance_qr.png" 
-                          alt="Binance Pay QR Code" 
-                          referrerPolicy="no-referrer"
-                          className="w-full h-auto object-contain rounded-lg"
-                        />
-                      </div>
-                      <span className="text-[8px] font-sans text-amber-400 font-bold uppercase tracking-wide text-center leading-normal">
-                        Escanea con tu aplicación Binance para transferir $10 USDT
-                      </span>
                     </div>
 
                   </div>
