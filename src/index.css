@@ -24,7 +24,7 @@
 }
 
 .glass-panel {
-  @apply bg-surface-800/50 backdrop-blur-xl border border-white/5;
+  @apply bg-surface-800/75 backdrop-blur-md border border-white/5;
 }
 
 .gradient-text {
@@ -83,14 +83,10 @@
   background: rgba(139, 92, 246, 0.4); /* brand-primary */
 }
 
-/* Smooth Scrolling and hardware acceleration across all browsers */
+/* Smooth Scrolling and responsive performance across all browsers */
 html, body, .overflow-y-auto {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  /* Prevent scroll flickering and force GPU rendering */
-  backface-visibility: hidden;
-  transform: translate3d(0, 0, 0);
-  will-change: scroll-position;
 }
