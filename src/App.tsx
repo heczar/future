@@ -57,6 +57,7 @@ import {
   EyeOff,
   UserCheck,
   Coins,
+  DollarSign,
   Users
 } from 'lucide-react';
 import { cn } from './lib/utils';
@@ -64,6 +65,7 @@ import PhaseChat from './components/PhaseChat';
 import LandingOverlay from './components/LandingOverlay';
 import SecuritySection from './components/SecuritySection';
 import { useAuth } from './components/AuthWrapper';
+import { AccountProvider } from './components/AccountProvider';
 
 import { db } from './lib/firebase';
 import { doc, setDoc, onSnapshot, collection, query, where } from 'firebase/firestore';
@@ -71,7 +73,9 @@ import { doc, setDoc, onSnapshot, collection, query, where } from 'firebase/fire
 export default function App() {
   return (
     <AuthWrapper>
-      <AppContent />
+      <AccountProvider>
+        <AppContent />
+      </AccountProvider>
     </AuthWrapper>
   );
 }
@@ -1144,7 +1148,7 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
   const [users, setUsers] = React.useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [adminActiveTab, setAdminActiveTab] = React.useState<'pago_movil' | 'crm' | 'metrics'>('pago_movil');
+  const [adminActiveTab, setAdminActiveTab] = React.useState<'stripe_merchants' | 'payment_reports' | 'crm' | 'metrics'>('payment_reports');
   const [toastMsg, setToastMsg] = React.useState('');
 
   const triggerToast = (msg: string) => {
@@ -1272,6 +1276,7 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
 
   // Filter queues
   const pendingRequests = users.filter(u => u.pagoMovilRequest && u.pagoMovilRequest.status === 'pending');
+  const stripeMerchants = users.filter(u => u.stripeAccountId);
   const filteredCRM = users.filter(u => {
     const term = searchQuery.trim().toLowerCase();
     if (!term) return true;
@@ -1406,17 +1411,34 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
       {/* ADMIN TABS ROUTER */}
       <div className="flex border-b border-white/5 gap-2.5 pb-1">
         <button
-          onClick={() => setAdminActiveTab('pago_movil')}
+          onClick={() => setAdminActiveTab('stripe_merchants')}
           className={`px-5 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
-            adminActiveTab === 'pago_movil'
+            adminActiveTab === 'stripe_merchants'
               ? 'border-brand-primary text-brand-primary font-black'
               : 'border-transparent text-slate-400 hover:text-white'
           }`}
         >
           <Clock className="w-4 h-4" />
-          Cola de Pago Móvil
-          {pendingRequests.length > 0 && (
+          Stripe Merchants
+          {stripeMerchants.length > 0 && (
             <span className="px-1.5 py-0.5 bg-brand-primary text-white text-[8px] font-black font-mono rounded-full animate-bounce">
+              {stripeMerchants.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setAdminActiveTab('payment_reports')}
+          className={`px-5 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+            adminActiveTab === 'payment_reports'
+              ? 'border-brand-primary text-brand-primary font-black'
+              : 'border-transparent text-slate-400 hover:text-white'
+          }`}
+        >
+          <DollarSign className="w-4 h-4" />
+          Reportes de Pago Manual
+          {pendingRequests.length > 0 && (
+            <span className="px-1.5 py-0.5 bg-amber-500 text-black text-[8px] font-black font-mono rounded-full">
               {pendingRequests.length}
             </span>
           )}
@@ -1449,28 +1471,27 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
 
       {/* SWITCH VIEWS */}
       <AnimatePresence mode="wait">
-        {adminActiveTab === 'pago_movil' && (
+        {adminActiveTab === 'stripe_merchants' && (
           <motion.div
-            key="p_movil"
+            key="stripe_merchants_tab"
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             className="space-y-6"
           >
-            {pendingRequests.length === 0 ? (
+            {stripeMerchants.length === 0 ? (
               <div className="glass-panel p-12 text-center rounded-[2.5rem] border-white/5 bg-white/[0.01] space-y-3">
                 <div className="mx-auto w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-slate-500">
                   <Check className="w-6 h-6" />
                 </div>
-                <h4 className="text-md font-bold text-slate-300 uppercase tracking-widest">Cola Vacía</h4>
+                <h4 className="text-md font-bold text-slate-300 uppercase tracking-widest">Sin Comerciantes Activos</h4>
                 <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-sans">
-                  No hay reportes de Pago Móvil en espera de conciliación. Todos los depósitos han sido saldados e indexados a través del bot de acreditación SPE.
+                  No hay cuentas de Stripe Connect activadas en la plataforma todavía. Los usuarios pueden registrarlas desde la sección de Membresías en el menú lateral.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-6">
-                {pendingRequests.map((u) => {
-                  const r = u.pagoMovilRequest;
+              <div className="grid grid-cols-1 gap-6 text-left">
+                {stripeMerchants.map((u) => {
                   return (
                     <motion.div
                       key={u.id}
@@ -1480,64 +1501,180 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
                     >
                       {/* Left Informative fields */}
                       <div className="space-y-4 text-left flex-1 min-w-0">
-                        <div className="border-b border-white/5 pb-2">
-                          <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-widest">Usuario Remitente</span>
-                          <h4 className="text-base font-bold text-white truncate">{u.name || "Estratega"}</h4>
-                          <p className="text-[10px] text-slate-500 font-mono truncate">{u.email || `ID: ${u.id}`}</p>
+                        <div className="border-b border-white/5 pb-2 flex justify-between items-start gap-4">
+                          <div>
+                            <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-widest block">Propietario del Comercio</span>
+                            <h4 className="text-base font-bold text-white truncate">{u.name || "Estratega Comercial"}</h4>
+                            <p className="text-[10px] text-slate-500 font-mono truncate">{u.email || `ID: ${u.id}`}</p>
+                          </div>
+                          
+                          <div className="shrink-0 text-right">
+                            <span className={`px-2.5 py-1 text-[8px] font-mono font-black uppercase tracking-wider rounded-md ${
+                              u.stripeOnboardingComplete 
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            }`}>
+                              {u.stripeOnboardingComplete ? 'ONBOARDING OK' : 'PENDIENTE'}
+                            </span>
+                          </div>
                         </div>
 
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                           <div className="bg-black/30 p-3 rounded-xl border border-white/5">
-                            <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Banco Emisor</span>
-                            <span className="text-xs text-white font-bold font-sans">{r.bank}</span>
+                            <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Stripe Account ID</span>
+                            <span className="text-xs text-white font-mono font-bold select-all">{u.stripeAccountId}</span>
                           </div>
                           
                           <div className="bg-black/30 p-3 rounded-xl border border-white/5">
-                            <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Número Remitente</span>
-                            <span className="text-xs text-white font-mono font-medium">{r.phone}</span>
-                          </div>
-
-                          <div className="bg-black/30 p-3 rounded-xl border border-white/5">
-                            <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Id / Rif Pagador</span>
-                            <span className="text-xs text-white font-mono font-medium">{r.id}</span>
+                            <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Tier Membresía</span>
+                            <span className="text-xs text-brand-primary font-sans font-bold">{u.isPremium ? 'PRO / EXECUTIVE' : 'DEMO / STARTER'}</span>
                           </div>
 
                           <div className="bg-brand-primary/5 p-3 rounded-xl border border-brand-primary/15">
-                            <span className="text-[8px] text-brand-primary uppercase tracking-wider block font-mono">Boleta Referencia</span>
-                            <span className="text-xs text-brand-primary font-black font-mono">#{r.reference}</span>
+                            <span className="text-[8px] text-brand-primary uppercase tracking-wider block font-mono">Storefront Digital</span>
+                            <span className="text-xs text-brand-primary font-black font-mono truncate block">Active Live Shop</span>
                           </div>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-6 pt-1 text-xs">
-                          <p className="font-sans text-slate-400">
-                            Monto Reportado: <strong className="text-white text-sm font-mono">{r.amountBs.toFixed(2)} Bs</strong> <span className="text-slate-500 font-sans">(${r.amountUsd} USD)</span>
-                          </p>
-                          <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-slate-500" />
-                            Registrado: {new Date(r.timestamp).toLocaleString()}
-                          </span>
                         </div>
                       </div>
 
                       {/* Right Action triggers */}
                       <div className="flex flex-row md:flex-col gap-3 shrink-0 justify-end md:w-56 border-t md:border-t-0 md:border-l border-white/5 pt-4 md:pt-0 md:pl-6">
                         <button
-                          onClick={() => handleApprovePayment(u.id, u)}
+                          onClick={() => handleTogglePremiumDirect(u.id, u)}
                           className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-emerald-500/10"
                         >
-                          <Check className="w-4 h-4" /> Approve Prime
-                        </button>
-
-                        <button
-                          onClick={() => handleRejectPayment(u.id, u)}
-                          className="flex-1 py-3 bg-white/5 hover:bg-red-500/10 hover:text-red-400 text-slate-400 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-white/5 hover:border-red-500/20"
-                        >
-                          <X className="w-4 h-4" /> Reject Report
+                          Toggle PRO status
                         </button>
                       </div>
                     </motion.div>
                   );
                 })}
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {adminActiveTab === 'payment_reports' && (
+          <motion.div
+            key="payment_reports_tab"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="space-y-6"
+          >
+            {users.filter(u => u.pagoMovilRequest).length === 0 ? (
+              <div className="glass-panel p-12 text-center rounded-[2.5rem] border-white/5 bg-white/[0.01] space-y-3">
+                <div className="mx-auto w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-slate-500">
+                  <Check className="w-6 h-6" />
+                </div>
+                <h4 className="text-md font-bold text-slate-300 uppercase tracking-widest">Sin Reportes de Pago</h4>
+                <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-sans">
+                  No se han registrado reportes de pago por parte de los usuarios actualmente.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 text-left">
+                {users
+                  .filter(u => u.pagoMovilRequest)
+                  .sort((a, b) => {
+                    if (a.pagoMovilRequest.status === 'pending' && b.pagoMovilRequest.status !== 'pending') return -1;
+                    if (a.pagoMovilRequest.status !== 'pending' && b.pagoMovilRequest.status === 'pending') return 1;
+                    return 0;
+                  })
+                  .map((u) => {
+                    const req = u.pagoMovilRequest;
+                    return (
+                      <motion.div
+                        key={u.id}
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className={`glass-panel p-6 sm:p-8 rounded-[2.5rem] border ${
+                          req.status === 'pending' 
+                            ? 'border-amber-500/30 from-amber-500/5 via-surface-950 to-transparent' 
+                            : req.status === 'approved' 
+                              ? 'border-emerald-500/20 from-emerald-500/5 via-surface-950 to-transparent' 
+                              : 'border-red-500/20 from-red-500/5 via-surface-950 to-transparent'
+                        } flex flex-col md:flex-row md:items-center justify-between gap-6`}
+                      >
+                        {/* Left Info */}
+                        <div className="space-y-4 text-left flex-1 min-w-0">
+                          <div className="border-b border-white/5 pb-2 flex justify-between items-start gap-4">
+                            <div>
+                              <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-widest block">Usuario Remitente</span>
+                              <h4 className="text-base font-bold text-white truncate">{u.name || "Estratega Consola"}</h4>
+                              <p className="text-[10px] text-slate-500 font-mono truncate">{u.email || `ID: ${u.id}`}</p>
+                            </div>
+                            
+                            <div className="shrink-0 text-right">
+                              <span className={`px-2.5 py-1 text-[8px] font-mono font-black uppercase tracking-wider rounded-md ${
+                                req.status === 'pending' 
+                                  ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' 
+                                  : req.status === 'approved'
+                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                    : 'bg-red-500/10 text-red-500 border border-red-500/20'
+                              }`}>
+                                {req.status === 'pending' ? 'PENDIENTE VERIFICAR' : req.status === 'approved' ? 'APROBADO' : 'RECHAZADO'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                              <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Pasarela Reportada</span>
+                              <span className="text-xs text-white font-sans font-black tracking-wide">{req.bank}</span>
+                            </div>
+
+                            <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                              <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Remitente ID / Mail</span>
+                              <span className="text-xs text-white font-mono font-bold truncate block select-all">{req.id}</span>
+                            </div>
+
+                            <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                              <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Código Transacción</span>
+                              <span className="text-xs text-brand-primary font-mono font-black uppercase select-all">{req.reference}</span>
+                            </div>
+
+                            <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                              <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Fecha Reporte</span>
+                              <span className="text-xs text-slate-300 font-mono text-[11px] truncate block">
+                                {req.timestamp ? new Date(req.timestamp).toLocaleString() : 'N/D'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right Buttons Actions */}
+                        {req.status === 'pending' && (
+                          <div className="flex flex-row md:flex-col gap-2.5 shrink-0 justify-end md:w-56 border-t md:border-t-0 md:border-l border-white/5 pt-4 md:pt-0 md:pl-6">
+                            <button
+                              onClick={() => handleApprovePayment(u.id, u)}
+                              className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-mono font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-emerald-500/15"
+                            >
+                              Aprobar y Premium ✓
+                            </button>
+                            <button
+                              onClick={() => handleRejectPayment(u.id, u)}
+                              className="flex-1 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl text-[10px] font-mono font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-red-500/20"
+                            >
+                              Rechazar Pago ✕
+                            </button>
+                          </div>
+                        )}
+                        {req.status === 'approved' && (
+                          <div className="text-[10px] text-slate-500 font-mono text-center md:w-56 pt-4 md:pt-0 md:pl-6 border-t md:border-t-0 md:border-l border-white/5 flex flex-col items-center justify-center">
+                            <span className="text-emerald-500 font-bold block">✓ PROCESO COMPLETO</span>
+                            <span className="text-[9px] block">Aprobado en {req.approvedAt ? new Date(req.approvedAt).toLocaleDateString() : 'N/D'}</span>
+                          </div>
+                        )}
+                        {req.status === 'rejected' && (
+                          <div className="text-[10px] text-slate-500 font-mono text-center md:w-56 pt-4 md:pt-0 md:pl-6 border-t md:border-t-0 md:border-l border-white/5 flex flex-col items-center justify-center">
+                            <span className="text-red-500 font-bold block">✕ REPORTE RECHAZADO</span>
+                            <span className="text-[9px] block">Rechazado en {req.rejectedAt ? new Date(req.rejectedAt).toLocaleDateString() : 'N/D'}</span>
+                          </div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
               </div>
             )}
           </motion.div>
@@ -1610,8 +1747,22 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
                         </p>
                       </div>
 
-                      {/* Info on registered payment requests if active */}
-                      {u.pagoMovilRequest && (
+                      {/* Info on registered payment requests or Stripe accounts if active */}
+                      {u.stripeAccountId ? (
+                        <div className="p-3 bg-brand-primary/5 border border-brand-primary/10 rounded-xl text-left space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[8px] font-bold text-brand-primary uppercase tracking-widest font-mono">Stripe Connect Account</span>
+                            <span className={`px-1.5 py-0.5 rounded text-[7px] font-bold uppercase tracking-wider font-mono ${
+                              u.stripeOnboardingComplete ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+                            }`}>
+                              {u.stripeOnboardingComplete ? 'Onboarded' : 'Pending'}
+                            </span>
+                          </div>
+                          <p className="text-[9px] text-slate-300 font-mono font-medium truncate">
+                            ID: {u.stripeAccountId}
+                          </p>
+                        </div>
+                      ) : u.pagoMovilRequest ? (
                         <div className="p-3 bg-black/45 border border-white/5 rounded-xl text-left space-y-1">
                           <div className="flex items-center justify-between">
                             <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest font-mono">Último Pago Móvil</span>
@@ -1626,7 +1777,7 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
                             Ref: #{u.pagoMovilRequest.reference} • {u.pagoMovilRequest.bank}
                           </p>
                         </div>
-                      )}
+                      ) : null}
                     </div>
 
                     {/* Actions panel */}

@@ -68,7 +68,7 @@ export interface UserProfile {
     status: 'pending' | 'approved' | 'rejected';
     approvedAt?: string;
     rejectedAt?: string;
-    paymentType?: 'pago_movil' | 'binance_eth';
+    paymentType?: 'pago_movil' | 'binance_eth' | 'paypal' | 'transferencia';
   } | null;
   openwaConfig?: {
     webhookUrl: string;
