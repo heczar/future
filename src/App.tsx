@@ -578,78 +578,6 @@ function AppContent() {
                   ))}
                 </div>
 
-                {/* SPE PHASE DETAIL MODAL */}
-                <AnimatePresence>
-                  {selectedPhase && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                      <motion.div 
-                        initial={{ opacity: 0 }} 
-                        animate={{ opacity: 1 }} 
-                        exit={{ opacity: 0 }} 
-                        onClick={() => setSelectedPhase(null)} 
-                        className="absolute inset-0 bg-black/90 backdrop-blur-md" 
-                      />
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.9, y: 20 }} 
-                        animate={{ opacity: 1, scale: 1, y: 0 }} 
-                        exit={{ opacity: 0, scale: 0.9, y: 20 }} 
-                        className="relative w-full max-w-2xl glass-panel p-8 md:p-12 rounded-[3rem] border-brand-primary/30 shadow-2xl space-y-8 text-left"
-                      >
-                         <button 
-                           onClick={() => setSelectedPhase(null)}
-                           className="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors cursor-pointer"
-                         >
-                           <X className="w-6 h-6" />
-                         </button>
-
-                         <div className="flex items-center gap-6">
-                           <div className={cn("w-20 h-20 bg-white/5 rounded-[2rem] flex items-center justify-center border border-white/5 shadow-lg", selectedPhase.color)}>
-                             <selectedPhase.icon className="w-10 h-10" />
-                           </div>
-                           <div>
-                              <h2 className="text-3xl font-display font-bold text-white tracking-tight">{selectedPhase.title}</h2>
-                              <p className="text-[10px] font-black text-brand-primary uppercase tracking-[0.4em]">Fase SPE: {selectedPhase.name}</p>
-                           </div>
-                         </div>
-                         
-                         <div className="space-y-6">
-                           <p className="text-slate-400 leading-relaxed text-lg">
-                             {selectedPhase.longDesc}
-                           </p>
-                           
-                           <div className="space-y-4">
-                             <h4 className="text-xs font-black text-white uppercase tracking-widest">Protocolos de Ejecución</h4>
-                             <ul className="space-y-3">
-                                {selectedPhase.points.map((point: string, i: number) => (
-                                  <li key={i} className="flex gap-4 items-start">
-                                    <div className="w-5 h-5 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center mt-0.5 shrink-0">
-                                      <CheckCircle className="w-3 h-3 text-brand-primary" />
-                                    </div>
-                                    <p className="text-sm text-slate-300">{point}</p>
-                                  </li>
-                                ))}
-                             </ul>
-                           </div>
-                         </div>
-
-                          <div className="grid grid-cols-1 gap-4 pt-6">
-                            <button 
-                              onClick={() => {
-                                setSelectedPhase(null);
-                                hubRef.current?.scrollIntoView({ behavior: 'smooth' });
-                                setDashboardPrompt(`Necesito ayuda técnica para la ejecución de la fase de ${selectedPhase.name} de mi marca.`);
-                              }}
-                              className="w-full py-5 bg-brand-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] transition-all shadow-xl shadow-brand-primary/20 flex items-center justify-center gap-3 cursor-pointer"
-                            >
-                              <Zap className="w-4 h-4" />
-                              Consultoría de Ejecución
-                            </button>
-                         </div>
-                      </motion.div>
-                    </div>
-                  )}
-                </AnimatePresence>
-
                 <div className="mt-12 overflow-hidden bg-white/5 border-y border-white/5 py-4">
                   <motion.div 
                     animate={{ x: [0, -1000] }}
@@ -1076,7 +1004,7 @@ function AppContent() {
         setIsOpen={setIsSidebarOpen} 
       />
       
-      <main ref={mainRef} className="flex-1 overflow-y-auto p-4 md:p-12 relative scroll-smooth bg-surface-900">
+      <main ref={mainRef} className="flex-1 overflow-y-auto p-4 md:p-12 relative scroll-smooth">
         <header className="mb-8 md:mb-12">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -1132,6 +1060,78 @@ function AppContent() {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* SPE PHASE DETAIL MODAL (Viewport root) */}
+      <AnimatePresence>
+        {selectedPhase && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/85 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setSelectedPhase(null)} 
+              className="absolute inset-0 bg-black/40" 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 15 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.95, y: 15 }} 
+              className="relative w-full max-w-lg bg-surface-800 border border-white/10 shadow-2xl rounded-2xl md:rounded-[2rem] p-6 md:p-8 space-y-6 text-left overflow-y-auto max-h-[90vh] z-10"
+            >
+               <button 
+                 onClick={() => setSelectedPhase(null)}
+                 className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/5"
+               >
+                 <X className="w-4 h-4" />
+               </button>
+
+               <div className="flex items-center gap-4 pr-6">
+                 <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border border-white/10 shadow-md shrink-0", selectedPhase.color)}>
+                   <selectedPhase.icon className="w-6 h-6" />
+                 </div>
+                 <div>
+                    <h2 className="text-lg md:text-xl font-display font-bold text-white tracking-tight leading-tight">{selectedPhase.title}</h2>
+                    <p className="text-[9px] font-black text-brand-primary uppercase tracking-[0.3em] mt-0.5">Fase SPE: {selectedPhase.name}</p>
+                 </div>
+               </div>
+               
+               <div className="space-y-4">
+                 <p className="text-slate-300 leading-relaxed text-xs md:text-sm">
+                   {selectedPhase.longDesc}
+                 </p>
+                 
+                 <div className="space-y-2 pt-1">
+                   <h4 className="text-[10px] font-black text-white/50 uppercase tracking-widest font-mono">Protocolos de Ejecución</h4>
+                   <ul className="space-y-2">
+                      {selectedPhase.points.map((point: string, i: number) => (
+                        <li key={i} className="flex gap-2.5 items-start">
+                          <div className="w-4 h-4 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center mt-0.5 shrink-0">
+                            <CheckCircle className="w-2.5 h-2.5 text-brand-primary" />
+                          </div>
+                          <p className="text-xs text-slate-400 font-sans leading-relaxed">{point}</p>
+                        </li>
+                      ))}
+                   </ul>
+                 </div>
+               </div>
+
+               <div className="pt-2">
+                 <button 
+                   onClick={() => {
+                     setSelectedPhase(null);
+                     hubRef.current?.scrollIntoView({ behavior: 'smooth' });
+                     setDashboardPrompt(`Necesito ayuda técnica para la ejecución de la fase de ${selectedPhase.name} de mi marca.`);
+                   }}
+                   className="w-full py-3 bg-brand-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-brand-primary/15 flex items-center justify-center gap-2 cursor-pointer"
+                 >
+                   <Zap className="w-3.5 h-3.5" />
+                   Consultoría de Ejecución
+                 </button>
+               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
