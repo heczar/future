@@ -138,6 +138,48 @@ function robustJsonParse(text: string, defaultPrompt: string): { strategy: strin
   };
 }
 
+// Robust Sanitization for Gemini Contents (ensures zero empty parts and removes consecutive duplicate roles)
+function sanitizeGeminiContents(history: any[], newMessage: string, defaultRole: 'user' | 'model' = 'user'): any[] {
+  const merged: { role: 'user' | 'model'; parts: { text: string }[] }[] = [];
+  
+  // Clean elements and ensure non-empty text
+  const rawItems = history.map(msg => {
+    const role: 'user' | 'model' = msg.role === 'user' ? 'user' : 'model';
+    let text = "";
+    if (typeof msg.text === 'string') text = msg.text.trim();
+    else if (typeof msg.content === 'string') text = msg.content.trim();
+    else if (Array.isArray(msg.parts) && msg.parts[0] && typeof msg.parts[0].text === 'string') text = msg.parts[0].text.trim();
+    return { role, text };
+  }).filter(item => item.text.length > 0);
+
+  // Append current message
+  if (newMessage && newMessage.trim()) {
+    rawItems.push({ role: defaultRole, text: newMessage.trim() });
+  }
+
+  // Merge consecutive same role messages
+  for (const item of rawItems) {
+    if (merged.length > 0 && merged[merged.length - 1].role === item.role) {
+      merged[merged.length - 1].parts[0].text += "\n" + item.text;
+    } else {
+      merged.push({
+        role: item.role,
+        parts: [{ text: item.text }]
+      });
+    }
+  }
+
+  // Gemini requires the conversation to not turn up completely empty. Fallback as safety.
+  if (merged.length === 0) {
+    merged.push({
+      role: 'user',
+      parts: [{ text: newMessage || "Hola Asesor" }]
+    });
+  }
+
+  return merged;
+}
+
 // --- API ENDPOINTS ---
 
 // API Health Check
@@ -172,12 +214,7 @@ app.post("/api/gemini/chatWithAdvisor", async (req, res) => {
 
   try {
     const listHistory = Array.isArray(history) ? history : [];
-    const contents: any[] = listHistory.map((msg: any) => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.text || msg.content || "" }]
-    }));
-
-    contents.push({ role: 'user', parts: [{ text: message }] });
+    const contents = sanitizeGeminiContents(listHistory, message);
 
     const response = await getAiClient().models.generateContent({
       model,
@@ -215,12 +252,7 @@ app.post("/api/gemini/chatAboutPhase", async (req, res) => {
 
   try {
     const listHistory = Array.isArray(history) ? history : [];
-    const contents: any[] = listHistory.map((msg: any) => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.text || (msg.parts && msg.parts[0]?.text) || "" }]
-    }));
-
-    contents.push({ role: 'user', parts: [{ text: message }] });
+    const contents = sanitizeGeminiContents(listHistory, message);
 
     const response = await getAiClient().models.generateContent({
       model,
@@ -286,10 +318,8 @@ app.post("/api/gemini/generateContentStrategy", async (req, res) => {
 
   try {
     const listHistory = Array.isArray(history) ? history : [];
-    const contents: any[] = listHistory.map((msg: any) => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content || msg.text || "" }]
-    }));
+    // Sanitize the chat history safely (without the new message yet)
+    const contents = sanitizeGeminiContents(listHistory, "");
 
     const currentMessageParts: any[] = [];
 
@@ -328,7 +358,13 @@ app.post("/api/gemini/generateContentStrategy", async (req, res) => {
     }
 
     currentMessageParts.push({ text: `Instrucción o Tópico Comercial: ${prompt}` });
-    contents.push({ role: 'user', parts: currentMessageParts });
+
+    // Safely append or merge the user turn
+    if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
+      contents[contents.length - 1].parts.push(...currentMessageParts);
+    } else {
+      contents.push({ role: 'user', parts: currentMessageParts });
+    }
 
     const response = await getAiClient().models.generateContent({
       model,

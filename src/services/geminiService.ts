@@ -66,12 +66,23 @@ export async function chatWithAdvisor(
       body: JSON.stringify({ message, history, brandContext })
     });
 
-    if (!res.ok) throw new Error("Advisor service error");
+    if (!res.ok) {
+      let errorMsg = "Error del servidor de FUTURA";
+      try {
+        const errData = await res.json();
+        if (errData && errData.error) {
+          errorMsg = errData.error;
+        }
+      } catch (e) {
+        // Not JSON
+      }
+      throw new Error(errorMsg);
+    }
     const data = await res.json();
     return data.response || "No response received";
-  } catch (error) {
+  } catch (error: any) {
     console.error("Client chatWithAdvisor Error:", error);
-    return "Error en la conexión con la red estratégica de FUTURA (Servidor desconectado).";
+    return `Error en la conexión: ${error.message || "Servidor desconectado"}`;
   }
 }
 
@@ -87,12 +98,23 @@ export async function chatAboutPhase(
       body: JSON.stringify({ phase, history, message })
     });
 
-    if (!res.ok) throw new Error("Phase consultation service error");
+    if (!res.ok) {
+      let errorMsg = "Error del servidor de FUTURA";
+      try {
+        const errData = await res.json();
+        if (errData && errData.error) {
+          errorMsg = errData.error;
+        }
+      } catch (e) {
+        // Not JSON
+      }
+      throw new Error(errorMsg);
+    }
     const data = await res.json();
     return data.response || "No response received";
-  } catch (error) {
+  } catch (error: any) {
     console.error("Client chatAboutPhase Error:", error);
-    return "Error en la conexión con el asesor de la etapa seleccionada.";
+    return `Error en la conexión: ${error.message || "Asesor de la etapa desconectado"}`;
   }
 }
 
