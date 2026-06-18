@@ -7,6 +7,9 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 const PORT = 3000;
@@ -145,7 +148,7 @@ app.get("/api/health", (req, res) => {
 // 1. Chat with Advisor
 app.post("/api/gemini/chatWithAdvisor", async (req, res) => {
   const { message, history, brandContext } = req.body;
-  const model = "gemini-3.5-flash";
+  const model = "gemini-2.5-flash";
 
   const systemInstruction = `
     Eres el ASESOR ESTRATÉGICO Y TECNOLÓGICO DE LA APLICACIÓN FUTURA (FUTURA App Advisor).
@@ -181,8 +184,6 @@ app.post("/api/gemini/chatWithAdvisor", async (req, res) => {
       contents,
       config: {
         systemInstruction,
-        // Optimize reasoning for ultra-low latency & rapid-fire responses
-        thinkingConfig: { thinkingLevel: "LOW" as any }
       }
     });
 
@@ -196,7 +197,7 @@ app.post("/api/gemini/chatWithAdvisor", async (req, res) => {
 // 2. Chat about SPE Phase
 app.post("/api/gemini/chatAboutPhase", async (req, res) => {
   const { phase, history, message } = req.body;
-  const model = "gemini-3.5-flash";
+  const model = "gemini-2.5-flash";
 
   const systemInstruction = `
     Eres el ASESOR ESTRATÉGICO de FUTURA.
@@ -226,7 +227,6 @@ app.post("/api/gemini/chatAboutPhase", async (req, res) => {
       contents,
       config: {
         systemInstruction,
-        thinkingConfig: { thinkingLevel: "LOW" as any }
       }
     });
 
@@ -240,7 +240,7 @@ app.post("/api/gemini/chatAboutPhase", async (req, res) => {
 // 3. Generate Content Strategy & Prompts (Creative Engine Main)
 app.post("/api/gemini/generateContentStrategy", async (req, res) => {
   const { prompt, context, styleReferences, logos, history } = req.body;
-  const model = "gemini-3.5-flash";
+  const model = "gemini-2.5-flash";
 
   const systemInstruction = `
     Eres el ASESOR ESTRATÉGICO Y CONVERTIDOR COMERCIAL de FUTURA. 
@@ -336,7 +336,6 @@ app.post("/api/gemini/generateContentStrategy", async (req, res) => {
       config: {
         systemInstruction,
         responseMimeType: "application/json",
-        thinkingConfig: { thinkingLevel: "LOW" as any }
       }
     });
 
@@ -413,7 +412,7 @@ app.post("/api/gemini/generateCreativeImage", async (req, res) => {
 // 5. Generate Social Copy
 app.post("/api/gemini/generateSocialCopy", async (req, res) => {
   const { params } = req.body;
-  const model = "gemini-3.5-flash";
+  const model = "gemini-2.5-flash";
 
   const systemInstruction = `
     Eres el REDACTOR CREATIVO DE ÉLITE (Copywriter) de FUTURA (FUTURA Marketing Consult).
@@ -459,7 +458,6 @@ app.post("/api/gemini/generateSocialCopy", async (req, res) => {
       contents: [{ parts: [{ text: prompt }] }],
       config: {
         systemInstruction,
-        thinkingConfig: { thinkingLevel: "LOW" as any }
       }
     });
 
@@ -473,7 +471,7 @@ app.post("/api/gemini/generateSocialCopy", async (req, res) => {
 // 6. Refine Copy
 app.post("/api/gemini/refineSocialCopy", async (req, res) => {
   const { currentCopy, refineInstructions } = req.body;
-  const model = "gemini-3.5-flash";
+  const model = "gemini-2.5-flash";
   const systemInstruction = "Eres un editor experto de copywriting. Refina el copy provisto siguiendo las instrucciones brutales del usuario, manteniendo la fuerza persuasiva, el gancho magnético, el formato cómodo para móvil y la filosofía pragmática 'Results over Aesthetics'.";
 
   try {
@@ -496,7 +494,6 @@ app.post("/api/gemini/refineSocialCopy", async (req, res) => {
       }],
       config: { 
         systemInstruction,
-        thinkingConfig: { thinkingLevel: "LOW" as any }
       }
     });
 
