@@ -169,7 +169,26 @@ export default function AccountAuthPortal() {
         {/* Alternativas */}
         <div className="space-y-3">
           <button
-            onClick={signIn}
+            onClick={async () => {
+              setLoading(true);
+              setErrorMsg(null);
+              setSuccessMsg(null);
+              try {
+                await signIn();
+                setSuccessMsg('¡Sesión iniciada con éxito con Google!');
+              } catch (err: any) {
+                console.error("Google Sign-In caught error:", err);
+                if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user') {
+                  setErrorMsg('La conexión con Google se detuvo o fue bloqueada. Si estás en AI Studio, usa el botón "Open in new tab" (Abrir en pestaña nueva) arriba a la derecha para evitar bloqueos del iframe del navegador.');
+                } else if (err.code === 'auth/popup-blocked') {
+                  setErrorMsg('El navegador bloqueó la ventana emergente de Google. Habilita las ventanas emergentes o usa "Open in new tab" para continuar.');
+                } else {
+                  setErrorMsg(err.message || 'Error al iniciar sesión con tu cuenta de Google.');
+                }
+              } finally {
+                setLoading(false);
+              }
+            }}
             disabled={loading}
             className="w-full py-3 bg-white hover:bg-slate-100 text-black rounded-xl font-mono text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-md"
           >

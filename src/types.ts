@@ -57,6 +57,8 @@ export interface UserProfile {
   credits?: number;
   isPremium?: boolean;
   email?: string;
+  membershipMonths?: number;
+  membershipExpiresAt?: string;
   pagoMovilRequest?: {
     bank: string;
     phone: string;

@@ -58,7 +58,8 @@ import {
   UserCheck,
   Coins,
   DollarSign,
-  Users
+  Users,
+  HelpCircle
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import PhaseChat from './components/PhaseChat';
@@ -68,7 +69,7 @@ import { useAuth } from './components/AuthWrapper';
 import { AccountProvider } from './components/AccountProvider';
 
 import { db } from './lib/firebase';
-import { doc, setDoc, onSnapshot, collection, query, where } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot, collection, query, where, addDoc, deleteDoc } from 'firebase/firestore';
 
 export default function App() {
   return (
@@ -276,16 +277,35 @@ function AppContent() {
     const docRef = doc(db, 'users', user.uid);
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
-        setProfile(docSnap.data() as UserProfile);
+        let loaded = docSnap.data() as UserProfile;
+        if (user.email?.toLowerCase() === 'heczaroficial@gmail.com') {
+          // Absolute owner administrative override
+          loaded = {
+            ...loaded,
+            roles: ["Líder", "Administrador Principal", "Estratega Supremo"],
+            isPremium: true,
+            membershipMonths: 9999,
+            membershipExpiresAt: "2050-12-31T00:00:00.000Z",
+            credits: loaded.credits !== undefined && loaded.credits > 1000 ? loaded.credits : 999999
+          };
+          // Sync automatically back to Firestore if not matching
+          if (!docSnap.data().isPremium || !docSnap.data().membershipExpiresAt || (docSnap.data().credits || 0) < 1000) {
+            setDoc(docRef, loaded, { merge: true }).catch(err => console.error("Admin auto sync back err:", err));
+          }
+        }
+        setProfile(loaded);
       } else {
+        const isMaster = user.email?.toLowerCase() === 'heczaroficial@gmail.com';
         const initialProfile: UserProfile = {
-          name: user.displayName || "Estratega",
-          roles: ["Líder"],
-          bio: "Sin biografía definida.",
+          name: user.displayName || (isMaster ? "Heczar (Director)" : "Estratega"),
+          roles: isMaster ? ["Líder", "Administrador Principal", "Estratega Supremo"] : ["Líder"],
+          bio: isMaster ? "Propietario y titular absoluto del sistema FUTURA." : "Sin biografía definida.",
           philosophy: "Results over Aesthetics.",
           projects: [],
-          credits: 10,
-          isPremium: false,
+          credits: isMaster ? 999999 : 10,
+          isPremium: isMaster,
+          membershipMonths: isMaster ? 9999 : 1,
+          membershipExpiresAt: isMaster ? "2050-12-31T00:00:00.000Z" : undefined,
           email: user.email || ""
         };
         setDoc(docRef, initialProfile);
@@ -472,6 +492,8 @@ function AppContent() {
                 </div>
               </div>
             </section>
+
+
 
 
               <section className="mb-16 text-left">
@@ -1137,19 +1159,160 @@ function AppContent() {
 }
 
 function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[], evolution: number }) {
+  const { user, signIn } = useAuth();
   const [passcode, setPasscode] = React.useState('');
   const [isUnlocked, setIsUnlocked] = React.useState(() => {
     return localStorage.getItem('futura_admin_unlocked') === 'true';
   });
   const [passError, setPassError] = React.useState('');
   const [showPass, setShowPass] = React.useState(false);
+
+  // Auto-unlock for Heczar (owner and absolute administrator)
+  React.useEffect(() => {
+    const email = user?.email?.toLowerCase();
+    if (email === 'heczaroficial@gmail.com') {
+      setIsUnlocked(true);
+      localStorage.setItem('futura_admin_unlocked', 'true');
+    }
+  }, [user]);
   
   // Admin Data states
   const [users, setUsers] = React.useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [adminActiveTab, setAdminActiveTab] = React.useState<'stripe_merchants' | 'payment_reports' | 'crm' | 'metrics'>('payment_reports');
+  const [adminActiveTab, setAdminActiveTab] = React.useState<'payment_reports' | 'member_console' | 'crm' | 'advisory' | 'metrics'>('payment_reports');
   const [toastMsg, setToastMsg] = React.useState('');
+  const [deleteConfirmUserId, setDeleteConfirmUserId] = React.useState<string | null>(null);
+
+  // User inline editing state
+  const [editingUserId, setEditingUserId] = React.useState<string | null>(null);
+  const [editFormName, setEditFormName] = React.useState('');
+  const [editFormEmail, setEditFormEmail] = React.useState('');
+  const [editFormCredits, setEditFormCredits] = React.useState(10);
+  const [editFormIsPremium, setEditFormIsPremium] = React.useState(false);
+  const [editFormMonths, setEditFormMonths] = React.useState(1);
+  const [editFormExpiresAt, setEditFormExpiresAt] = React.useState('');
+
+  const startEditingUser = (u: any) => {
+    setEditingUserId(u.id);
+    setEditFormName(u.name || '');
+    setEditFormEmail(u.email || '');
+    setEditFormCredits(u.credits !== undefined ? u.credits : 10);
+    setEditFormIsPremium(!!u.isPremium);
+    setEditFormMonths(u.membershipMonths !== undefined ? u.membershipMonths : 1);
+    
+    if (u.membershipExpiresAt) {
+      setEditFormExpiresAt(u.membershipExpiresAt.substring(0, 10));
+    } else {
+      const defaultExp = new Date();
+      defaultExp.setMonth(defaultExp.getMonth() + 1);
+      setEditFormExpiresAt(defaultExp.toISOString().substring(0, 10));
+    }
+  };
+
+  const handleSaveUserEdit = async (userId: string, originalUser: any) => {
+    try {
+      const userRef = doc(db, 'users', userId);
+      let finalExpiresAt = originalUser.membershipExpiresAt || null;
+      if (editFormIsPremium) {
+        finalExpiresAt = new Date(editFormExpiresAt).toISOString();
+      }
+
+      await setDoc(userRef, {
+        ...originalUser,
+        name: editFormName.trim(),
+        email: editFormEmail.trim().toLowerCase(),
+        credits: Number(editFormCredits),
+        isPremium: editFormIsPremium,
+        membershipMonths: Number(editFormMonths),
+        membershipExpiresAt: finalExpiresAt
+      }, { merge: true });
+
+      triggerToast(`FUTURA: Perfil de ${editFormName} actualizado.`);
+      setEditingUserId(null);
+    } catch (e: any) {
+      console.error("Save user update failed:", e);
+      triggerToast(`Error al guardar: ${e.message}`);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!window.confirm(`⚠️ ¿Deseas eliminar definitivamente la cuenta de ${userName || 'este usuario'}? Esta acción es irreversible.`)) {
+      return;
+    }
+    try {
+      await deleteDoc(doc(db, 'users', userId));
+      triggerToast(`FUTURA: Cuenta de ${userName} permanentemente eliminada.`);
+    } catch (e: any) {
+      console.error("Failed to delete user account:", e);
+      triggerToast(`Error al eliminar cuenta: ${e.message}`);
+    }
+  };
+
+  // FUTURA Admin Consultation Chat (Hub Interno FUTURA)
+  const [adminChatHistory, setAdminChatHistory] = React.useState<{role: 'user' | 'model', text: string}[]>(() => {
+    try {
+      const saved = localStorage.getItem('futura_admin_chat_history');
+      return saved ? JSON.parse(saved) : [
+        {
+          role: 'model',
+          text: '¡Hola Operador! Bienvenido a la consola de control estratégico interno de FUTURA. Desde aquí puedes hablar directamente conmigo para planificar nuevas directrices, idear campañas tácticas de mercadeo o resolver dudas sobre la operación del sistema.'
+        }
+      ];
+    } catch {
+      return [
+        {
+          role: 'model',
+          text: '¡Hola Operador! Bienvenido a la consola de control estratégico interno de FUTURA. Desde aquí puedes hablar directamente conmigo para planificar nuevas directrices, idear campañas tácticas de mercadeo o resolver dudas sobre la operación del sistema.'
+        }
+      ];
+    }
+  });
+  const [adminChatPrompt, setAdminChatPrompt] = React.useState('');
+  const [isAdminChatLoading, setIsAdminChatLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    localStorage.setItem('futura_admin_chat_history', JSON.stringify(adminChatHistory));
+  }, [adminChatHistory]);
+
+  const handleAdminChatSend = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const promptText = adminChatPrompt.trim();
+    if (!promptText || isAdminChatLoading) return;
+
+    const newHist = [...adminChatHistory, { role: 'user' as const, text: promptText }];
+    setAdminChatHistory(newHist);
+    setAdminChatPrompt('');
+    setIsAdminChatLoading(true);
+
+    try {
+      const response = await chatWithAdvisor(
+        promptText, 
+        adminChatHistory,
+        "Consola de administración de FUTURA. El usuario actual es el operador o administrador principal de la plataforma. Ayúdalo a idear estrategias de crecimiento, redactar copy para redes, planificar respuestas, idear campañas de mercadeo internas u resolver dudas operativas del software de manera audaz."
+      );
+      setAdminChatHistory([...newHist, { role: 'model' as const, text: response }]);
+    } catch (error: any) {
+      console.error("Error talking to Futura inside Admin Panel:", error);
+      setAdminChatHistory([...newHist, { role: 'model' as const, text: "Hubo un error de sincronización de datos con mi núcleo cognitivo. Por favor, reintenta en breve." }]);
+    } finally {
+      setIsAdminChatLoading(false);
+    }
+  };
+
+  const handleClearAdminChat = () => {
+    setAdminChatHistory([
+      {
+        role: 'model',
+        text: '¡Consola de conversación reiniciada! ¿Cuál es el siguiente paso para escalar nuestra plataforma, operador?'
+      }
+    ]);
+  };
+
+  // Manual membership direct action states
+  const [manualUserId, setManualUserId] = React.useState('');
+  const [manualUserEmail, setManualUserEmail] = React.useState('');
+  const [manualProposedPremium, setManualProposedPremium] = React.useState<'premium' | 'demo'>('premium');
 
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
@@ -1162,6 +1325,7 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
     if (passcode.trim() === 'Maryolis123.') {
       setIsUnlocked(true);
       setPassError('');
+      setAdminActiveTab('payment_reports');
       localStorage.setItem('futura_admin_unlocked', 'true');
       triggerToast('CONSOLA ADMINISTRATIVA DESBLOQUEADA');
     } else {
@@ -1177,7 +1341,11 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
 
   // Query users from Firestore
   React.useEffect(() => {
-    if (!isUnlocked) return;
+    if (!isUnlocked || !user) {
+      setUsers([]);
+      setLoadingUsers(false);
+      return;
+    }
     setLoadingUsers(true);
     
     const q = query(collection(db, 'users'));
@@ -1189,15 +1357,15 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
       setUsers(list);
       setLoadingUsers(false);
     }, (err) => {
-      console.error("Admin user sync error:", err);
+      console.warn("Admin user sync query skipped/denied (Requires Google SignIn or permissions):", err.message);
       setLoadingUsers(false);
     });
 
     return () => unsubscribe();
-  }, [isUnlocked]);
+  }, [isUnlocked, user]);
 
   // DB update handlers
-  const handleApprovePayment = async (userId: string, userProfile: any) => {
+  const handleApprovePayment = async (userId: string, userProfile: any, months: number = 1) => {
     try {
       const userRef = doc(db, 'users', userId);
       const updatedPM = userProfile.pagoMovilRequest ? {
@@ -1206,13 +1374,18 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
         approvedAt: new Date().toISOString()
       } : null;
 
+      const expiration = new Date();
+      expiration.setMonth(expiration.getMonth() + months);
+
       await setDoc(userRef, {
         ...userProfile,
         isPremium: true,
+        membershipMonths: months,
+        membershipExpiresAt: expiration.toISOString(),
         pagoMovilRequest: updatedPM
       }, { merge: true });
       
-      triggerToast(`¡Pago de ${userProfile.name || 'Usuario'} Aprobado! Cuenta PRO Activada.`);
+      triggerToast(`¡Pago de ${userProfile.name || 'Usuario'} Aprobado (${months} ${months === 1 ? 'mes' : 'meses'} FUTURA PRO)!`);
     } catch (e: any) {
       console.error("Payment approval failed:", e);
       triggerToast(`Error de base de datos: ${e.message || String(e)}`);
@@ -1237,6 +1410,21 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
       triggerToast(`Depósito de ${userProfile.name || 'Usuario'} Rechazado.`);
     } catch (e: any) {
       console.error("Payment rejection failed:", e);
+      triggerToast(`Error de base de datos: ${e.message || String(e)}`);
+    }
+  };
+
+  const handleArchivePayment = async (userId: string, userProfile: any) => {
+    try {
+      const userRef = doc(db, 'users', userId);
+      await setDoc(userRef, {
+        ...userProfile,
+        pagoMovilRequest: null
+      }, { merge: true });
+
+      triggerToast("Reporte de pago archivado de la cola de verificación.");
+    } catch (e: any) {
+      console.error("Archiving payment failed:", e);
       triggerToast(`Error de base de datos: ${e.message || String(e)}`);
     }
   };
@@ -1274,9 +1462,24 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
     }
   };
 
+  const getRemainingMembershipTime = (expiresAtStr?: string) => {
+    if (!expiresAtStr) return "Sin límite / No configurado";
+    const now = new Date();
+    const exp = new Date(expiresAtStr);
+    const diffTime = exp.getTime() - now.getTime();
+    if (diffTime <= 0) return "Expirada ✕";
+    
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays > 30) {
+      const months = Math.floor(diffDays / 30);
+      const days = diffDays % 30;
+      return `${months} ${months === 1 ? 'mes' : 'meses'} y ${days} ${days === 1 ? 'día' : 'días'} restantes`;
+    }
+    return `${diffDays} ${diffDays === 1 ? 'día' : 'días'} restantes`;
+  };
+
   // Filter queues
   const pendingRequests = users.filter(u => u.pagoMovilRequest && u.pagoMovilRequest.status === 'pending');
-  const stripeMerchants = users.filter(u => u.stripeAccountId);
   const filteredCRM = users.filter(u => {
     const term = searchQuery.trim().toLowerCase();
     if (!term) return true;
@@ -1364,6 +1567,25 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
         )}
       </AnimatePresence>
 
+      {!user && (
+        <div className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-3xl text-left flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-fadeIn">
+          <div className="space-y-1">
+            <h4 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-400" /> Sesión Desconectada
+            </h4>
+            <p className="text-xs text-slate-400">
+              Has desbloqueado la consola, pero no tienes sesión iniciada en Google. Para poder consultar, sincronizar o modificar registros de usuario, debes identificarte primero.
+            </p>
+          </div>
+          <button
+            onClick={signIn}
+            className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-black rounded-xl font-mono text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap"
+          >
+            Iniciar Sesión con Google
+          </button>
+        </div>
+      )}
+
       {/* HEADER: OPERATOR HUB */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 bg-surface-950 p-6 sm:p-8 rounded-[2.5rem] border border-white/5 shadow-xl">
         <div className="flex items-center gap-4">
@@ -1377,21 +1599,29 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
                 Maestro Sincro
               </span>
             </div>
-            <p className="text-[9px] text-slate-500 uppercase tracking-widest font-mono mt-0.5">Control de cuentas y auditoría de Pago Móvil</p>
+            <p className="text-[9px] text-slate-500 uppercase tracking-widest font-mono mt-0.5">Control de cuentas y auditoría de membresías Binance</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             onClick={() => {
+              if (!user) {
+                triggerToast('⚠️ Error: Debes iniciar sesión de Google primero.');
+                return;
+              }
               setLoadingUsers(true);
               const q = query(collection(db, 'users'));
-              onSnapshot(q, (snapshot) => {
+              const unsubscribe = onSnapshot(q, (snapshot) => {
                 const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 setUsers(list);
                 setLoadingUsers(false);
+                triggerToast('BASE DE DATOS SINCRONIZADA');
+              }, (err) => {
+                console.error("Manual user sync failed:", err);
+                setLoadingUsers(false);
+                triggerToast('⚠️ Error: Permisos de base de datos denegados.');
               });
-              triggerToast('BASE DE DATOS SINCRONIZADA');
             }}
             className="p-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl transition-all cursor-pointer flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider"
           >
@@ -1409,148 +1639,409 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
       </div>
 
       {/* ADMIN TABS ROUTER */}
-      <div className="flex border-b border-white/5 gap-2.5 pb-1">
-        <button
-          onClick={() => setAdminActiveTab('stripe_merchants')}
-          className={`px-5 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
-            adminActiveTab === 'stripe_merchants'
-              ? 'border-brand-primary text-brand-primary font-black'
-              : 'border-transparent text-slate-400 hover:text-white'
-          }`}
-        >
-          <Clock className="w-4 h-4" />
-          Stripe Merchants
-          {stripeMerchants.length > 0 && (
-            <span className="px-1.5 py-0.5 bg-brand-primary text-white text-[8px] font-black font-mono rounded-full animate-bounce">
-              {stripeMerchants.length}
-            </span>
-          )}
-        </button>
-
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 border-b border-white/5 gap-2 pb-2.5 pt-4">
         <button
           onClick={() => setAdminActiveTab('payment_reports')}
-          className={`px-5 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+          className={`px-3 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
             adminActiveTab === 'payment_reports'
-              ? 'border-brand-primary text-brand-primary font-black'
-              : 'border-transparent text-slate-400 hover:text-white'
+              ? 'border-brand-primary text-brand-primary font-black bg-brand-primary/5 rounded-t-xl'
+              : 'border-transparent text-slate-400 hover:text-white hover:bg-white/[0.02] rounded-t-xl'
           }`}
         >
-          <DollarSign className="w-4 h-4" />
-          Reportes de Pago Manual
+          <DollarSign className="w-3.5 h-3.5 text-brand-primary" />
+          Reportes de Pago
           {pendingRequests.length > 0 && (
-            <span className="px-1.5 py-0.5 bg-amber-500 text-black text-[8px] font-black font-mono rounded-full">
+            <span className="px-1.5 py-0.5 bg-amber-500 text-black text-[8px] font-black font-mono rounded-full animate-pulse">
               {pendingRequests.length}
             </span>
           )}
         </button>
 
         <button
-          onClick={() => setAdminActiveTab('crm')}
-          className={`px-5 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
-            adminActiveTab === 'crm'
-              ? 'border-brand-primary text-brand-primary font-black'
-              : 'border-transparent text-slate-400 hover:text-white'
+          onClick={() => setAdminActiveTab('member_console')}
+          className={`px-3 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            adminActiveTab === 'member_console'
+              ? 'border-brand-primary text-brand-primary font-black bg-brand-primary/5 rounded-t-xl'
+              : 'border-transparent text-slate-400 hover:text-white hover:bg-white/[0.02] rounded-t-xl'
           }`}
         >
-          <Users className="w-4 h-4" />
-          Directorio CRM ({users.length})
+          <Crown className="w-3.5 h-3.5 text-brand-primary" />
+          Membresías Directas
+        </button>
+
+        <button
+          onClick={() => setAdminActiveTab('crm')}
+          className={`px-3 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            adminActiveTab === 'crm'
+              ? 'border-brand-primary text-brand-primary font-black bg-brand-primary/5 rounded-t-xl'
+              : 'border-transparent text-slate-400 hover:text-white hover:bg-white/[0.02] rounded-t-xl'
+          }`}
+        >
+          <Users className="w-3.5 h-3.5" />
+          Directorio CRM
+        </button>
+
+        <button
+          onClick={() => setAdminActiveTab('advisory')}
+          className={`px-3 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            adminActiveTab === 'advisory'
+              ? 'border-brand-primary text-brand-primary font-black bg-brand-primary/5 rounded-t-xl'
+              : 'border-transparent text-slate-400 hover:text-white hover:bg-white/[0.02] rounded-t-xl'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5 text-brand-primary animate-pulse" />
+          Hub Interno
         </button>
 
         <button
           onClick={() => setAdminActiveTab('metrics')}
-          className={`px-5 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+          className={`px-3 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
             adminActiveTab === 'metrics'
-              ? 'border-brand-primary text-brand-primary font-black'
-              : 'border-transparent text-slate-400 hover:text-white'
+              ? 'border-brand-primary text-brand-primary font-black bg-brand-primary/5 rounded-t-xl'
+              : 'border-transparent text-slate-400 hover:text-white hover:bg-white/[0.02] rounded-t-xl'
           }`}
         >
-          <Bot className="w-4 h-4" />
-          Evolución de Red
+          <Bot className="w-3.5 h-3.5" />
+          Evolución Red
         </button>
       </div>
 
       {/* SWITCH VIEWS */}
       <AnimatePresence mode="wait">
-        {adminActiveTab === 'stripe_merchants' && (
+        {adminActiveTab === 'advisory' && (
           <motion.div
-            key="stripe_merchants_tab"
+            key="advisory_tab"
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="space-y-6"
+            className="space-y-6 text-left"
           >
-            {stripeMerchants.length === 0 ? (
-              <div className="glass-panel p-12 text-center rounded-[2.5rem] border-white/5 bg-white/[0.01] space-y-3">
-                <div className="mx-auto w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-slate-500">
-                  <Check className="w-6 h-6" />
+            {/* HUB INTERNO FUTURA CONSOLE */}
+            <div className="glass-panel p-6 sm:p-8 rounded-[2.5rem] border border-brand-primary/20 bg-gradient-to-br from-brand-primary/5 via-surface-950/70 to-transparent flex flex-col md:flex-row gap-6 min-h-[620px]">
+              
+              {/* Left Column: Metadata & Administration Instructions */}
+              <div className="md:w-72 shrink-0 flex flex-col justify-between border-b md:border-b-0 md:border-r border-white/5 pb-6 md:pb-0 md:pr-6">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
+                      <Sparkles className="w-5 h-5 animate-pulse text-brand-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-md font-bold text-white tracking-tight">Hub Interno FUTURA</h3>
+                      <p className="text-[9px] text-slate-500 uppercase tracking-widest font-mono">Consultoría Cognitiva del Software</p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-400 leading-relaxed font-sans">
+                    Esta es tu consola de consultoría de IA privada como administrador de FUTURA. Hazle consultas para potenciar el marketing interno del sistema, redactar guías y copies para campañas de tu marca, o resolver dudas de arquitectura digital.
+                  </p>
+
+                  <div className="space-y-3 pt-2">
+                    <span className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest pl-1">Sujerencias de Consultas</span>
+                    
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAdminChatPrompt("Genérame una campaña de marketing directo de 3 pasos por correo para invitar a los usuarios demo a activar el plan FUTURA PRO.")}
+                        className="text-left p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-brand-primary/20 text-[10px] text-slate-400 font-sans hover:text-white transition-all cursor-pointer"
+                      >
+                        📬 Campaña de Email para PRO
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setAdminChatPrompt("Redacta un anuncio en tono 'Brutalist Persuasion' para redes sociales invitando a emprendedores a sumarse a FUTURA.")}
+                        className="text-left p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-brand-primary/20 text-[10px] text-slate-400 font-sans hover:text-white transition-all cursor-pointer"
+                      >
+                        🔥 Anuncio Brutalista de Tráfico
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setAdminChatPrompt("¿Cuáles son los 5 ganchos o hooks de mayor conversión comercial para videos de Reels en TikTok e Instagram actualmente?")}
+                        className="text-left p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-brand-primary/20 text-[10px] text-slate-400 font-sans hover:text-white transition-all cursor-pointer"
+                      >
+                        📈 Hooks de Alta Conversión
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <h4 className="text-md font-bold text-slate-300 uppercase tracking-widest">Sin Comerciantes Activos</h4>
-                <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-sans">
-                  No hay cuentas de Stripe Connect activadas en la plataforma todavía. Los usuarios pueden registrarlas desde la sección de Membresías en el menú lateral.
-                </p>
+
+                <div className="pt-6 border-t border-white/5 mt-6">
+                  <button
+                    type="button"
+                    onClick={handleClearAdminChat}
+                    className="w-full py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all font-mono font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-1 cursor-pointer border border-red-500/10"
+                  >
+                    Reiniciar Conversación
+                  </button>
+                </div>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-6 text-left">
-                {stripeMerchants.map((u) => {
-                  return (
+
+              {/* Right Column: Chat Stream Engine */}
+              <div className="flex-1 flex flex-col justify-between min-h-[500px] md:h-[580px]">
+                
+                {/* Messages Panel */}
+                <div className="flex-1 overflow-y-auto pr-1 mb-4 space-y-4 max-h-[460px] custom-scrollbar">
+                  {adminChatHistory.map((item, idx) => {
+                    const isModel = item.role === 'model';
+                    return (
+                      <motion.div
+                        key={idx}
+                        className={`flex gap-3 max-w-xl ${isModel ? 'mr-auto text-left' : 'ml-auto text-right flex-row-reverse'}`}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          isModel 
+                            ? 'bg-brand-primary/10 border border-brand-primary/25 text-brand-primary' 
+                            : 'bg-white/10 border border-white/15 text-white'
+                        }`}>
+                          {isModel ? <Sparkles className="w-3.5 h-3.5" /> : <UserCheck className="w-3.5 h-3.5" />}
+                        </div>
+
+                        <div className={`p-4 rounded-2xl text-xs leading-relaxed font-sans ${
+                          isModel
+                            ? 'bg-surface-900/40 border border-white/5 text-slate-300'
+                            : 'bg-brand-primary/10 border border-brand-primary/30 text-white'
+                        }`}>
+                          <p className="whitespace-pre-line">{item.text}</p>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+
+                  {isAdminChatLoading && (
                     <motion.div
-                      key={u.id}
-                      initial={{ opacity: 0, scale: 0.98 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="glass-panel p-6 sm:p-8 rounded-[2.5rem] border border-brand-primary/25 bg-gradient-to-r from-brand-primary/5 via-surface-950 to-transparent flex flex-col md:flex-row md:items-center justify-between gap-6"
+                      className="flex gap-3 max-w-xl mr-auto text-left"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                     >
-                      {/* Left Informative fields */}
-                      <div className="space-y-4 text-left flex-1 min-w-0">
-                        <div className="border-b border-white/5 pb-2 flex justify-between items-start gap-4">
-                          <div>
-                            <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-widest block">Propietario del Comercio</span>
-                            <h4 className="text-base font-bold text-white truncate">{u.name || "Estratega Comercial"}</h4>
-                            <p className="text-[10px] text-slate-500 font-mono truncate">{u.email || `ID: ${u.id}`}</p>
-                          </div>
-                          
-                          <div className="shrink-0 text-right">
-                            <span className={`px-2.5 py-1 text-[8px] font-mono font-black uppercase tracking-wider rounded-md ${
-                              u.stripeOnboardingComplete 
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                            }`}>
-                              {u.stripeOnboardingComplete ? 'ONBOARDING OK' : 'PENDIENTE'}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                          <div className="bg-black/30 p-3 rounded-xl border border-white/5">
-                            <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Stripe Account ID</span>
-                            <span className="text-xs text-white font-mono font-bold select-all">{u.stripeAccountId}</span>
-                          </div>
-                          
-                          <div className="bg-black/30 p-3 rounded-xl border border-white/5">
-                            <span className="text-[8px] text-slate-500 uppercase tracking-wider block font-mono">Tier Membresía</span>
-                            <span className="text-xs text-brand-primary font-sans font-bold">{u.isPremium ? 'PRO / EXECUTIVE' : 'DEMO / STARTER'}</span>
-                          </div>
-
-                          <div className="bg-brand-primary/5 p-3 rounded-xl border border-brand-primary/15">
-                            <span className="text-[8px] text-brand-primary uppercase tracking-wider block font-mono">Storefront Digital</span>
-                            <span className="text-xs text-brand-primary font-black font-mono truncate block">Active Live Shop</span>
-                          </div>
-                        </div>
+                      <div className="w-7 h-7 rounded-lg bg-brand-primary/10 border border-brand-primary/25 text-brand-primary flex items-center justify-center shrink-0">
+                        <Sparkles className="w-3.5 h-3.5 animate-spin" />
                       </div>
-
-                      {/* Right Action triggers */}
-                      <div className="flex flex-row md:flex-col gap-3 shrink-0 justify-end md:w-56 border-t md:border-t-0 md:border-l border-white/5 pt-4 md:pt-0 md:pl-6">
-                        <button
-                          onClick={() => handleTogglePremiumDirect(u.id, u)}
-                          className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-emerald-500/10"
-                        >
-                          Toggle PRO status
-                        </button>
+                      <div className="p-4 rounded-2xl bg-surface-900/40 border border-white/5 text-slate-500 text-xs italic">
+                        FUTURA está procesando tu estrategia administrativa...
                       </div>
                     </motion.div>
-                  );
-                })}
+                  )}
+                </div>
+
+                {/* Input form */}
+                <form onSubmit={handleAdminChatSend} className="relative mt-auto border-t border-white/5 pt-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Pregúntale a Futura sobre marketing, administración, copias y estrategias..."
+                      value={adminChatPrompt}
+                      onChange={(e) => setAdminChatPrompt(e.target.value)}
+                      className="flex-1 bg-black/45 border border-white/10 rounded-xl px-4 py-3.5 text-xs text-white focus:border-brand-primary/60 outline-none font-sans"
+                      disabled={isAdminChatLoading}
+                      required
+                    />
+                    <button
+                      type="submit"
+                      disabled={isAdminChatLoading || !adminChatPrompt.trim()}
+                      className="px-5 bg-brand-primary hover:bg-brand-primary/95 text-white disabled:bg-slate-850 disabled:text-slate-500 rounded-xl flex items-center justify-center cursor-pointer transition-all border border-brand-primary/20 shadow-lg shadow-brand-primary/10"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                    </button>
+                  </div>
+                </form>
               </div>
-            )}
+            </div>
+          </motion.div>
+        )}
+
+        {adminActiveTab === 'member_console' && (
+          <motion.div
+            key="member_console_tab"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="space-y-8 animate-enter"
+          >
+            {/* PANEL DE CONTROL DE MEMBRESÍAS COMPLETO (OTORGAMIENTO Y CANCELACIÓN MANUAL) */}
+            <div className="glass-panel p-6 sm:p-8 rounded-[2.5rem] text-left border border-amber-500/20 bg-gradient-to-br from-amber-500/[0.03] via-surface-950 to-transparent">
+              <div className="flex items-center gap-3 border-b border-white/5 pb-4 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                  <Crown className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white tracking-tight">Consola de Control Directo de Membresías</h3>
+                  <p className="text-[9px] text-slate-500 uppercase tracking-widest font-mono">Permite otorgar o remover privilegios de FUTURA PRO en 1 clic</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                {/* Selector */}
+                <div className="space-y-4">
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-widest pl-1">Seleccionar Usuario de la Base de Datos</label>
+                    <select
+                      value={manualUserId}
+                      onChange={(e) => {
+                        const uid = e.target.value;
+                        setManualUserId(uid);
+                        const matched = users.find(u => u.id === uid);
+                        if (matched) {
+                          setManualUserEmail(matched.email || '');
+                        } else {
+                          setManualUserEmail('');
+                        }
+                      }}
+                      className="w-full bg-black/45 border border-white/10 rounded-xl px-4 py-3.5 text-xs text-white focus:border-brand-primary/60 outline-none font-sans"
+                    >
+                      <option value="">-- Buscar un usuario --</option>
+                      {users.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.name || 'Sin Nombre'} ({u.email || u.id})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="relative flex py-2 items-center">
+                    <div className="flex-grow border-t border-white/5"></div>
+                    <span className="flex-shrink mx-4 text-[8px] font-mono text-slate-500 uppercase tracking-widest">O Escribir Correo Manualmente</span>
+                    <div className="flex-grow border-t border-white/5"></div>
+                  </div>
+
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-widest pl-1">Correo Electrónico Directo</label>
+                    <input
+                      type="email"
+                      placeholder="ejemplo@correo.com"
+                      value={manualUserEmail}
+                      onChange={(e) => {
+                        const email = e.target.value;
+                        setManualUserEmail(email);
+                        // Try matching uid automatically
+                        const matched = users.find(u => (u.email || '').toLowerCase() === email.toLowerCase().trim());
+                        if (matched) {
+                          setManualUserId(matched.id);
+                        }
+                      }}
+                      className="w-full bg-black/45 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-brand-primary/60 outline-none font-sans"
+                    />
+                  </div>
+                </div>
+
+                {/* Status card & Operations */}
+                <div className="glass-panel p-5 bg-black/40 rounded-2xl border border-white/5 flex flex-col justify-between h-full min-h-[220px]">
+                  {manualUserId || manualUserEmail ? (
+                    (() => {
+                      const matched = users.find(u => 
+                        u.id === manualUserId || 
+                        (u.email && u.email.toLowerCase() === manualUserEmail.toLowerCase().trim())
+                      );
+
+                      if (!matched) {
+                        return (
+                          <div className="text-center py-6 space-y-2 text-slate-500 flex-1 flex flex-col justify-center animate-enter">
+                            <span className="text-xs font-bold font-mono">⚠️ CORREO NO REGISTRADO</span>
+                            <p className="text-[10px] leading-relaxed max-w-xs mx-auto mb-4">Este correo no existe todavía en la base de datos de usuarios, pero puedes forzar su registro y otorgar membresía directamente.</p>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (!manualUserEmail.trim()) {
+                                  triggerToast("Ingresa un correo primero.");
+                                  return;
+                                }
+                                try {
+                                  const placeholderId = "manual_user_" + Math.random().toString(36).substring(2, 9);
+                                  await setDoc(doc(db, 'users', placeholderId), {
+                                    id: placeholderId,
+                                    email: manualUserEmail.trim().toLowerCase(),
+                                    name: manualUserEmail.split('@')[0],
+                                    isPremium: true,
+                                    credits: 99,
+                                    createdAt: new Date().toISOString()
+                                  });
+                                  triggerToast("¡Membresía Creada y Otorgada con Éxito!");
+                                  setManualUserEmail('');
+                                  setManualUserId('');
+                                } catch (err: any) {
+                                  triggerToast(`Error: ${err.message}`);
+                                }
+                              }}
+                              className="mx-auto px-4 py-2.5 bg-brand-primary text-white rounded-lg text-[9px] font-mono font-bold uppercase tracking-widest cursor-pointer hover:bg-brand-primary/80 transition-all font-sans"
+                            >
+                              Generar Invitado Premium PRO
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="space-y-4 text-left flex-1 flex flex-col justify-between animate-enter">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[8px] font-mono font-bold text-slate-500 uppercase tracking-widest">Sincronicidad Detectada</span>
+                              <span className={`px-2 py-0.5 rounded text-[8px] font-mono font-black uppercase ${
+                                matched.isPremium 
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 animate-pulse' 
+                                  : 'bg-white/5 text-slate-500 border border-white/5'
+                              }`}>
+                                {matched.isPremium ? 'ACTIVO PREMIUM PRO' : 'VERSIÓN DEMO STARTER'}
+                              </span>
+                            </div>
+                            <h4 className="text-white font-bold text-sm tracking-tight">{matched.name || 'Sin Nombre'}</h4>
+                            <p className="text-[10px] text-slate-400 font-mono select-all truncate">ID: {matched.id}</p>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  await setDoc(doc(db, 'users', matched.id), {
+                                    ...matched,
+                                    isPremium: true
+                                  }, { merge: true });
+                                  triggerToast(`¡Otorgada Membresía PRO a ${matched.name || matched.email}!`);
+                                } catch (e: any) {
+                                  triggerToast(`Error: ${e.message}`);
+                                }
+                              }}
+                              className="py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-mono font-black text-[9px] tracking-widest uppercase rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1"
+                            >
+                              <Crown className="w-3 h-3 text-white" />
+                              Otorgar PRO
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  await setDoc(doc(db, 'users', matched.id), {
+                                    ...matched,
+                                    isPremium: false
+                                  }, { merge: true });
+                                  triggerToast(`¡Removida Membresía PRO de ${matched.name || matched.email}!`);
+                                } catch (e: any) {
+                                  triggerToast(`Error: ${e.message}`);
+                                }
+                              }}
+                              className="py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-mono font-black text-[9px] tracking-widest uppercase rounded-xl transition-all cursor-pointer flex items-center justify-center border border-red-500/20"
+                            >
+                              Degradar/Quitar
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <div className="text-center py-10 space-y-2 text-slate-600 flex-1 flex flex-col justify-center animate-enter">
+                      <HelpCircle className="w-8 h-8 text-slate-600 mx-auto" />
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-widest">Esperando Selección...</span>
+                      <p className="text-[9px] leading-normal max-w-[200px] mx-auto font-sans">Busca un usuario arriba o escribe su correo para otorgarle o eliminarle privilegios de FUTURA.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
 
@@ -1560,9 +2051,13 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="space-y-6"
+            className="space-y-8 animate-enter"
           >
-            {users.filter(u => u.pagoMovilRequest).length === 0 ? (
+            {/* SOLICITUDES DE VERIFICACIÓN BINANCE PAY */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-mono font-black text-slate-400 uppercase tracking-[0.3em] text-left pl-1">Solicitudes del Canal de Venta (Binance Pay)</h4>
+
+              {users.filter(u => u.pagoMovilRequest).length === 0 ? (
               <div className="glass-panel p-12 text-center rounded-[2.5rem] border-white/5 bg-white/[0.01] space-y-3">
                 <div className="mx-auto w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-slate-500">
                   <Check className="w-6 h-6" />
@@ -1677,6 +2172,7 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
                   })}
               </div>
             )}
+            </div>
           </motion.div>
         )}
 
@@ -1718,112 +2214,214 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredCRM.map((u) => (
-                  <motion.div
-                    key={u.id}
-                    className="glass-panel p-6 rounded-3xl border border-white/5 bg-white/[0.01] hover:border-brand-primary/25 transition-all flex flex-col justify-between"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-2 border-b border-white/5 pb-2.5">
-                        <div className="text-left">
-                          <h4 className="text-sm font-bold text-white truncate max-w-[200px]">{u.name || "Sin nombre"}</h4>
-                          <p className="text-[9px] text-slate-500 font-mono truncate max-w-[200px]">{u.email || u.id}</p>
+                {filteredCRM.map((u) => {
+                  const isEditing = editingUserId === u.id;
+                  return (
+                    <motion.div
+                      key={u.id}
+                      className={`glass-panel p-6 rounded-3xl border transition-all flex flex-col justify-between ${
+                        isEditing 
+                          ? 'border-brand-primary bg-brand-primary/[0.02]' 
+                          : 'border-white/5 bg-white/[0.01] hover:border-brand-primary/25'
+                      }`}
+                    >
+                      {isEditing ? (
+                        <div className="space-y-4 text-left">
+                          <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                            <span className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-[0.2em]">Modo Editor de Operador</span>
+                            <span className="text-[9px] font-mono text-slate-500 uppercase">{u.id}</span>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest pl-1">Nombre Completo</label>
+                              <input
+                                type="text"
+                                value={editFormName}
+                                onChange={(e) => setEditFormName(e.target.value)}
+                                className="w-full bg-black/45 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-brand-primary/60 outline-none"
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest pl-1">Correo Electrónico</label>
+                              <input
+                                type="email"
+                                value={editFormEmail}
+                                onChange={(e) => setEditFormEmail(e.target.value)}
+                                className="w-full bg-black/45 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-brand-primary/60 outline-none font-mono"
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest pl-1">Meses Prepago contratados</label>
+                              <input
+                                type="number"
+                                value={editFormMonths}
+                                onChange={(e) => setEditFormMonths(Number(e.target.value))}
+                                className="w-full bg-black/45 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-brand-primary/60 outline-none font-mono"
+                              />
+                            </div>
+
+                            <div className="p-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between">
+                              <span className="text-[10px] font-mono font-bold text-slate-300 uppercase tracking-wider">Membresía Activa (PRO)</span>
+                              <input
+                                type="checkbox"
+                                checked={editFormIsPremium}
+                                onChange={(e) => setEditFormIsPremium(e.target.checked)}
+                                className="w-4 h-4 text-brand-primary focus:ring-0 rounded bg-black/50 border-white/10 cursor-pointer"
+                              />
+                            </div>
+
+                            {editFormIsPremium && (
+                              <div className="space-y-2">
+                                <label className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest pl-1 block">Fecha Expiración Membresía</label>
+                                <input
+                                  type="date"
+                                  value={editFormExpiresAt}
+                                  onChange={(e) => setEditFormExpiresAt(e.target.value)}
+                                  className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-brand-primary/60 outline-none font-mono"
+                                />
+                                <div className="grid grid-cols-2 gap-2 mt-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const cur = editFormExpiresAt ? new Date(editFormExpiresAt + "T12:00:00") : new Date();
+                                      cur.setDate(cur.getDate() + 7);
+                                      setEditFormExpiresAt(cur.toISOString().substring(0, 10));
+                                    }}
+                                    className="py-1.5 bg-brand-primary/10 hover:bg-brand-primary/25 border border-brand-primary/10 text-brand-primary rounded-xl text-[9px] font-mono font-bold uppercase transition-all cursor-pointer text-center"
+                                  >
+                                    +7 Días más
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const cur = editFormExpiresAt ? new Date(editFormExpiresAt + "T12:00:00") : new Date();
+                                      cur.setDate(cur.getDate() + 30);
+                                      setEditFormExpiresAt(cur.toISOString().substring(0, 10));
+                                    }}
+                                    className="py-1.5 bg-brand-primary/10 hover:bg-brand-primary/25 border border-brand-primary/10 text-brand-primary rounded-xl text-[9px] font-mono font-bold uppercase transition-all cursor-pointer text-center"
+                                  >
+                                    +30 Días más
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2.5 pt-2">
+                            <button
+                              type="button"
+                              onClick={() => handleSaveUserEdit(u.id, u)}
+                              className="py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-mono font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                            >
+                              Guardar Cambios ✓
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingUserId(null)}
+                              className="py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 font-mono font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all cursor-pointer border border-white/5"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
                         </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-2 border-b border-white/5 pb-2.5">
+                            <div className="text-left">
+                              <h4 className="text-sm font-bold text-white truncate max-w-[200px]">{u.name || "Sin nombre"}</h4>
+                              <p className="text-[9px] text-slate-500 font-mono truncate max-w-[200px]">{u.email || u.id}</p>
+                            </div>
 
-                        <span className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
-                          u.isPremium
-                            ? 'bg-brand-primary/10 border border-brand-primary/20 text-brand-primary animate-pulse'
-                            : 'bg-white/5 text-slate-500'
-                        }`}>
-                          {u.isPremium ? 'PRO / ELITE' : 'DEMO USER'}
-                        </span>
-                      </div>
-
-                      <div className="text-left text-[11px] text-slate-400 leading-normal font-sans">
-                        <p className="truncate"><b>Roles:</b> {u.roles ? u.roles.join(', ') : 'Líder'}</p>
-                        <p className="truncate"><b>Biografía:</b> {u.bio || 'Sin detalles'}</p>
-                        <p className="text-white font-bold mt-1.5 flex items-center gap-1.5 font-sans">
-                          {u.credits !== undefined ? u.credits : 10} Créditos Disponibles
-                        </p>
-                      </div>
-
-                      {/* Info on registered payment requests or Stripe accounts if active */}
-                      {u.stripeAccountId ? (
-                        <div className="p-3 bg-brand-primary/5 border border-brand-primary/10 rounded-xl text-left space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[8px] font-bold text-brand-primary uppercase tracking-widest font-mono">Stripe Connect Account</span>
-                            <span className={`px-1.5 py-0.5 rounded text-[7px] font-bold uppercase tracking-wider font-mono ${
-                              u.stripeOnboardingComplete ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+                            <span className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                              u.isPremium
+                                ? 'bg-brand-primary/10 border border-brand-primary/20 text-brand-primary'
+                                : 'bg-white/5 text-slate-500'
                             }`}>
-                              {u.stripeOnboardingComplete ? 'Onboarded' : 'Pending'}
+                              {u.isPremium ? 'PRO / ELITE' : 'DEMO USER'}
                             </span>
                           </div>
-                          <p className="text-[9px] text-slate-300 font-mono font-medium truncate">
-                            ID: {u.stripeAccountId}
-                          </p>
-                        </div>
-                      ) : u.pagoMovilRequest ? (
-                        <div className="p-3 bg-black/45 border border-white/5 rounded-xl text-left space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest font-mono">Último Pago Móvil</span>
-                            <span className={`px-1.5 py-0.5 rounded text-[7px] font-bold uppercase tracking-wider font-mono ${
-                              u.pagoMovilRequest.status === 'pending' ? 'bg-amber-500/10 text-amber-500' :
-                              u.pagoMovilRequest.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
-                            }`}>
-                              {u.pagoMovilRequest.status}
-                            </span>
+
+                          {/* Dynamic Subscription remaining time and status */}
+                          <div className="p-3.5 bg-brand-primary/[0.03] border border-brand-primary/10 rounded-xl text-left space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[8px] font-bold text-brand-primary uppercase tracking-widest font-mono">Detalles de Suscripción</span>
+                              {u.isPremium && (
+                                <span className="px-1.5 py-0.5 bg-brand-primary/10 text-brand-primary text-[7px] font-bold uppercase rounded font-mono">
+                                  {u.membershipMonths || 1} {u.membershipMonths === 1 ? 'Mes' : 'Meses'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs font-sans space-y-0.5">
+                              <p className="text-slate-300 text-[11px]">
+                                <b>Membresía:</b> {u.isPremium ? 'FUTURA PRO Elite' : 'Demo Starter Libre'}
+                              </p>
+                              {u.isPremium && (
+                                <p className="text-emerald-400 font-bold text-[10px] font-mono flex items-center gap-1">
+                                  <Clock className="w-3 h-3 text-emerald-400" />
+                                  Vence: {getRemainingMembershipTime(u.membershipExpiresAt)}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <p className="text-[9px] text-slate-400 leading-normal font-mono">
-                            Ref: #{u.pagoMovilRequest.reference} • {u.pagoMovilRequest.bank}
-                          </p>
-                        </div>
-                      ) : null}
-                    </div>
 
-                    {/* Actions panel */}
-                    <div className="pt-4 border-t border-white/5 mt-4 space-y-2">
-                      <div className="flex items-center justify-between gap-2.5">
-                        <button
-                          onClick={() => handleTogglePremiumDirect(u.id, u)}
-                          className={`flex-1 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all cursor-pointer ${
-                            u.isPremium
-                              ? 'bg-red-500/10 text-red-500 hover:bg-red-500/15 border border-red-500/20'
-                              : 'bg-brand-primary text-white hover:bg-brand-primary/90 hover:shadow-lg hover:shadow-brand-primary/10'
-                          }`}
-                        >
-                          {u.isPremium ? 'Quitar Membresía PRO' : 'Conceder PRO Directo'}
-                        </button>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-1.5 bg-black/35 p-1 rounded-xl">
-                        <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest font-mono pl-2">Créditos:</span>
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => handleAdjustCredits(u.id, u, -5)}
-                            className="w-10 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded text-xs transition-all cursor-pointer flex items-center justify-center font-bold"
-                            title="Quitar 5 créditos"
-                          >
-                            -5
-                          </button>
-                          <button
-                            onClick={() => handleAdjustCredits(u.id, u, 5)}
-                            className="w-10 py-1.5 bg-brand-primary/[0.08] hover:bg-brand-primary/20 text-brand-primary rounded text-xs transition-all cursor-pointer flex items-center justify-center font-bold"
-                            title="Añadir 5 créditos"
-                          >
-                            +5
-                          </button>
-                          <button
-                            onClick={() => handleAdjustCredits(u.id, u, 20)}
-                            className="px-2.5 py-1.5 bg-emerald-500/5 hover:bg-emerald-500/20 text-emerald-400 rounded text-[10px] transition-all cursor-pointer flex items-center justify-center font-bold"
-                            title="Regalar 20 créditos"
-                          >
-                            <Coins className="w-3.5 h-3.5" /> +20
-                          </button>
+                          {/* Actions panel */}
+                          <div className="pt-4 border-t border-white/5 mt-4 space-y-2">
+                            {deleteConfirmUserId === u.id ? (
+                              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-2xl text-left space-y-2 mt-2 animate-enter">
+                                <span className="text-[9px] font-mono font-bold text-red-400 uppercase tracking-widest block">⚠️ ¿CONFIRMAS ELIMINAR ESTA CUENTA DEFINITIVAMENTE?</span>
+                                <p className="text-[10px] text-slate-300 leading-relaxed font-sans">
+                                  Esta acción removerá a {u.name || u.email || 'este usuario'} y toda su base de datos de FUTURA de forma irreversible.
+                                </p>
+                                <div className="grid grid-cols-2 gap-2 mt-1">
+                                  <button
+                                    onClick={async () => {
+                                      try {
+                                        await deleteDoc(doc(db, 'users', u.id));
+                                        triggerToast(`FUTURA: Cuenta de ${u.name || u.email || 'usuario'} eliminada.`);
+                                        setDeleteConfirmUserId(null);
+                                      } catch (err: any) {
+                                        console.error("Delete user account error:", err);
+                                        triggerToast(`Error al eliminar: ${err.message}`);
+                                      }
+                                    }}
+                                    className="py-2 bg-red-500 hover:bg-red-650 text-white rounded-xl text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer font-mono"
+                                  >
+                                    Sí, Eliminar
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteConfirmUserId(null)}
+                                    className="py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-[9px] font-bold uppercase transition-all cursor-pointer border border-white/5"
+                                  >
+                                    Volver
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  onClick={() => startEditingUser(u)}
+                                  className="py-2.5 bg-white/5 hover:bg-white/10 text-slate-200 border border-white/5 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1"
+                                >
+                                  ✏️ Editar Perfil
+                                </button>
+                                
+                                <button
+                                  onClick={() => setDeleteConfirmUserId(u.id)}
+                                  className="py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1 font-mono"
+                                >
+                                  ✕ Eliminar Cuenta
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+                      )}
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
           </motion.div>

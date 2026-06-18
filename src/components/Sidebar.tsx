@@ -143,7 +143,11 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
             </div>
             <div className="flex-1 overflow-hidden text-left">
               <p className="text-[10px] font-bold text-white truncate">{auth.currentUser?.email}</p>
-              <p className="text-[8px] text-slate-500 font-mono">ESTADO: ACTIVO</p>
+              <p className="text-[8px] font-mono">
+                {auth.currentUser?.email?.toLowerCase() === 'heczaroficial@gmail.com'
+                  ? <span className="text-amber-400 font-bold">👑 DUEÑO Y ADMINISTRADOR</span>
+                  : <span className="text-slate-500">ESTADO: ACTIVO</span>}
+              </p>
             </div>
           </div>
           <button 

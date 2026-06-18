@@ -31,15 +31,11 @@ interface MembershipPlansProps {
 export default function MembershipPlans({ profile, onUpdateProfile }: MembershipPlansProps) {
   const { user } = useAuth();
   
-  // Tab Selector for manual payment methods
-  const [selectedMethod, setSelectedMethod] = useState<'pago_movil' | 'binance' | 'paypal' | 'transferencia'>('pago_movil');
-  
   // Form submission state
   const [senderAccount, setSenderAccount] = useState(''); // Email/ID/Phone
-  const [senderCI, setSenderCI] = useState(''); // CI/ID/RIF
-  const [selectedBank, setSelectedBank] = useState('Banco de Venezuela'); // Bank of origin
   const [txReference, setTxReference] = useState(''); // Transaction ID reference
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   // Trigger toast indicator
@@ -59,57 +55,23 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
     e.preventDefault();
     if (!user) return;
 
-    if (selectedMethod === 'binance' || selectedMethod === 'paypal') {
-      if (!senderAccount.trim() || !txReference.trim()) {
-        triggerToast("⚠️ Todos los campos de validación son obligatorios.");
-        return;
-      }
-    } else {
-      if (!senderAccount.trim() || !senderCI.trim() || !txReference.trim()) {
-        triggerToast("⚠️ Todos los campos de validación de pago son obligatorios.");
-        return;
-      }
+    if (!senderAccount.trim() || !txReference.trim()) {
+      triggerToast("⚠️ Todos los campos de validación son obligatorios.");
+      return;
     }
 
     setIsSubmittingReport(true);
     try {
-      let bankName = '';
-      let idValue = '';
-      let paymentTypeValue: 'pago_movil' | 'binance_eth' | 'paypal' | 'transferencia' = 'pago_movil';
-      let amountBsValue = 0;
-
-      if (selectedMethod === 'binance') {
-        bankName = 'Binance Pay';
-        idValue = senderAccount;
-        paymentTypeValue = 'binance_eth';
-        amountBsValue = 0;
-      } else if (selectedMethod === 'paypal') {
-        bankName = 'PayPal';
-        idValue = senderAccount;
-        paymentTypeValue = 'paypal';
-        amountBsValue = 0;
-      } else if (selectedMethod === 'pago_movil') {
-        bankName = `Pago Móvil (${selectedBank})`;
-        idValue = `CI: ${senderCI}`;
-        paymentTypeValue = 'pago_movil';
-        amountBsValue = 596.78;
-      } else if (selectedMethod === 'transferencia') {
-        bankName = `Transferencia (${selectedBank})`;
-        idValue = `CI/RIF: ${senderCI}`;
-        paymentTypeValue = 'transferencia';
-        amountBsValue = 596.78;
-      }
-
       const updatedPM = {
-        bank: bankName,
+        bank: 'Binance Pay',
         phone: senderAccount,
-        id: idValue,
+        id: senderAccount,
         reference: txReference.toUpperCase(),
         amountUsd: 10,
-        amountBs: amountBsValue,
+        amountBs: 0,
         timestamp: new Date().toISOString(),
         status: 'pending' as const,
-        paymentType: paymentTypeValue
+        paymentType: 'binance_eth' as const
       };
 
       if (onUpdateProfile) {
@@ -121,7 +83,6 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
 
       triggerToast("✅ ¡Reporte de pago enviado con éxito! Un administrador validará tu licencia.");
       setSenderAccount('');
-      setSenderCI('');
       setTxReference('');
     } catch (err) {
       console.error(err);
@@ -133,13 +94,11 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
 
   const cancelPendingReport = async () => {
     if (!user || !onUpdateProfile) return;
-    if (window.confirm("¿Deseas retirar tu reporte de pago en curso?")) {
-      await onUpdateProfile({
-        ...profile,
-        pagoMovilRequest: null
-      });
-      triggerToast("Reporte cancelado. Puedes registrar otro reporte ahora.");
-    }
+    await onUpdateProfile({
+      ...profile,
+      pagoMovilRequest: null
+    });
+    triggerToast("Reporte cancelado. Puedes registrar otro reporte ahora.");
   };
 
   const handleResetPremiumDev = async () => {
@@ -284,385 +243,130 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                 <p className="text-[10px] text-slate-500 text-center font-sans">
                   ¿Cometiste un error al ingresar los datos? Puedes retirar este reporte para ingresar uno nuevo.
                 </p>
-                <button
-                  onClick={cancelPendingReport}
-                  className="w-full py-3 bg-white/5 hover:bg-red-500/10 hover:text-red-400 border border-white/5 rounded-xl font-mono text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer"
-                >
-                  Cancelar y Corregir Reporte
-                </button>
+                {showCancelConfirm ? (
+                  <div className="space-y-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-left">
+                    <p className="text-[10px] text-red-400 font-bold font-mono text-center">¿Confirmas retirar tu reporte de pago?</p>
+                    <div className="grid grid-cols-2 gap-2 mt-1">
+                      <button
+                        onClick={async () => {
+                          await cancelPendingReport();
+                          setShowCancelConfirm(false);
+                        }}
+                        className="py-2 bg-red-500 hover:bg-red-650 text-white rounded-xl text-[9px] font-bold uppercase transition-all cursor-pointer font-mono text-center"
+                      >
+                        Sí, retirar
+                      </button>
+                      <button
+                        onClick={() => setShowCancelConfirm(false)}
+                        className="py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-[9px] font-bold uppercase transition-all cursor-pointer font-mono text-center border border-white/5"
+                      >
+                        Volver
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowCancelConfirm(true)}
+                    className="w-full py-3 bg-white/5 hover:bg-red-500/10 hover:text-red-400 border border-white/5 rounded-xl font-mono text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer"
+                  >
+                    Cancelar y Corregir Reporte
+                  </button>
+                )}
               </div>
             </div>
           ) : (
             <div className="bg-surface-950 border border-white/10 rounded-3xl p-6 space-y-5">
               <div className="space-y-1">
-                <h4 className="text-[11px] font-black text-white uppercase tracking-widest font-mono flex items-center gap-1.5">
-                  <CreditCard className="w-4 h-4 text-brand-primary" /> Canales de Pago Manuales
+                <h4 className="text-[11px] font-black text-amber-400 uppercase tracking-widest font-mono flex items-center gap-1.5 align-middle">
+                  <CreditCard className="w-4 h-4 text-amber-400" /> Canal de Pago Único (Binance Pay)
                 </h4>
                 <p className="text-[11px] text-slate-400 font-sans">
-                  Activa tu licencia ilimitada hoy por solo <strong>$10.00 USD</strong>. Elige tu pasarela favorita:
+                  Activa tu licencia ilimitada hoy de forma segura e instantánea por solo <strong>$10.00 USDT</strong> con Binance:
                 </p>
-              </div>
-
-              {/* Selector Tabs: Pago Móvil, Binance, PayPal, Transferencia */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-black/35 rounded-xl border border-white/5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedMethod('pago_movil');
-                    setSenderAccount('');
-                    setTxReference('');
-                  }}
-                  className={`py-2 px-1 rounded-lg text-[8px] font-mono font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 leading-none ${
-                    selectedMethod === 'pago_movil'
-                      ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-md'
-                      : 'text-slate-500 hover:text-slate-400'
-                  }`}
-                  title="Pago Móvil"
-                >
-                  Pago Móvil
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedMethod('binance');
-                    setSenderAccount('');
-                    setTxReference('');
-                  }}
-                  className={`py-2 px-1 rounded-lg text-[8px] font-mono font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 leading-none ${
-                    selectedMethod === 'binance'
-                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-md'
-                      : 'text-slate-500 hover:text-slate-400'
-                  }`}
-                  title="Binance Pay"
-                >
-                  Binance Pay
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedMethod('paypal');
-                    setSenderAccount('');
-                    setTxReference('');
-                  }}
-                  className={`py-2 px-1 rounded-lg text-[8px] font-mono font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 leading-none ${
-                    selectedMethod === 'paypal'
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-md'
-                      : 'text-slate-500 hover:text-slate-400'
-                  }`}
-                  title="PayPal"
-                >
-                  PayPal
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedMethod('transferencia');
-                    setSenderAccount('');
-                    setTxReference('');
-                  }}
-                  className={`py-2 px-1 rounded-lg text-[8px] font-mono font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 leading-none ${
-                    selectedMethod === 'transferencia'
-                      ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20 shadow-md'
-                      : 'text-slate-500 hover:text-slate-400'
-                  }`}
-                  title="Transferencia"
-                >
-                  Transf.
-                </button>
               </div>
 
               {/* Method Instructions */}
               <div className="bg-black/40 border border-white/5 p-4 rounded-2xl text-[11px] space-y-3">
-                
-                {/* 1. Pago Móvil */}
-                {selectedMethod === 'pago_movil' && (
-                  <div className="space-y-2.5 text-left">
-                    <span className="px-1.5 py-0.5 bg-blue-500/15 text-blue-400 text-[8px] font-mono font-black rounded uppercase tracking-wider border border-blue-500/10">
-                      PAGO MÓVIL (Bs. Venezuela)
+                <div className="space-y-4 text-left animate-fadeIn">
+                  <span className="px-1.5 py-0.5 bg-amber-500/15 text-amber-500 text-[8px] font-mono font-black rounded uppercase tracking-wider border border-amber-500/10">
+                    BINANCE PAY (USDT)
+                  </span>
+                  <p className="text-slate-400 leading-normal font-sans text-xs">
+                    Envía exactamente <strong>10.00 USDT</strong> a través de Binance Pay utilizando cualquiera de estas opciones:
+                  </p>
+
+                  {/* Direct Link CTA Button */}
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block">
+                      Opción 1: Enlace de Pago Directo
                     </span>
-                    <p className="text-slate-400 leading-normal font-sans text-[10px]">
-                      Realiza el Pago Móvil por el equivalente a <strong>$10.00 USD</strong> (Tasa Oficial: <strong>596,78 Bs.</strong>) con los siguientes datos:
-                    </p>
-                    
-                    <div className="bg-black/30 p-3 rounded-xl border border-white/5 space-y-2 text-[10px] font-mono">
-                      <div className="flex justify-between items-center bg-white/5 p-1 px-2 rounded-md">
-                        <span className="text-slate-500 font-black">BANCO:</span>
-                        <span className="text-white font-black">BANCO DE VENEZUELA</span>
-                      </div>
-
-                      <div className="flex justify-between items-center bg-white/5 p-1 px-2 rounded-md">
-                        <span className="text-slate-500 font-black">CELULAR:</span>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-white font-black select-all">04129486239</span>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy('04129486239', 'Teléfono Pago Móvil')}
-                            className="p-0.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center bg-white/5 p-1 px-2 rounded-md">
-                        <span className="text-slate-500 font-black">CÉDULA / RIF:</span>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-white font-black select-all">V-24829302</span>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy('24829302', 'Cédula Pago Móvil')}
-                            className="p-0.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center bg-white/5 p-1 px-2 rounded-md">
-                        <span className="text-slate-500 font-black">MONTO EN Bs:</span>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-brand-primary font-black select-all">596,78 Bs.</span>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy('596.78', 'Monto Bs.')}
-                            className="p-0.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
+                    <div className="flex gap-2">
+                      <a 
+                        href="https://s.binance.com/zqX4Rj6Q" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-400 text-black rounded-xl font-mono text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all hover:scale-[1.01] cursor-pointer"
+                      >
+                        Pagar Online <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleCopy('https://s.binance.com/zqX4Rj6Q', 'Enlace Binance Pay')}
+                        className="px-3 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl border border-white/5 transition-all cursor-pointer"
+                        title="Copiar Enlace de Pago"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                )}
 
-                {/* 2. Binance Pay */}
-                {selectedMethod === 'binance' && (
-                  <div className="space-y-4 text-left animate-fadeIn">
-                    <span className="px-1.5 py-0.5 bg-amber-500/15 text-amber-500 text-[8px] font-mono font-black rounded uppercase tracking-wider border border-amber-500/10">
-                      BINANCE PAY (USDT)
+                  {/* ID Details */}
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block">
+                      Opción 2: ID de Binance Pay
                     </span>
-                    <p className="text-slate-400 leading-normal font-sans text-xs">
-                      Envía exactamente <strong>10.00 USDT</strong> a través de Binance Pay de la forma más rápida utilizando cualquiera de estas opciones:
-                    </p>
-
-                    {/* Direct Link CTA Button */}
-                    <div className="space-y-2">
-                      <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block">
-                        Opción 1: Enlace de Pago Directo
-                      </span>
-                      <div className="flex gap-2">
-                        <a 
-                          href="https://s.binance.com/zqX4Rj6Q" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-400 text-black rounded-xl font-mono text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all hover:scale-[1.01] cursor-pointer"
-                        >
-                          Pagar Online <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => handleCopy('https://s.binance.com/zqX4Rj6Q', 'Enlace Binance Pay')}
-                          className="px-3 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl border border-white/5 transition-all cursor-pointer"
-                          title="Copiar Enlace de Pago"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* ID Details */}
-                    <div className="space-y-2">
-                      <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block">
-                        Opción 2: ID de Binance Pay
-                      </span>
-                      <div className="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between gap-2 font-mono">
-                        <div className="text-xs select-all text-white font-bold leading-none">
-                          Pay ID: 39180442
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleCopy('39180442', 'ID de Binance Pay')}
-                          className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all shrink-0 cursor-pointer"
-                          title="Copiar ID de Binance Pay"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                  </div>
-                )}
-
-                {/* 3. PayPal */}
-                {selectedMethod === 'paypal' && (
-                  <div className="space-y-2 text-left">
-                    <span className="px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 text-[8px] font-mono font-black rounded uppercase tracking-wider border border-emerald-500/10">
-                      DEPÓSITO DÓLARES PAYPAL
-                    </span>
-                    <p className="text-slate-400 leading-normal font-sans">
-                      Envía exactamente <strong>$10.00 USD netos</strong> a nuestra cuenta de PayPal autorizada:
-                    </p>
                     <div className="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between gap-2 font-mono">
-                      <div className="text-xs select-all text-white font-bold leading-none truncate flex-1">
-                        heczaroficial@gmail.com
+                      <div className="text-xs select-all text-white font-bold leading-none">
+                        Pay ID: 39180442
                       </div>
                       <button
                         type="button"
-                        onClick={() => handleCopy('heczaroficial@gmail.com', 'Correo PayPal')}
+                        onClick={() => handleCopy('39180442', 'ID de Binance Pay')}
                         className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all shrink-0 cursor-pointer"
-                        title="Copiar Correo PayPal"
+                        title="Copiar ID de Binance Pay"
                       >
                         <Copy className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
-                )}
-
-                {/* 4. Bank Transfer */}
-                {selectedMethod === 'transferencia' && (
-                  <div className="space-y-2.5 text-left">
-                    <span className="px-1.5 py-0.5 bg-purple-500/15 text-purple-400 text-[8px] font-mono font-black rounded uppercase tracking-wider border border-purple-500/10">
-                      TRANSFERENCIA BANCARIA (Venezuela / Bs)
-                    </span>
-                    <p className="text-slate-400 leading-normal font-sans text-[10px]">
-                      Realiza una transferencia nacional por <strong>596,78 Bs.</strong> a la siguiente cuenta de ahorros/corriente:
-                    </p>
-
-                    <div className="bg-black/30 p-3 rounded-xl border border-white/5 space-y-2 text-[10px] font-mono">
-                      <div className="flex justify-between items-center bg-white/5 p-1 px-2 rounded-md">
-                        <span className="text-slate-500 font-black">BANCO:</span>
-                        <span className="text-white font-black">BANCO DE VENEZUELA</span>
-                      </div>
-
-                      <div className="flex justify-between items-center bg-white/5 p-1 px-2 rounded-md">
-                        <span className="text-slate-500 font-black">NRO DE CUENTA:</span>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-white font-black select-all text-[9.5px]">01020412790000744654</span>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy('01020412790000744654', 'Número de Cuenta')}
-                            className="p-0.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center bg-white/5 p-1 px-2 rounded-md">
-                        <span className="text-slate-500 font-black">TIPO:</span>
-                        <span className="text-white font-black uppercase">Corriente (VES)</span>
-                      </div>
-
-                      <div className="flex justify-between items-center bg-white/5 p-1 px-2 rounded-md">
-                        <span className="text-slate-500 font-black">TITULAR:</span>
-                        <span className="text-white font-black">Héctor Salazar</span>
-                      </div>
-
-                      <div className="flex justify-between items-center bg-white/5 p-1 px-2 rounded-md">
-                        <span className="text-slate-500 font-black">RIF / CÍ:</span>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-white font-black select-all">V-24829302</span>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy('24829302', 'Cédula/RIF')}
-                            className="p-0.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
+                </div>
               </div>
 
               {/* Payment submission form */}
               <form onSubmit={handleSendPaymentReport} className="space-y-3.5">
-                {(selectedMethod === 'pago_movil' || selectedMethod === 'transferencia') && (
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-wider block">
-                      Banco Emisor (Desde dónde pagaste)
-                    </label>
-                    <select
-                      value={selectedBank}
-                      onChange={(e) => setSelectedBank(e.target.value)}
-                      className="w-full px-3 py-2.5 bg-surface-950 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-brand-primary"
-                    >
-                      <option value="Banco de Venezuela">Banco de Venezuela</option>
-                      <option value="Banesco">Banesco</option>
-                      <option value="Mercantil">Mercantil</option>
-                      <option value="Provincial">Provincial</option>
-                      <option value="BNC">BNC</option>
-                      <option value="Bancaribe">Bancaribe</option>
-                      <option value="Banco del Tesoro">Banco del Tesoro</option>
-                      <option value="Otro Banco">Otro Banco</option>
-                    </select>
-                  </div>
-                )}
-
                 <div className="space-y-1">
                   <label className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-wider block">
-                    {selectedMethod === 'binance' 
-                      ? 'ID / Email de tu cuenta Binance' 
-                      : selectedMethod === 'paypal' 
-                        ? 'Dirección Email de tu cuenta PayPal' 
-                        : 'Número de Teléfono / ID del Emisor'}
+                    ID / Email de tu cuenta Binance
                   </label>
                   <input
                     type="text"
                     value={senderAccount}
                     onChange={(e) => setSenderAccount(e.target.value)}
-                    placeholder={
-                      selectedMethod === 'binance' 
-                        ? "Ej. 29018442 o tu-correo@binance.com" 
-                        : selectedMethod === 'paypal'
-                          ? "Ej. tunombre@paypal.com"
-                          : "Ej. 04241234567 o alias"
-                    }
+                    placeholder="Ej. 29018442 o tu-correo@binance.com"
                     required
                     className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-brand-primary"
                   />
                 </div>
 
-                {(selectedMethod === 'pago_movil' || selectedMethod === 'transferencia') && (
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-wider block">
-                      Cédula / ID del Titular pagador
-                    </label>
-                    <input
-                      type="text"
-                      value={senderCI}
-                      onChange={(e) => setSenderCI(e.target.value)}
-                      placeholder="Ej. V-24829302"
-                      required
-                      className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-brand-primary"
-                    />
-                  </div>
-                )}
-
                 <div className="space-y-1">
                   <label className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-wider block">
-                    {selectedMethod === 'binance' 
-                      ? 'ID de Transacción / TxID Hash' 
-                      : selectedMethod === 'paypal'
-                        ? 'Código o ID de Referencia PayPal'
-                        : 'Código de Referencia (Últimos 4, 6 o 8 números)'}
+                    ID de Transacción / TxID Hash
                   </label>
                   <input
                     type="text"
                     value={txReference}
                     onChange={(e) => setTxReference(e.target.value)}
-                    placeholder={
-                      selectedMethod === 'binance' 
-                        ? "Ej. T9A74B2981H" 
-                        : selectedMethod === 'paypal'
-                          ? "Ej. PP-984F7-2"
-                          : "Ej. 123456"
-                    }
+                    placeholder="Ej. T9A74B2981H"
                     required
                     className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs text-white uppercase focus:outline-none focus:border-brand-primary"
                   />
