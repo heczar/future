@@ -142,6 +142,14 @@ async function executeWithFallback<T>(
     }
 
     const data = await res.json();
+    if (data && typeof data === 'object') {
+      if ('response' in data) {
+        return data.response as any;
+      }
+      if ('imageUrl' in data) {
+        return data.imageUrl as any;
+      }
+    }
     return data as T;
   } catch (error: any) {
     // If it is a fetch connection/network error or we don't have a backend at all (standard CORS/TCP block), failover
