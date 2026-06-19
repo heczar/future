@@ -262,9 +262,10 @@ function AppContent() {
       setIsHubLoading(false);
     } catch (error) {
       console.error("Hub Consult Error:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       setHubMessages(prev => [...prev, { 
         role: 'model', 
-        text: "He experimentado una interrupción en mi flujo estratégico. Por favor, reintenta tu consulta." 
+        text: `⚠️ He experimentado una interrupción en mi flujo estratégico. Detalle del error: **${errorMessage}**. Por favor, reintenta tu consulta.` 
       }]);
       setIsHubLoading(false);
     }

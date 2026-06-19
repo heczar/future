@@ -190,7 +190,8 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
       setFuturaMessages(prev => [...prev, { role: 'model', text: responseText }]);
     } catch (err) {
       console.error("Futura Chat Error:", err);
-      setFuturaMessages(prev => [...prev, { role: 'model', text: '⚠️ He experimentado una interrupción en mi flujo neuronal. Por favor, vuelve a intentar tu pregunta o consejo.' }]);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setFuturaMessages(prev => [...prev, { role: 'model', text: `⚠️ He experimentado una interrupción en mi flujo neuronal. Detalle del error: **${errorMessage}**. Por favor, vuelve a intentar tu pregunta o consejo.` }]);
     } finally {
       setIsFuturaLoading(false);
     }
