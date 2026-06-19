@@ -20,7 +20,7 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: "Missing campaign params" });
   }
 
-  const model = "gemini-3.5-flash";
+  const model = "gemini-2.5-flash";
   console.log(`[FUTURA SERVER] generateSocialCopy invocado para plataforma "${params.platform || ""}", tipo: "${params.copyType || ""}". Usando modelo: ${model}`);
 
   const systemInstruction = `
