@@ -7,13 +7,14 @@ import { getAiClient } from "./utils";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-gemini-api-key, X-Gemini-Api-Key');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
+  const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
   const { params } = req.body || {};
   if (!params) {
     return res.status(400).json({ error: "Missing campaign params" });
@@ -61,7 +62,7 @@ export default async function handler(req: any, res: any) {
       4. Conjunto de hashtags de nicho estratégicos y relevantes (máximo 5-6 hashtags efectivos)
     `;
 
-    const response = await getAiClient().models.generateContent({
+    const response = await getAiClient(customKey).models.generateContent({
       model,
       contents: [{ parts: [{ text: prompt }] }],
       config: {

@@ -10,24 +10,24 @@ import { GoogleGenAI } from "@google/genai";
 // If the server returns 404 (meaning we are on Vercel or static hosting) or fails with a network/CORS error,
 // it instantly fails over to direct browser execution using the client-side VITE_GEMINI_API_KEY.
 
-let clientAi: any = null;
 function getClientAi(): any {
-  if (!clientAi) {
-    const meta: any = import.meta;
-    const key = (meta.env && meta.env.VITE_GEMINI_API_KEY) || "";
-    if (!key) {
-      console.warn("FUTURA WARNING: VITE_GEMINI_API_KEY no está configurada en el cliente. Si estás ejecutando en Vercel, agrégala en tus 'Environment Variables'.");
-    }
-    clientAi = new GoogleGenAI({ apiKey: key });
+  const meta: any = import.meta;
+  const userKey = localStorage.getItem("user_gemini_api_key") || "";
+  const fallbackKey = (meta.env && meta.env.VITE_GEMINI_API_KEY) || "";
+  const key = userKey.trim().length > 0 ? userKey.trim() : fallbackKey;
+
+  if (!key) {
+    console.warn("FUTURA WARNING: No se configuró clave en el almacenamiento local ni VITE_GEMINI_API_KEY.");
   }
-  return clientAi;
+  return new GoogleGenAI({ apiKey: key });
 }
 
 // Check if a client-side API key is available
 function hasClientApiKey(): boolean {
   const meta: any = import.meta;
-  const key = (meta.env && meta.env.VITE_GEMINI_API_KEY) || "";
-  return key.trim().length > 0;
+  const userKey = localStorage.getItem("user_gemini_api_key") || "";
+  const fallbackKey = (meta.env && meta.env.VITE_GEMINI_API_KEY) || "";
+  return userKey.trim().length > 0 || fallbackKey.trim().length > 0;
 }
 
 // Convert message histories into properly structured Gemini role contents
@@ -116,9 +116,15 @@ async function executeWithFallback<T>(
   fallbackFn: () => Promise<T>
 ): Promise<T> {
   try {
+    const userKey = localStorage.getItem("user_gemini_api_key") || "";
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (userKey.trim().length > 0) {
+      headers["x-gemini-api-key"] = userKey.trim();
+    }
+
     const res = await fetch(apiEndpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload)
     });
 

@@ -7,13 +7,14 @@ import { getAiClient, sanitizeGeminiContents } from "./utils";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-gemini-api-key, X-Gemini-Api-Key');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
+  const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
   const { phase, history, message } = req.body || {};
   const model = "gemini-3.5-flash";
   console.log(`[FUTURA SERVER] chatAboutPhase invocado para fase "${phase}". Mensaje: "${message || ""}". Usando modelo: ${model}`);
@@ -34,7 +35,7 @@ export default async function handler(req: any, res: any) {
     const listHistory = Array.isArray(history) ? history : [];
     const contents = sanitizeGeminiContents(listHistory, message);
 
-    const response = await getAiClient().models.generateContent({
+    const response = await getAiClient(customKey).models.generateContent({
       model,
       contents,
       config: {

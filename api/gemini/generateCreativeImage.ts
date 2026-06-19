@@ -7,13 +7,14 @@ import { getAiClient } from "./utils";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-gemini-api-key, X-Gemini-Api-Key');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
+  const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
   const { prompt, aspectRatio, styleReferences } = req.body || {};
   let model = "gemini-3.1-flash-image-preview";
 
@@ -45,7 +46,7 @@ export default async function handler(req: any, res: any) {
 
     let response;
     try {
-      response = await getAiClient().models.generateContent({
+      response = await getAiClient(customKey).models.generateContent({
         model,
         contents: { parts },
         config: {
@@ -58,7 +59,7 @@ export default async function handler(req: any, res: any) {
     } catch (modelErr: any) {
       console.warn("Primary image model failed. Trying alternative model...", modelErr.message);
       // Fallback model
-      response = await getAiClient().models.generateContent({
+      response = await getAiClient(customKey).models.generateContent({
         model: "gemini-2.5-flash-image",
         contents: { parts },
         config: {

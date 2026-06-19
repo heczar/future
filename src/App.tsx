@@ -2520,9 +2520,27 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
 }
 
 function DevPanel() {
+  const [key, setKey] = React.useState(() => {
+    return localStorage.getItem("user_gemini_api_key") || "";
+  });
+  const [statusMessage, setStatusMessage] = React.useState("");
+
+  const handleSave = () => {
+    if (!key || key.trim() === "") {
+      localStorage.removeItem("user_gemini_api_key");
+      setStatusMessage("Clave API eliminada. Se usará la configuración por defecto del servidor si está disponible.");
+    } else {
+      localStorage.setItem("user_gemini_api_key", key.trim());
+      setStatusMessage("¡Clave API guardada exitosamente! Se usará para todas las consultas de FUTURA.");
+    }
+    setTimeout(() => {
+      setStatusMessage("");
+    }, 4000);
+  };
+
   return (
     <div className="space-y-12 pb-32">
-      <div className="glass-panel p-10 rounded-[3rem] border-brand-primary/20 bg-surface-950/40 relative overflow-hidden">
+      <div className="glass-panel p-8 md:p-12 rounded-[3rem] border-brand-primary/20 bg-surface-950/40 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-12 opacity-5">
           <Layout className="w-48 h-48 text-brand-primary" />
         </div>
@@ -2530,11 +2548,62 @@ function DevPanel() {
         <div className="relative z-10 space-y-8">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-white/5 rounded-[2rem] flex items-center justify-center text-slate-400 border border-white/10">
-              <Zap className="w-8 h-8" />
+              <Zap className="w-8 h-8 text-brand-primary animate-pulse" />
             </div>
             <div>
-              <h2 className="text-3xl font-display font-bold text-white tracking-tight">Entorno de Desarrollo</h2>
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Configuración de Backend & Inferencia IA</p>
+              <h2 className="text-3xl font-display font-bold text-white tracking-tight">Entorno de Desarrollo y Configuración API</h2>
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">ADMINISTRA TU CONEXIÓN Y CLAVES API DE GEMINI</p>
+            </div>
+          </div>
+
+          {/* CUSTOM GEMINI API KEY FIELD SECTOR */}
+          <div className="glass-panel p-6 md:p-8 rounded-3xl border-brand-primary/20 bg-black/45 space-y-6">
+            <div className="space-y-2">
+              <h3 className="text-sm font-black text-brand-primary uppercase tracking-[0.2em] flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-brand-primary" /> CLAVE API DE GEMINI PERSONAL
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Si la consola de AI Studio o el servidor no responden con el flujo neuronal, o si recibes advertencias de interrupción, puedes configurar tu propio token API de Google Gemini en este panel. Se almacenará de manera 100% segura y privada en las cookies/almacenamiento local de tu navegador para todas tus sesiones de FUTURA.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tu Clave API (GEMINI_API_KEY)</label>
+                {key.trim() ? (
+                  <span className="text-[9px] font-bold text-green-400 bg-green-950/50 border border-green-800/40 px-2 py-0.5 rounded-full uppercase tracking-wider">Clave Local Activa</span>
+                ) : (
+                  <span className="text-[9px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full uppercase tracking-wider">Heredando del Servidor</span>
+                )}
+              </div>
+              <div className="flex flex-col md:flex-row gap-4">
+                <input
+                  type="password"
+                  placeholder="Pega tu clave AIzaSy... aquí"
+                  value={key}
+                  onChange={(e) => setKey(e.target.value)}
+                  className="flex-1 bg-surface-950 border border-white/10 text-white rounded-xl px-4 py-3 font-mono text-xs focus:outline-none focus:border-brand-primary/50 transition-colors"
+                />
+                <button
+                  onClick={handleSave}
+                  className="bg-brand-primary hover:bg-brand-secondary text-black font-black uppercase text-xs tracking-widest px-6 py-3 rounded-xl transition-colors shrink-0"
+                >
+                  Guardar Conexión
+                </button>
+              </div>
+            </div>
+
+            {statusMessage && (
+              <div className="p-4 rounded-xl text-xs font-bold font-mono border bg-green-950/20 text-green-400 border-green-800/30">
+                {statusMessage}
+              </div>
+            )}
+
+            <div className="p-4 bg-brand-primary/5 rounded-xl border border-brand-primary/10 text-[10px] md:text-xs text-slate-400 space-y-2">
+              <div className="font-bold text-brand-primary uppercase tracking-wider">💡 ¿Cómo conseguir tu clave?</div>
+              <p className="leading-normal">
+                Puedes conseguir una clave de Gemini de forma 100% gratuita y al instante ingresando a Google AI Studio en <a href="https://aistudio.google.com" target="_blank" rel="noopener noreferrer" className="text-brand-primary underline hover:text-white">aistudio.google.com</a> y haciendo clic en &apos;Get API Key&apos;.
+              </p>
             </div>
           </div>
 
@@ -2544,11 +2613,11 @@ function DevPanel() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-[10px] font-mono">
                   <span className="text-slate-500 uppercase">MODELO:</span>
-                  <span className="text-white">Gemini 3.5-PRO-EXP</span>
+                  <span className="text-white">Gemini 3.5-FLASH</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px] font-mono">
                   <span className="text-slate-500 uppercase">TIER:</span>
-                  <span className="text-white">Enterprise High Priority</span>
+                  <span className="text-white">Custom Local Overwrite</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px] font-mono">
                   <span className="text-slate-500 uppercase">LATENCIA:</span>

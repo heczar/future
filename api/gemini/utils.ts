@@ -8,11 +8,16 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-let aiClient: GoogleGenAI | null = null;
-export function getAiClient(): GoogleGenAI {
-  if (!aiClient) {
-    const key = process.env.GEMINI_API_KEY || "";
-    aiClient = new GoogleGenAI({
+let aiClients: Record<string, GoogleGenAI> = {};
+export function getAiClient(customKey?: string): GoogleGenAI {
+  const key = (customKey && customKey.trim().length > 0) ? customKey : (process.env.GEMINI_API_KEY || "");
+  if (!key || key.trim() === "" || key === "MY_GEMINI_API_KEY") {
+    throw new Error(
+      "La clave 'GEMINI_API_KEY' no está configurada en tu proyecto. Por favor, abre el menú de Configuración (através del ícono de engranaje ⚙️ en el menú superior o lateral de AI Studio), haz clic en 'Secrets' o 'Variables de Entorno' y añade la variable 'GEMINI_API_KEY' con tu clave de API de Gemini."
+    );
+  }
+  if (!aiClients[key]) {
+    aiClients[key] = new GoogleGenAI({
       apiKey: key,
       httpOptions: {
         headers: {
@@ -21,7 +26,7 @@ export function getAiClient(): GoogleGenAI {
       }
     });
   }
-  return aiClient;
+  return aiClients[key];
 }
 
 export function robustJsonParse(text: string, defaultPrompt: string): { strategy: string; copy: string; imagePrompt: string; videoProposal?: string } {
