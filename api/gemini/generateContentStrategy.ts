@@ -15,7 +15,8 @@ export default async function handler(req: any, res: any) {
   }
 
   const { prompt, context, styleReferences, logos, history } = req.body || {};
-  const model = "gemini-2.5-flash";
+  const model = "gemini-3.5-flash";
+  console.log(`[FUTURA SERVER] generateContentStrategy invocado con prompt: "${prompt || ""}". Usando modelo: ${model}`);
 
   const systemInstruction = `
     Eres el ASESOR ESTRATÉGICO Y CONVERTIDOR COMERCIAL de FUTURA. 

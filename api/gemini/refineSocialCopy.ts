@@ -15,7 +15,8 @@ export default async function handler(req: any, res: any) {
   }
 
   const { currentCopy, refineInstructions } = req.body || {};
-  const model = "gemini-2.5-flash";
+  const model = "gemini-3.5-flash";
+  console.log(`[FUTURA SERVER] refineSocialCopy invocado con instrucciones de refinamiento: "${refineInstructions || ""}". Usando modelo: ${model}`);
   const systemInstruction = "Eres un editor experto de copywriting. Refina el copy provisto siguiendo las instrucciones brutales del usuario, manteniendo la fuerza persuasiva, el gancho magnético, el formato cómodo para móvil y la filosofía pragmática 'Results over Aesthetics'.";
 
   try {

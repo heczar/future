@@ -188,7 +188,7 @@ export async function generateContentStrategy(
   const payload = { prompt, context, styleReferences, logos, history };
 
   const clientFallback = async () => {
-    const model = "gemini-2.5-flash";
+    const model = "gemini-3.5-flash";
     const systemInstruction = `
       Eres el ASESOR ESTRATÉGICO Y CONVERTIDOR COMERCIAL de FUTURA. 
       Tu misión es ser el "vendedor estrella" de la marca. Recibes a los usuarios en la sección "Conversa con Futura".
@@ -334,7 +334,7 @@ export async function chatWithAdvisor(
   const payload = { message, history, brandContext };
 
   const clientFallback = async () => {
-    const model = "gemini-2.5-flash";
+    const model = "gemini-3.5-flash";
     const systemInstruction = `
       Eres el ASESOR ESTRATÉGICO Y TECNOLÓGICO DE LA APLICACIÓN FUTURA (FUTURA App Advisor).
       Estás en el CENTRO DE CONSULTORÍA de la plataforma. No hables como un Director Creativo pomposo; habla como un consultor directo de la propia herramienta de consulta que conoce el potencial de automatización de cada engranaje, guiando con pragmatismo y respuestas de alto impacto.
@@ -382,7 +382,7 @@ export async function chatAboutPhase(
   const payload = { phase, history, message };
 
   const clientFallback = async () => {
-    const model = "gemini-2.5-flash";
+    const model = "gemini-3.5-flash";
     const systemInstruction = `
       Eres el ASESOR ESTRATÉGICO de FUTURA.
       ESTÁS ASESORANDO EN LA FASE: ${phase} del Sistema Pentagonal de Ejecución (SPE).
@@ -434,7 +434,7 @@ export async function generateSocialCopy(params: {
   const payload = { params };
 
   const clientFallback = async () => {
-    const model = "gemini-2.5-flash";
+    const model = "gemini-3.5-flash";
     const systemInstruction = `
       Eres el REDACTOR CREATIVO DE ÉLITE de FUTURA.
       Especialidad: copies que convierten y detienen el scroll.
@@ -477,7 +477,7 @@ export async function refineSocialCopy(
   const payload = { currentCopy, refineInstructions };
 
   const clientFallback = async () => {
-    const model = "gemini-2.5-flash";
+    const model = "gemini-3.5-flash";
     const systemInstruction = "Eres un editor experto de copywriting. Refina el copy provisto según las instrucciones del usuario.";
 
     const prompt = `

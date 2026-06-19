@@ -15,7 +15,8 @@ export default async function handler(req: any, res: any) {
   }
 
   const { message, history, brandContext } = req.body || {};
-  const model = "gemini-2.5-flash";
+  const model = "gemini-3.5-flash";
+  console.log(`[FUTURA SERVER] chatWithAdvisor invocado con mensaje: "${message || ""}". Usando modelo: ${model}`);
 
   const systemInstruction = `
     Eres el ASESOR ESTRATÉGICO Y TECNOLÓGICO DE LA APLICACIÓN FUTURA (FUTURA App Advisor).
