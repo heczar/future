@@ -50,7 +50,7 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    console.log("Servidor en Producción: static serving del bundle...");
+    console.log("Servidor en Producción: static serving del bundle... " + process.cwd());
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
@@ -63,4 +63,9 @@ async function startServer() {
   });
 }
 
-startServer();
+// Only start the listening port when run directly (not under Vercel Serverless Functions)
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;
