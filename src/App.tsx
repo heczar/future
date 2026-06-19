@@ -1016,7 +1016,19 @@ function AppContent() {
   };
 
   return (
-    <div className="flex h-[100dvh] bg-surface-900 border-t border-white/5 overflow-hidden relative w-full">
+    <div className="flex min-h-screen bg-[#050505] border-t border-white/5 relative w-full">
+      {/* Dynamic Fixed Background-Glows to eliminate black vacuums and scroll blackouts */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-[#050505]">
+        {/* Ambient grids / dot matrix background for ultra-modern digital depth */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+        
+        {/* Soft glowing ambient orbs */}
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-brand-primary/8 blur-[130px] opacity-70" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-brand-secondary/4 blur-[150px] opacity-60" />
+        <div className="absolute top-[30%] right-[15%] w-[40%] h-[40%] rounded-full bg-[#8B5CF6]/5 blur-[120px] opacity-50" />
+        <div className="absolute bottom-[20%] left-[10%] w-[50%] h-[50%] rounded-full bg-brand-primary/4 blur-[140px] opacity-40" />
+      </div>
+
       <AnimatePresence>
         {showLanding && <LandingOverlay onClose={() => setShowLanding(false)} />}
       </AnimatePresence>
@@ -1027,7 +1039,7 @@ function AppContent() {
         setIsOpen={setIsSidebarOpen} 
       />
       
-      <main ref={mainRef} className="flex-1 overflow-y-auto p-4 md:p-12 pb-32 md:pb-40 relative scroll-smooth bg-surface-900 selection:bg-brand-primary/20">
+      <main ref={mainRef} className="flex-1 p-4 md:p-12 pb-32 md:pb-40 relative bg-transparent selection:bg-brand-primary/20 z-10">
         <header className="mb-8 md:mb-12">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -1078,6 +1090,7 @@ function AppContent() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.2 }}
+            className="w-full min-h-[calc(100vh-16rem)] flex flex-col justify-start"
           >
             {renderContent()}
           </motion.div>
@@ -1728,7 +1741,7 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
                       <Sparkles className="w-5 h-5 animate-pulse text-brand-primary" />
                     </div>
                     <div>
-                      <h3 className="text-md font-bold text-white tracking-tight">Hub Interno FUTURA</h3>
+                      <h3 className="text-base font-bold text-white tracking-tight">Hub Interno FUTURA</h3>
                       <p className="text-[9px] text-slate-500 uppercase tracking-widest font-mono">Consultoría Cognitiva del Software</p>
                     </div>
                   </div>
@@ -2063,7 +2076,7 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
                 <div className="mx-auto w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-slate-500">
                   <Check className="w-6 h-6" />
                 </div>
-                <h4 className="text-md font-bold text-slate-300 uppercase tracking-widest">Sin Reportes de Pago</h4>
+                <h4 className="text-base font-bold text-slate-300 uppercase tracking-widest">Sin Reportes de Pago</h4>
                 <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-sans">
                   No se han registrado reportes de pago por parte de los usuarios actualmente.
                 </p>

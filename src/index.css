@@ -87,9 +87,19 @@
 html, body {
   margin: 0;
   padding: 0;
-  height: 100dvh;
+  min-height: 100vh;
   width: 100vw;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: #050505;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
   background-color: #050505;
 }
 
@@ -98,6 +108,7 @@ html, body {
   scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: auto;
 }
 
 

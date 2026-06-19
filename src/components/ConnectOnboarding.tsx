@@ -88,7 +88,7 @@ export default function ConnectOnboarding() {
           <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
           <span className="text-[10px] font-bold text-amber-400 font-mono">Paso {step} de 2</span>
         </div>
-        <h3 className="text-md sm:text-lg font-display font-black text-white uppercase tracking-wider">
+        <h3 className="text-base sm:text-lg font-display font-black text-white uppercase tracking-wider">
           {step === 1 ? 'Pasarela de Cobro: Configurar Stripe Connect' : 'Pendiente: Completar el Registro Comercial'}
         </h3>
         <p className="text-xs text-slate-400 leading-relaxed font-sans">

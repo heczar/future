@@ -83,7 +83,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
       </AnimatePresence>
 
       <aside className={cn(
-        "fixed md:relative z-[110] w-72 h-full bg-surface-950/80 backdrop-blur-2xl flex flex-col border-r border-white/5 transition-transform duration-300",
+        "fixed md:sticky md:top-0 h-screen z-[110] w-72 bg-surface-950/80 backdrop-blur-2xl flex flex-col border-r border-white/5 transition-transform duration-300",
         isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
         <div className="p-8 shrink-0">

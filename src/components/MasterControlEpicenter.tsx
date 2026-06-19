@@ -456,7 +456,7 @@ export default function MasterControlEpicenter({
               
               <div className="space-y-2 flex-1">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-white text-md">{selectedBrand.name}</h4>
+                  <h4 className="font-bold text-white text-base">{selectedBrand.name}</h4>
                   <span className="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 text-[8px] font-mono rounded-lg uppercase">
                     {selectedBrand.industry || "Marketing"}
                   </span>
