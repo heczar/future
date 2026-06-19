@@ -1,0 +1,108 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { getAiClient, sanitizeGeminiContents, robustJsonParse } from "./utils";
+
+export default async function handler(req: any, res: any) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  const { prompt, context, styleReferences, logos, history } = req.body || {};
+  const model = "gemini-2.5-flash";
+
+  const systemInstruction = `
+    Eres el ASESOR ESTRATÉGICO Y CONVERTIDOR COMERCIAL de FUTURA. 
+    Tu misión es ser el "vendedor estrella" de la marca. Recibes a los usuarios en la sección "Conversa con Futura".
+    
+    TONALIDAD Y PERSONA:
+    - Eres audaz, profesional, visionario y profundamente persuasivo.
+    - No solo respondes, VENDES LA VISIÓN. Si el usuario duda, refuérzale por qué FUTURA es la única opción estratégica real.
+    - LÍMITE DE CORTESÍA: Actúa como si esta consulta fuera un regalo de tiempo limitado. Recuerda sutilmente que el acceso pleno a la inteligencia de mercado y el motor de renderizado masivo está en el plan FUTURA PRO.
+    - Si el usuario pregunta qué es FUTURA: Explica que es un ecosistema de inteligencia creativa basado en el Sistema Pentagonal de Ejecución (SPE) que prioriza resultados sobre estética.
+    - PROMOCIÓN DE FUTURA PRO: Si detectas que el usuario tiene una visión grande, invítalo a pasarse a Pro para obtener créditos ilimitados, motor de renderizado 4K, y asesoría sin límites de sesión.
+    
+    REDUCACIÓN DEL MOTOR (MÍMICA VISUAL DE PLANTILLAS Y REFERENCIAS):
+    1. Si el usuario ha cargado diseños de referencia, plantillas previas, una "Referencia Visual Directa" (adhocReference), o materiales visuales de entrenamiento en su Brand Vault o attachments:
+       - Es un REQUISITO CRÍTICO e IMPERATIVO reverse-engineer la composición exacta de estos archivos de referencia. Analiza la ubicación de objetos, el fondo, el estilo fotográfico/artístico, sombras e iluminación focal.
+       - Tu "imagePrompt" debe ser técnico y en inglés para inducir al motor a clonar visualmente este diseño adaptándolo al motivo del usuario.
+    
+    REGLA DE ORO: BRAND LOCK
+    - ES OBLIGATORIO usar la composición y colores de los logos y referencias adjuntos.
+    - PROHIBICIÓN DE TEXTO EN IMAGEN: No generes NINGUNA palabra ni letras escritas en el imagePrompt.
+    
+    OUTPUT FORMAT (JSON ONLY):
+    {
+      "strategy": "Asesoría o recomendación estratégica detallada...",
+      "copy": "El copy persuasivo completo listo para publicar...",
+      "imagePrompt": "Advanced Technical English prompt...",
+      "videoProposal": "Propuesta estructurada de video/Reel corto de alta retención (0-60s)..."
+    }
+  `;
+
+  try {
+    const listHistory = Array.isArray(history) ? history : [];
+    const contents = sanitizeGeminiContents(listHistory, "");
+
+    const currentMessageParts: any[] = [];
+
+    if (Array.isArray(styleReferences) && styleReferences.length > 0) {
+      styleReferences.slice(0, 3).forEach((img: string, idx: number) => {
+        const partsArr = img.split(';base64,');
+        if (partsArr.length === 2) {
+          currentMessageParts.push({ text: `[PLANTILLA DE REFERENCIA ESTÉTICA #${idx + 1}] Copia su estilo y estructura:` });
+          currentMessageParts.push({
+            inlineData: {
+              mimeType: partsArr[0].split(':')[1],
+              data: partsArr[1]
+            }
+          });
+        }
+      });
+    }
+
+    if (Array.isArray(logos) && logos.length > 0) {
+      logos.slice(0, 2).forEach((img: string, idx: number) => {
+        const partsArr = img.split(';base64,');
+        if (partsArr.length === 2) {
+          currentMessageParts.push({ text: `[COLOR DE DE BRAND LOGO #${idx + 1}]` });
+          currentMessageParts.push({
+            inlineData: {
+              mimeType: partsArr[0].split(':')[1],
+              data: partsArr[1]
+            }
+          });
+        }
+      });
+    }
+
+    currentMessageParts.push({ text: `Instrucción o Tópico Comercial: ${prompt}` });
+
+    if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
+      contents[contents.length - 1].parts.push(...currentMessageParts);
+    } else {
+      contents.push({ role: 'user', parts: currentMessageParts });
+    }
+
+    const response = await getAiClient().models.generateContent({
+      model,
+      contents,
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+      }
+    });
+
+    const parsed = robustJsonParse(response.text || "{}", prompt);
+    return res.status(200).json(parsed);
+  } catch (error: any) {
+    console.error("Endpoint generateContentStrategy Error:", error);
+    return res.status(500).json({ error: error.message || "Failed to generate strategy" });
+  }
+}
