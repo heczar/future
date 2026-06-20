@@ -1356,7 +1356,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
             exit={{ opacity: 0, x: -20 }}
             className="space-y-8"
           >
-            <div className="glass-panel p-8 rounded-[2.5rem] border-brand-primary/20 bg-surface-950/40 relative overflow-hidden min-h-[600px] flex flex-col">
+            <div className="glass-panel p-8 rounded-[2.5rem] border-brand-primary/20 bg-surface-950/40 relative overflow-hidden min-h-[380px] sm:min-h-[480px] lg:min-h-[600px] flex flex-col">
               <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
                 <Bot className="w-48 h-48 text-brand-primary" />
               </div>
@@ -1610,7 +1610,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
               
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 {/* Left Side: Conversa con Futura Chat Advisor Area (lg:col-span-5) */}
-                <div className="lg:col-span-5 h-[430px] flex flex-col bg-gradient-to-b from-indigo-950/20 via-black/40 to-slate-950 border border-indigo-500/15 rounded-2xl relative overflow-hidden shadow-2xl">
+                <div className="lg:col-span-5 min-h-[350px] h-[380px] sm:h-[430px] lg:h-[460px] flex flex-col bg-gradient-to-b from-indigo-950/20 via-black/40 to-slate-950 border border-indigo-500/15 rounded-2xl relative overflow-hidden shadow-2xl">
                   {/* Chat Header */}
                   <div className="bg-black/60 border-b border-indigo-500/10 p-3.5 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -3592,10 +3592,10 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                           ? (isFullscreen ? '720px' : '550px') 
                           : (isFullscreen ? '680px' : '520px')),
                       maxHeight: selectedFormat.includes("1920")
-                        ? (isFullscreen ? 'calc(100vh - 180px)' : 'calc(100vh - 320px)')
+                        ? (isFullscreen ? '620px' : '450px')
                         : (selectedFormat.includes("1350")
-                          ? (isFullscreen ? 'calc(100vh - 180px)' : 'calc(100vh - 320px)')
-                          : (isFullscreen ? 'calc(100vh - 180px)' : 'calc(100vh - 320px)')),
+                          ? (isFullscreen ? '700px' : '520px')
+                          : (isFullscreen ? '620px' : '480px')),
                       aspectRatio: selectedFormat.includes("1920") ? '9/16' : 
                                    selectedFormat.includes("1350") ? '4/5' : '1/1'
                     }}
