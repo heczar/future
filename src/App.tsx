@@ -744,8 +744,8 @@ function AppContent() {
                             <div className="self-start mr-auto max-w-[85%] sm:max-w-[75%] p-4 bg-brand-primary/5 border border-brand-primary/10 rounded-2xl rounded-tl-none flex items-center gap-4 shadow-xl">
                               <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
                               <div className="flex flex-col gap-0.5 text-left">
-                                <span className="text-[10px] text-brand-primary uppercase tracking-[0.2em] font-black animate-pulse">Analizando Visión...</span>
-                                <span className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Sincronizando con red neuronal FUTURA</span>
+                                <span className="text-[10px] text-brand-primary uppercase tracking-[0.2em] font-black animate-pulse">Escribiendo...</span>
+                                <span className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Analizando visión en tiempo de ejecución</span>
                               </div>
                             </div>
                           )}

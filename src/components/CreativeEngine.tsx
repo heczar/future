@@ -1433,10 +1433,10 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                 {loading && (
                   <div className="flex justify-start">
                     <div className="bg-surface-900 border border-white/5 p-6 rounded-2xl flex items-center gap-4 shadow-2xl">
-                      <Loader2 className="w-5 h-5 animate-spin text-brand-primary" />
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] animate-pulse">Sincronizando...</span>
-                        <span className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Red Neuronal en Ejecución</span>
+                      <Loader2 className="w-5 h-5 animate-spin text-brand-primary" strokeWidth={3} />
+                      <div className="flex flex-col gap-0.5 text-left">
+                        <span className="text-[10px] text-brand-primary uppercase tracking-[0.2em] font-black animate-pulse">Escribiendo...</span>
+                        <span className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Rediseñando y estructurando propuesta</span>
                       </div>
                     </div>
                   </div>

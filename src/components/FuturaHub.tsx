@@ -453,9 +453,12 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${businessIdea}, extremely simple 
               ))
             )}
             {isChatLoading && (
-              <div className="bg-white/5 border border-white/5 text-slate-400 mr-auto rounded-tl-none p-4 rounded-2xl max-w-[80%] flex items-center gap-2 animate-pulse">
-                <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
-                <span className="text-[10px] font-mono tracking-widest font-black uppercase">FUTURA SINTETIZANDO CONSEJO...</span>
+              <div className="bg-white/5 border border-white/5 text-slate-400 mr-auto rounded-tl-none p-4 rounded-2xl max-w-[80%] flex items-center gap-3 animate-pulse">
+                <Loader2 className="w-4 h-4 animate-spin text-brand-primary" strokeWidth={3} />
+                <div className="flex flex-col gap-0.5 text-left">
+                  <span className="text-[10px] text-brand-primary uppercase tracking-[0.2em] font-black font-sans">Escribiendo...</span>
+                  <span className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Generando respuesta estratégica</span>
+                </div>
               </div>
             )}
             <div ref={scrollRef} />
