@@ -54,8 +54,10 @@ export default function FuturaHub({
 
   // Content generator state
   const [businessIdea, setBusinessIdea] = useState('');
-  const [activeGenerationType, setActiveGenerationType] = useState<'adn' | 'target' | 'pillars' | 'tagline' | 'creative_seed' | 'logo_generation' | null>(null);
+  const [activeGenerationType, setActiveGenerationType] = useState<'adn' | 'target' | 'pillars' | 'tagline' | 'creative_seed' | 'logo_generation' | 'all' | null>(null);
   const [generatedResult, setGeneratedResult] = useState('');
+  const [generatedSections, setGeneratedSections] = useState<Record<string, string> | null>(null);
+  const [activeResultTab, setActiveResultTab] = useState<string>('all');
   const [generatedLogoUrl, setGeneratedLogoUrl] = useState<string | null>(null);
   const [isSavingLogo, setIsSavingLogo] = useState(false);
   const [logoSaveStatus, setLogoSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -116,19 +118,102 @@ export default function FuturaHub({
     }
   };
 
-  // Generate "Contenido Madre" (Seed brand strategy)
-  const handleGenerateMotherContent = async (type: 'adn' | 'target' | 'pillars' | 'tagline' | 'creative_seed' | 'logo_generation') => {
+   // Generate "Contenido Madre" (Seed brand strategy)
+  const handleGenerateMotherContent = async (type: 'adn' | 'target' | 'pillars' | 'tagline' | 'creative_seed' | 'logo_generation' | 'all') => {
     if (!businessIdea.trim() || isGenerating) return;
     
     setActiveGenerationType(type);
     setIsGenerating(true);
     setGeneratedResult('');
+    setGeneratedSections(null);
     setGeneratedLogoUrl(null);
     setLogoSaveStatus('idle');
     setSaveStatus('idle');
+    setActiveResultTab('all');
 
     let customPrompt = '';
-    if (type === 'adn') {
+    if (type === 'all') {
+      customPrompt = `[SISTEMA: GENERACIÓN UNIFICADA DE TODO EL CONTENIDO MADRE]
+Eres FUTURA, la mente maestra estratégica elite de la suite Future Marketing Consult. Genera la suite de marca y estrategia de contenido fundacional definitiva ("Contenido Madre") para el proyecto de negocio/idea del usuario: "${businessIdea}".
+Sigue estrictamente la filosofía y metodología del SPE (Sistema de Posicionamiento Estratégico) enfocándote en resultados pragmáticos sobre estética superficial.
+
+Debes entregar un plan de marca unificado, pragmático e hiper-completo de "Contenido Madre".
+Divide exactamente tu respuesta con las siguientes secciones exactas y usa EXPLICITAMENTE las marcas divisoras como se describe a continuación (no omitas ninguna de estas marcas, son críticas para segmentar la vista del cliente):
+
+===SECCION_ADN===
+### 🌟 MISIÓN DE NEGOCIO (El propósito medible)
+[Misión detallada, pragmática, ambiciosa y medible]
+
+### 🔮 VISIÓN DE LARGO PLAZO (El norte estratégico a 5-10 años bajo principios SPE)
+[Establece una visión ambiciosa con metas realistas de escala]
+
+### 💎 VALORES FUNDAMENTALES (Prácticos, de comportamiento real, no de catálogo corporativo)
+[3 valores rectores de marca explicados en acciones diarias]
+
+### 🎭 TONO DE COMUNICACIÓN (Cómo debe hablarle al mundo)
+[Pautas claras de tono, palabras recomendadas y palabras prohibidas]
+
+===SECCION_TARGET===
+### 👥 PERFIL DEMOGRÁFICO Y ARQUETIPO DE CLIENTE IDEAL
+[Un perfil profundo y detallado de quién es el comprador ideal, su demografía y estilo visual]
+
+### 🛑 FRUSTRACIONES CRÍTICAS (Qué le quita el sueño hoy)
+[Mínimo 3 temores, angustias o frustraciones latentes del target]
+
+### ✨ DESEOS MÁGICOS (Cuál es su escenario de transformación ideal)
+[Situación deseada idílica detallada del cliente ideal]
+
+### 🧱 ALTERNATIVAS & OBJECIONES (Por qué dudaría de tu producto o servicio)
+[Objeciones habituales y la respuesta estratégica para cada una]
+
+===SECCION_TAGLINE===
+### 🏹 PROPUESTA ÚNICA DE VALOR
+[Fórmula clara: Qué es, Para quién, y Cómo te diferencia con alto contraste mercadológico]
+
+### 💎 3 TAGLINES COMERCIALES
+[3 slogans de alto impacto, memorables e ingeniosos para campañas]
+
+### 📣 PITCH DE ELEVADOR (30 segundos para convencer a un socio o cliente)
+[Narrativa oral persuasiva de 30 segundos usando el gancho, historia breve y oferta]
+
+===SECCION_PILARES===
+### 📐 PILAR 1: AUTORIDAD Y VALOR REAL (Educación pragmática)
+[Eje temático educativo para demostrar tu dominio y experiencia]
+
+### ⚡ PILAR 2: INTERACCIÓN Y CONVERSACIÓN (Afinidad de nicho)
+[Eje interactivo o viral de entretenimiento para generar comunidad e identificación rápida]
+
+### 💼 PILAR 3: OFERTA DIRECTA (El gancho comercial con filosofía SPE)
+[Cómo vender de forma agresiva y elegante aplicando reciprocidad]
+
+### 📅 SUGERENCIAS DE TÍTULOS Y REELS (5 ideas listas para usar)
+[5 títulos/temas de alto impacto perfectos para reels/TikToks]
+
+===SECCION_CREATIVO===
+### 🎨 CONCEPTO CREATIVO PARAGUAS DE MARCA
+[La gran idea central conceptual que conecta emocionalmente con tu público]
+
+### 👁️ DIRECCIÓN VISUAL & ESTÉTICA DE REFERENCIA
+[Look & Feel sugerido, paleta de colores rectores, iluminación, texturas y estilo recomendado de fotografía o ilustración para alimentar la IA]
+
+### 🧠 GUÍA DE PROMPTS AVANZADOS PARA LA FÁBRICA DE IMÁGENES
+[3 Prompts avanzados y detallados optimizados en inglés con iluminación y estilo listos para generar en la suite]
+
+### ⚡ ÁNGULOS PERSUASIVOS DE COPIES
+[3 enfoques de copy copywriting persuasivo listos para usar]
+
+===SECCION_LOGOTIPO===
+### 💎 CONCEPTUALIZACIÓN DE IDENTIDAD VISUAL & LOGOTIPO
+[Explicación del simbolismo de la propuesta visual de logo]
+
+### 🎨 PALETA DE COLORES RECTORES SUGERIDA
+[3 colores clave con sus códigos hexadecimales]
+
+### ⚡ PROMPT DE GENERACIÓN DE IMAGEN RECOMENDADO PARA EL LOGO
+IMAGE_PROMPT: Minimalist flat vector logo icon for ${businessIdea}, extremely simple geometric symbol, high-contrast, professional 8k graphic design, white brand design, isolated on black background --no letters words text
+
+FIN DE LAS SECCIONES. Genera todo con un estándar de consultoría de clase mundial.`;
+    } else if (type === 'adn') {
       customPrompt = `[SISTEMA: GENERACIÓN DE CONTENIDO MADRE - ADN ESENCIAL]
 Eres FUTURA, la mente maestra estratégica. Para el proyecto de negocio descrito a continuación, genera una estructura de ADN Corporativo que sirva como cimiento absoluto ("contenido madre").
 Sigue la filosofía "Results over Aesthetics" de FUTURA.
@@ -206,11 +291,64 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${businessIdea}, extremely simple 
       const resp = await chatWithAdvisor(customPrompt, [], "Nueva Marca");
       setGeneratedResult(resp);
 
-      // Perform real secondary image model execution if they generated a logo!
-      if (type === 'logo_generation') {
-        let finalImagePrompt = `Minimalist flat vector logo icon for ${businessIdea}, extremely simple geometric symbol, modern layout, high contrast, studio lighting, isolated on solid dark background, professional visual branding --no letters words text`;
+      // Save segmented sections if generated all
+      if (type === 'all') {
+        const sections: Record<string, string> = {
+          adn: '',
+          target: '',
+          tagline: '',
+          pillars: '',
+          creative_seed: '',
+          logo_generation: ''
+        };
+
+        const allHeaders = [
+          '===SECCION_ADN===',
+          '===SECCION_TARGET===',
+          '===SECCION_TAGLINE===',
+          '===SECCION_PILARES===',
+          '===SECCION_CREATIVO===',
+          '===SECCION_LOGOTIPO==='
+        ];
+
+        const extractSegment = (text: string, currentHeader: string, nextHeaders: string[]) => {
+          const index = text.indexOf(currentHeader);
+          if (index !== -1) {
+            let segment = text.slice(index + currentHeader.length);
+            let earliestNextIndex = segment.length;
+            nextHeaders.forEach(header => {
+              if (header !== currentHeader) {
+                const nextIndex = segment.indexOf(header);
+                if (nextIndex !== -1 && nextIndex < earliestNextIndex) {
+                  earliestNextIndex = nextIndex;
+                }
+              }
+            });
+            return segment.slice(0, earliestNextIndex).trim();
+          }
+          return '';
+        };
+
+        sections.adn = extractSegment(resp, '===SECCION_ADN===', allHeaders);
+        sections.target = extractSegment(resp, '===SECCION_TARGET===', allHeaders);
+        sections.tagline = extractSegment(resp, '===SECCION_TAGLINE===', allHeaders);
+        sections.pillars = extractSegment(resp, '===SECCION_PILARES===', allHeaders);
+        sections.creative_seed = extractSegment(resp, '===SECCION_CREATIVO===', allHeaders);
+        sections.logo_generation = extractSegment(resp, '===SECCION_LOGOTIPO===', allHeaders);
+
+        // Fallbacks if formatting is lost slightly
+        if (!sections.adn && !sections.target && !sections.tagline) {
+          sections.adn = resp;
+        }
+
+        setGeneratedSections(sections);
+      }
+
+      // Perform real logo render if generated logo OR everything!
+      if (type === 'logo_generation' || type === 'all') {
+        let finalImagePrompt = `Minimalist flat vector logo icon for ${businessIdea}, extremely simple geometric symbol, white brand design, modern layout, high contrast, studio lighting, isolated on solid black background, professional visual branding --no letters words text`;
         
-        // Search inside response for the IMAGE_PROMPT flag to get the optimal formula
+        // Search inside response for the IMAGE_PROMPT flag
         const lines = resp.split('\n');
         const promptLine = lines.find(line => line.includes("IMAGE_PROMPT:"));
         if (promptLine) {
@@ -517,11 +655,32 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${businessIdea}, extremely simple 
               </div>
             </div>
 
-            {/* Step 2: Choose Generation module */}
-            <div className="space-y-3">
+            {/* Step 2: Generation Cockpit */}
+            <div className="space-y-5">
               <label className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-widest block">
-                Paso 2: ¿Qué parte del Contenido Madre vas a sintetizar?
+                Paso 2: Sintetiza tus directrices comerciales de origen
               </label>
+
+              {/* Primary Unified Trigger Button */}
+              <div className="p-1.5 bg-gradient-to-r from-brand-primary/20 via-purple-600/20 to-brand-secondary/20 rounded-2xl border border-white/10 shadow-xl">
+                <button
+                  onClick={() => handleGenerateMotherContent('all')}
+                  disabled={!businessIdea.trim() || isGenerating}
+                  className="w-full py-4 px-6 bg-gradient-to-r from-brand-primary to-purple-600 hover:opacity-95 disabled:from-neutral-900 disabled:to-neutral-950 disabled:opacity-40 disabled:text-slate-600 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-2xl cursor-pointer shadow-brand-primary/20 group"
+                >
+                  <Brain className="w-5 h-5 text-white animate-pulse group-hover:scale-110 transition-transform" />
+                  ⚡ SINTETIZAR ADN DE MARCA COMPLETO (RECOMENDADO)
+                </button>
+              </div>
+
+              {/* Separator to indicate alternative individual generation */}
+              <div className="flex items-center gap-3 py-1">
+                <div className="h-px bg-white/5 flex-1"></div>
+                <span className="text-[8px] font-mono font-black text-slate-500 uppercase tracking-widest bg-transparent px-2">
+                  O genera un solo módulo específico
+                </span>
+                <div className="h-px bg-white/5 flex-1"></div>
+              </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {[
@@ -587,37 +746,79 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${businessIdea}, extremely simple 
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-4"
               >
-                <div className="flex items-center justify-between bg-zinc-900 border border-white/5 px-4 py-3.5 rounded-2xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-zinc-900 border border-white/5 px-4 py-3.5 rounded-2xl gap-3">
                   <div className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-brand-primary animate-pulse" />
                     <span className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-widest">CONTENIDO MADRE DE MARCA GENERADO</span>
                   </div>
                   
                   {/* Utility actions inside bar */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 justify-between sm:justify-end">
                     <button 
-                      onClick={handleCopyToClipboard}
-                      className="p-2 bg-white/5 border border-white/5 hover:bg-neutral-800 transition-all rounded-lg text-slate-400 hover:text-white cursor-pointer"
+                      onClick={() => {
+                        const textToCopy = activeResultTab === 'all' ? generatedResult : (generatedSections?.[activeResultTab] || generatedResult);
+                        navigator.clipboard.writeText(textToCopy);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      className="p-2 bg-white/5 border border-white/5 hover:bg-neutral-800 transition-all rounded-lg text-slate-400 hover:text-white cursor-pointer text-xs flex items-center gap-2"
                       title="Copiar al Portapapeles"
                     >
                       {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span className="text-[9px] font-black uppercase font-mono tracking-wider">
+                        {copied ? '¡Copiado!' : activeResultTab === 'all' ? 'Copiar Todo' : 'Copiar Sección'}
+                      </span>
                     </button>
                   </div>
                 </div>
 
-                {/* Preformatted output screen */}
-                <div className="bg-[#030303] border border-white/5 p-6 rounded-3xl max-h-[380px] overflow-y-auto font-sans leading-relaxed text-xs text-slate-300 space-y-4 text-left scrollbar-thin">
+                {/* Tabbed Deck of Contents if generated Sections exist */}
+                {generatedSections && (
+                  <div className="flex flex-wrap gap-1.5 p-1 bg-surface-950 border border-white/5 rounded-2xl overflow-x-auto scrollbar-none">
+                    {[
+                      { key: 'all', label: 'Plan Completo', icon: Layers },
+                      { key: 'adn', label: 'Estructura ADN', icon: Brain },
+                      { key: 'target', label: 'Cliente Ideal', icon: UserCheck },
+                      { key: 'tagline', label: 'Slogans / Pitch', icon: Zap },
+                      { key: 'pillars', label: 'Pilares Editoriales', icon: Megaphone },
+                      { key: 'creative_seed', label: 'Concepto Visual', icon: Sparkles },
+                    ].map((tab) => {
+                      const TabIcon = tab.icon;
+                      const isActive = activeResultTab === tab.key;
+                      return (
+                        <button
+                          key={tab.key}
+                          onClick={() => setActiveResultTab(tab.key)}
+                          className={cn(
+                            "px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap",
+                            isActive 
+                              ? "bg-brand-primary text-white shadow-md shadow-brand-primary/10" 
+                              : "text-slate-400 hover:text-white hover:bg-white/5"
+                          )}
+                        >
+                          <TabIcon className="w-3 h-3" />
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Preformatted output screen with Markdown support */}
+                <div className="bg-[#030303] border border-white/5 p-6 rounded-3xl max-h-[420px] overflow-y-auto font-sans leading-relaxed text-xs text-slate-300 space-y-4 text-left scrollbar-thin">
                   <div className="prose prose-invert prose-xs whitespace-pre-line">
-                    {generatedResult}
+                    {activeResultTab === 'all' 
+                      ? generatedResult 
+                      : (generatedSections?.[activeResultTab] || "Haz click en 'Plan Completo' para ver todo lo generado, o expande otro segmento.")}
                   </div>
                 </div>
 
                 {/* Generated Logo Image Box */}
-                {activeGenerationType === 'logo_generation' && (
+                {(activeGenerationType === 'logo_generation' || (activeGenerationType === 'all' && generatedLogoUrl)) && (
                   <div className="bg-zinc-950 border border-white/5 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6">
                     <div className="w-40 h-40 rounded-2xl border border-white/10 bg-[#070707] overflow-hidden flex items-center justify-center shrink-0 relative group shadow-2xl shadow-brand-primary/5">
                       {generatedLogoUrl ? (
-                        <img 
+                         <img 
                           src={generatedLogoUrl} 
                           alt="Logotipo Generado" 
                           className="w-full h-full object-contain"
