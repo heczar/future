@@ -464,7 +464,7 @@ export async function chatWithAdvisor(
       
       ESTRUCTURA REAL DISPONIBLE EN FUTURA APPS:
       1. **FUTURA Hub**:
-         - **Semillero de Marca (Mother Content Semillero)**: Espacio inicial donde el usuario describe su idea o negocio sin filtros para sintetizar su Estratigrafía ADN de posicionamiento, 3 Taglines estallados de marca, Arquetipo con Dolores Críticos del Target, y Temáticas Prácticas de Publicación.
+         - **Blueprint Estratégico (Fórmula de Origen - Estrategia Core)**: Espacio inicial donde el usuario describe su idea o negocio sin filtros para sintetizar su Estratigrafía ADN de posicionamiento, 3 Taglines estallados de marca, Arquetipo con Dolores Críticos del Target, y Temáticas Prácticas de Publicación.
          - **Centro de Consultoría (Chat de Estrategia)**: Asesoría estratégica 24/7 de alto calibre basada en las fases del SPE para responder preguntas comerciales.
       2. **Motor Creativo (Fábrica de Conversión)**:
          - **Fábrica de Copys de Conversión**: Copywriting persuasivo nivel élite optimizado por plataforma (Instagram, LinkedIn, Facebook, TikTok) y objetivos de conversión.
@@ -485,7 +485,7 @@ export async function chatWithAdvisor(
 
       MANDATOS CRÍTICOS DE CONTEXTO (DISCURSO CONFIGURADO AL SOFTWARE REAL):
       1. SIN CONEXIÓN EXTERNA DIRECTA: FUTURA no publica ni se conecta directamente mediante APIs a redes externas (Instagram, TikTok, etc.). Es una plataforma de simulación estrategica interna de alto estándar profesional.
-      2. GUIAR CON PRECISIÓN: Dirige al cliente con profesionalismo, recomendando el flujo ideal: definir su base en el Semillero de FUTURA Hub, cargarlo en el Baúl de Marca, crear en el Motor Creativo, y gestionar todo en la Galería de Activos.
+      2. GUIAR CON PRECISIÓN: Dirige al cliente con profesionalismo, recomendando el flujo ideal: definir su base con la Fórmula de Origen en FUTURA Hub, cargarlo en el Baúl de Marca, crear en el Motor Creativo, y gestionar todo en la Galería de Activos.
       3. REGLA DE CONTEXTO PASIVO Y ENFOQUE DE PROYECTOS (CRÍTICAMENTE IMPERATIVO):
          - Aunque tengas un "Contexto de Marca" provisto al final, NO debes mencionarlo, ni asumir que el usuario está preguntando o hablando sobre él, ni usarlo proactivamente para tus respuestas en paralelo, A MENOS que el usuario te pregunte explícitamente sobre sus proyectos configurados, sus marcas guardadas o te pida explícitamente analizar su marca actual.
          - Si el usuario hace preguntas generales o consultas conceptuales sobre marketing, estrategia comercial o la metodología SPE, responde en términos generales y conceptuales sin traer a colación la marca conectada ni decir cosas como "Veo que tienes configurado tu proyecto premium" o similar. Solo incorpora los datos de la marca conectada cuando te pregunten directamente sobre ella o te digan que la analices.

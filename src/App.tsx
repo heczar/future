@@ -471,7 +471,7 @@ function AppContent() {
                 <h3 className="text-xl md:text-3xl font-display font-bold text-white tracking-tight leading-tight">¿Cómo operar FUTURA de forma rápida y sin complicaciones?</h3>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-5xl">
                   FUTURA funciona para ti, sin importar tu punto de partida. 
-                  <strong className="text-brand-primary font-bold"> Si aún no tienes una marca clara o una idea de negocio sólida:</strong> ingresa al semillero de <b className="text-white">FUTURA</b> para dar vida a tus conceptos, slogans de alto impacto y pilares comerciales clave en segundos. 
+                  <strong className="text-brand-primary font-bold"> Si aún no tienes una marca clara o una idea de negocio sólida:</strong> ingresa al panel de <b className="text-white">FUTURA Hub</b> para estructurar tu <b className="text-white">Blueprint Estratégico</b>, cosechar slogans de alto impacto y trazar pilares comerciales clave en segundos. 
                   <strong className="text-emerald-400 font-bold"> Si ya cuentas con una marca en el mercado:</strong> simplemente cargas tus datos y enlaces de valor en el <b className="text-white">Baúl de Marca</b> para entrenar tu ecosistema, consultas al consultor sobre tus tácticas de venta SPE y usas el <b className="text-white">Motor Creativo</b> para generar automáticamente imágenes persuasivas de conversión y copies de alto impacto listos para tus redes sociales.
                 </p>
               </div>
@@ -486,7 +486,7 @@ function AppContent() {
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <span className="px-1.5 py-0.5 bg-brand-primary/20 text-brand-primary border border-brand-primary/20 rounded text-[7px] font-mono font-black uppercase">SEMILLERO Y CONSULTAS</span>
+                        <span className="px-1.5 py-0.5 bg-brand-primary/20 text-brand-primary border border-brand-primary/20 rounded text-[7px] font-mono font-black uppercase">BLUEPRINT Y CONSULTAS</span>
                         <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 1: FUTURA Hub</h4>
                       </div>
                       <p className="text-xs text-slate-400 leading-relaxed mt-1.5">Sintetiza tu ADN o consulta estrategias tácticas de venta SPE con el estratega definitivo para dar vida a tu oferta sin fricción.</p>
