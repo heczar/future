@@ -64,12 +64,12 @@ export default function LandingOverlay({ onClose }: LandingOverlayProps) {
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="p-12 bg-white/5 rounded-[3.5rem] border border-white/5 space-y-6 group hover:bg-white/10 hover:border-brand-primary/40 transition-all"
+            className="p-6 md:p-12 bg-white/5 rounded-[2rem] md:rounded-[3.5rem] border border-white/5 space-y-6 group hover:bg-white/10 hover:border-brand-primary/40 transition-all text-left"
           >
             <div className="w-14 h-14 bg-brand-primary rounded-[1.5rem] flex items-center justify-center text-white shadow-xl">
               <TrendingUp className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-bold text-white tracking-tight uppercase">Canal de Crecimiento</h3>
+            <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight uppercase">Canal de Crecimiento</h3>
             <p className="text-slate-400 text-sm leading-relaxed">
               Optimizamos cada flujo de trabajo para asegurar que tu marca no solo participe en la economía, sino que la lidere a través de ejecución estratégica sistemática.
             </p>
@@ -79,12 +79,12 @@ export default function LandingOverlay({ onClose }: LandingOverlayProps) {
             initial={{ x: 20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="p-12 bg-white/5 rounded-[3.5rem] border border-white/5 space-y-6 group hover:bg-white/10 hover:border-brand-primary/40 transition-all"
+            className="p-6 md:p-12 bg-white/5 rounded-[2rem] md:rounded-[3.5rem] border border-white/5 space-y-6 group hover:bg-white/10 hover:border-brand-primary/40 transition-all text-left"
           >
             <div className="w-14 h-14 bg-surface-900 rounded-[1.5rem] flex items-center justify-center text-white border border-white/10 shadow-xl">
               <Target className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-bold text-white tracking-tight uppercase">Valor Existencial</h3>
+            <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight uppercase">Valor Existencial</h3>
             <p className="text-slate-400 text-sm leading-relaxed">
               Cada activo generado por FUTURA está imbuido con la filosofía SPE, garantizando que el diseño y la estrategia añadan peso real a tu visión comercial.
             </p>
@@ -96,14 +96,14 @@ export default function LandingOverlay({ onClose }: LandingOverlayProps) {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="mt-24 w-full flex flex-col items-center"
+          className="mt-16 md:mt-24 w-full flex flex-col items-center"
         >
           <button 
             onClick={onClose}
-            className="px-20 py-8 bg-brand-primary text-white rounded-[3rem] font-black text-xl hover:bg-white hover:text-black hover:scale-[1.05] active:scale-95 transition-all shadow-[0_30px_60px_rgba(139,92,246,0.4)] flex items-center gap-6 group mb-16"
+            className="px-6 py-4 md:px-20 md:py-8 bg-brand-primary text-white rounded-2xl md:rounded-[3rem] font-black text-sm md:text-xl hover:bg-white hover:text-black hover:scale-[1.05] active:scale-95 transition-all shadow-[0_30px_60px_rgba(139,92,246,0.4)] flex items-center gap-4 md:gap-6 group mb-16 cursor-pointer"
           >
             ACTIVAR MOTOR FUTURA
-            <ArrowRight className="w-8 h-8 group-hover:translate-x-3 transition-transform" />
+            <ArrowRight className="w-5 h-5 md:w-8 md:h-8 group-hover:translate-x-3 transition-transform" />
           </button>
           
           <div className="w-full h-px bg-white/10 mb-10" />

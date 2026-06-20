@@ -315,55 +315,6 @@ export default function MasterControlEpicenter({
   return (
     <div className="space-y-12 pb-32">
       
-      {/* 1. HUD DE SUSCRIPCIÓN DINÁMICA: DEMO LIMITADA VS FUTURA PRO */}
-      <section className="glass-panel p-6 rounded-[2.5rem] border-white/5 bg-gradient-to-r from-surface-950 to-brand-primary/5 shadow-2xl relative overflow-hidden">
-        {/* Decorative background circle */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-brand-primary/5 rounded-full blur-[80px]" />
-        
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className={`p-4 rounded-2xl ${isProMode ? 'bg-brand-primary/20 text-brand-primary animate-pulse' : 'bg-white/5 text-slate-500'}`}>
-              {isProMode ? <Crown className="w-8 h-8" /> : <Lock className="w-8 h-8" />}
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-display font-black text-white uppercase tracking-tight">
-                  {isProMode ? "MODO DE POTENCIA: FUTURA PRO / ELITE" : "MODO DE USO: VERSIÓN DEMO LIMITADA"}
-                </h2>
-                <span className={`px-2.5 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-full ${
-                  isProMode ? 'bg-brand-primary/20 border border-brand-primary/30 text-brand-primary' : 'bg-slate-700 text-slate-300'
-                }`}>
-                  {isProMode ? 'TIER ELITE SINCRO' : 'GAMA STARTER'}
-                </span>
-              </div>
-              <p className="text-slate-400 text-xs leading-relaxed max-w-2xl">
-                {isProMode 
-                  ? "Acceso ilimitado. Puedes gestionar marcas asimiladas infinitas, vincular ilimitados canales, obtener recomendaciones inteligentes 24/7 y agendar en cola de auto-publicación directa." 
-                  : "Uso limitado para pruebas de flujo. El motor de generación restringe la simulación a 2 cargas y bloquea la inyección automática al calendario."
-                }
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center gap-2 shrink-0">
-            <button 
-              onClick={handleToggleSubscription}
-              className={`px-6 py-3.5 rounded-xl font-mono font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center gap-2 ${
-                isProMode 
-                  ? 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700' 
-                  : 'bg-brand-primary text-white hover:bg-brand-primary/80 shadow-brand-primary/25'
-              }`}
-            >
-              {isProMode ? "SUSCRIPCIÓN PRO ACTIVA (Volver a Demo)" : "ACTIVAR POTENCIA GLOBAL PRO"}
-              <Zap className="w-4 h-4" />
-            </button>
-            <span className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">
-              {!isProMode ? `Gasto: ${generationsCount}/2 Pruebas Semanales` : "Consumo sin limitaciones"}
-            </span>
-          </div>
-        </div>
-      </section>
-
       {/* SUCCESS TRANSIT QUEUE POPUP INLINE ALERT */}
       <AnimatePresence>
         {notificationMessage && (
@@ -391,7 +342,7 @@ export default function MasterControlEpicenter({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         
         {/* COLUMNA DEL ASISTENTE DE FUTURA (COMPLETO) - GESTIÓN OPERATIVA, BAÚL Y ALERTAS */}
-        <div className="lg:col-span-3 space-y-8">
+        <div className="lg:col-span-2 space-y-8">
           
           <div className="glass-panel p-8 rounded-[3rem] border-white/5 bg-surface-950/45 shadow-xl space-y-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -415,7 +366,7 @@ export default function MasterControlEpicenter({
                   </p>
                 </div>
               </div>
-
+ 
               {/* BRAND / PAGE SELECTOR DROPDOWN */}
               <div className="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-xl border border-white/5">
                 <span className="text-[9px] text-slate-500 font-mono uppercase">
@@ -441,12 +392,12 @@ export default function MasterControlEpicenter({
                 </select>
               </div>
             </div>
-
+ 
             {/* BRAND SUMMARY CARD FROM VAULT */}
             <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col sm:flex-row gap-5 items-start text-left">
               {selectedBrand.logos && selectedBrand.logos[0] ? (
                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-black shrink-0 border border-white/10">
-                  <img src={selectedBrand.logos[0]} className="w-full h-full object-cover" alt="Brand Logo" />
+                  <img src={selectedBrand.logos[0]} className="w-full h-full object-cover" alt="Brand Logo" referrerPolicy="no-referrer" />
                 </div>
               ) : (
                 <div className="w-16 h-16 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 font-bold font-display text-xl uppercase">
@@ -474,7 +425,7 @@ export default function MasterControlEpicenter({
               </div>
             </div>
           </div>
-
+ 
           {/* VIGILANCIA SPE Y NOTIFICADOR DE ALERTAS */}
           <div className="glass-panel p-8 rounded-[3rem] border-white/5 bg-surface-950/45 shadow-xl space-y-6 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -497,7 +448,7 @@ export default function MasterControlEpicenter({
                 {isSimplifiedMode ? "TODO AL DÍA" : "AUDITORÍA ACTIVA"}
               </span>
             </div>
-
+ 
             <div className="grid grid-cols-1 gap-4 text-left">
               {recommendations.map((rec) => (
                 <div 
@@ -512,9 +463,10 @@ export default function MasterControlEpicenter({
                       <span className="text-indigo-400 font-bold">DIAGNÓSTICO: {rec.advice}</span>
                     </div>
                   </div>
-
+ 
                   <button
                     onClick={() => {
+                      onTriggerConsult(rec.promptPreset);
                       setActiveTab('engine');
                     }}
                     className="self-start sm:self-auto px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[9px] font-mono font-black uppercase tracking-widest rounded-xl hover:bg-brand-primary hover:text-white hover:border-brand-primary transition-all shrink-0 flex items-center gap-1 cursor-pointer"
@@ -524,6 +476,167 @@ export default function MasterControlEpicenter({
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* COLUMNA DEL GENERADOR INSTANTÁNEO SPE - EL ELEMENTO CLAVE SOLICITADO */}
+        <div className="lg:col-span-1 space-y-8">
+          <div className="glass-panel p-6 rounded-[2.5rem] border-white/5 bg-surface-950/40 shadow-xl space-y-6 relative overflow-hidden text-left">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-brand-primary/10 border border-brand-primary/20 rounded-xl flex items-center justify-center text-brand-primary animate-pulse">
+                <Zap className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-base">Generador Express</h3>
+                <p className="text-[9px] text-slate-500 uppercase tracking-wider font-mono">Motor de Conversión Rápida</p>
+              </div>
+            </div>
+
+            {/* ASSET TYPE TAB SELECTOR */}
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block font-mono">Formato Creativo</label>
+              <div className="grid grid-cols-3 gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
+                {(['jpg', 'carrusel', 'mp4'] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => {
+                      if (!isProMode && t !== 'jpg') {
+                        setShowLimitReachedModal(true);
+                      } else {
+                        setAssetType(t);
+                      }
+                    }}
+                    className={`py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      assetType === t 
+                        ? 'bg-brand-primary/10 border border-brand-primary/20 text-brand-primary shadow-sm' 
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {t.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* CUSTOM OBJ / PROMPT FIELD */}
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block font-mono">Objetivo de Comunicación</label>
+              <textarea
+                value={customGoal}
+                onChange={(e) => setCustomGoal(e.target.value)}
+                placeholder="Indica qué deseas vender o comunicar..."
+                rows={3}
+                className="w-full bg-black/40 border border-white/10 text-xs text-white rounded-xl p-3 placeholder-slate-600 focus:outline-none focus:border-brand-primary/40 transition-colors resize-none leading-relaxed"
+              />
+            </div>
+
+            {/* SUBMIT COMPONENT BUTTON */}
+            <button
+              onClick={handleGenerateContent}
+              disabled={isGenerating}
+              className="w-full py-3.5 bg-brand-primary hover:bg-brand-primary/80 disabled:opacity-40 text-white font-mono font-black text-[10px] uppercase tracking-widest rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-brand-primary/15 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  SINTETIZANDO ESTRATEGIA...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 text-white" />
+                  GENERAR PUBLICACIÓN
+                </>
+              )}
+            </button>
+
+            {/* STEPS PREVIEW PANEL DURING GENERATION */}
+            {isGenerating && (
+              <div className="p-4 bg-white/[0.01] border border-white/5 rounded-xl space-y-2.5">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest block font-mono animate-pulse">Flujo de Síntesis SPE:</p>
+                <div className="space-y-1.5 font-mono text-[9px] text-slate-500 leading-relaxed text-left">
+                  {generationSteps.map((step, sIdx) => (
+                    <motion.p 
+                      key={sIdx}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="text-[#00df89]"
+                    >
+                      {step}
+                    </motion.p>
+                  ))}
+                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden mt-1.5">
+                    <motion.div 
+                      initial={{ width: "0%" }}
+                      animate={{ width: "100%" }}
+                      className="h-full bg-[#00df89]"
+                      transition={{ duration: 3 }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* DETAILED GENERATION RESULT */}
+            {generatedResult && !isGenerating && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-5 pt-3 border-t border-white/5"
+              >
+                {/* Visual preview according to format */}
+                <div className="relative rounded-xl overflow-hidden aspect-video bg-black/40 border border-white/10 group">
+                  <img 
+                    src={assetType === 'mp4' && generatedResult.videoSimulation ? generatedResult.videoSimulation.thumbnailUrl : generatedResult.imageUrl} 
+                    className="w-full h-full object-cover opacity-80" 
+                    alt="Generated Asset Preview"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent flex items-end p-3">
+                    <span className="px-2 py-0.5 bg-brand-primary text-white font-mono text-[8px] font-black uppercase tracking-wider rounded">
+                      {assetType.toUpperCase()} LISTO
+                    </span>
+                  </div>
+                </div>
+
+                {/* Advice block */}
+                <div className="p-3 bg-[#00df89]/10 border border-[#00df89]/20 rounded-xl">
+                  <p className="text-[10px] text-slate-300 leading-relaxed font-sans">{generatedResult.advice}</p>
+                </div>
+
+                {/* Copy block with button */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center font-mono">
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">TEXTO GENERADO</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedResult.copy);
+                        alert("¡Texto copiado al portapapeles exitosamente!");
+                      }}
+                      className="text-[8px] font-black text-brand-primary uppercase tracking-widest hover:underline cursor-pointer"
+                    >
+                      COPIAR COPIA
+                    </button>
+                  </div>
+                  <pre className="p-3 bg-black/60 rounded-xl text-[10px] text-slate-300 font-sans whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto scrollbar-thin text-left border border-white/5">
+                    {generatedResult.copy}
+                  </pre>
+                </div>
+
+                {/* Action Schedule Buttons */}
+                <div className="space-y-2 pt-1">
+                  <button
+                    onClick={handleAddToCalendar}
+                    className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-mono font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-lg flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Calendar className="w-4 h-4 text-white" />
+                    AGENDAR EN CALENDARIO
+                  </button>
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
 

@@ -86,12 +86,19 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
   }, [loading, project, projects]);
 
   useEffect(() => {
+    let safetyTimer = setTimeout(() => {
+      setLoading(false);
+    }, 600);
+
     if (!auth.currentUser) {
       // If no authenticated user is present yet, disable loader to let them play with local profile values
       const timer = setTimeout(() => {
         setLoading(false);
-      }, 500);
-      return () => clearTimeout(timer);
+      }, 300);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(safetyTimer);
+      };
     }
 
     const q = query(
@@ -100,6 +107,7 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      clearTimeout(safetyTimer);
       if (snapshot.empty) {
         // Automatically create a default high-performance brand project to enable instant file uploading/saving
         const defaultProject = {
@@ -143,9 +151,13 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
       console.error('[Brand Vault] Snapshot subscription error:', error);
       setErrorMsg('Error de sincronización con Firestore. Si estás fuera de Google AI Studio, asegúrate de configurar tu proyecto de Firebase autorizado.');
       setLoading(false);
+      clearTimeout(safetyTimer);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      clearTimeout(safetyTimer);
+    };
   }, [auth.currentUser, selectedProjectId]);
 
   const handleAddNewBrand = async () => {

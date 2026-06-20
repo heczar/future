@@ -15,7 +15,7 @@ import ContentReady from './components/ContentReady';
 import MasterControlEpicenter from './components/MasterControlEpicenter';
 import Profile from './components/Profile';
 import AuthWrapper from './components/AuthWrapper';
-import LaunchGuide from './components/LaunchGuide';
+import FuturaHub from './components/FuturaHub';
 import AccountAuthPortal from './components/AccountAuthPortal';
 import { UserProfile, ProjectContext } from './types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -161,6 +161,7 @@ function AppContent() {
   };
 
   const [projectsList, setProjectsList] = React.useState<ProjectContext[]>([]);
+  const [onboardingPath, setOnboardingPath] = React.useState<'no-brand' | 'has-brand'>('no-brand');
   const [activeConsultBrandId, setActiveConsultBrandId] = React.useState<string>(() => {
     return localStorage.getItem('activeConsultBrandId') || '';
   });
@@ -312,6 +313,22 @@ function AppContent() {
         setDoc(docRef, initialProfile);
         setProfile(initialProfile);
       }
+    }, (err) => {
+      console.error("Failed to fetch user profile in App context, using initial state:", err);
+      // Fallback: build standard default profile for this user
+      const isMaster = user.email?.toLowerCase() === 'heczaroficial@gmail.com';
+      setProfile({
+        name: user.displayName || (isMaster ? "Heczar (Director)" : "Estratega"),
+        roles: isMaster ? ["Líder", "Administrador Principal", "Estratega Supremo"] : ["Líder"],
+        bio: isMaster ? "Propietario y titular absoluto del sistema FUTURA." : "Sin biografía definida.",
+        philosophy: "Results over Aesthetics.",
+        projects: [],
+        credits: isMaster ? 999999 : 10,
+        isPremium: isMaster,
+        membershipMonths: isMaster ? 9999 : 1,
+        membershipExpiresAt: isMaster ? "2050-12-31T00:00:00.000Z" : undefined,
+        email: user.email || ""
+      });
     });
 
     return () => unsubscribe();
@@ -398,6 +415,14 @@ function AppContent() {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'futura':
+        return <FuturaHub 
+          profile={profile} 
+          projectsList={projectsList} 
+          onUpdateProfile={handleUpdateProfile} 
+          setActiveTab={setActiveTab}
+          setDashboardPrompt={setDashboardPrompt}
+        />;
       case 'engine':
         return <CreativeEngine 
           profile={profile} 
@@ -417,6 +442,15 @@ function AppContent() {
       case 'admin':
         return <AdminPanel learnedProtocols={learnedProtocols} evolution={neuralEvolution} />;
       case 'dev':
+        if (user?.email?.toLowerCase() !== 'heczaroficial@gmail.com') {
+          return (
+            <div className="flex flex-col items-center justify-center p-12 min-h-[50vh] text-center space-y-4">
+              <Lock className="w-16 h-16 text-brand-primary animate-pulse" />
+              <h2 className="text-xl font-bold font-display text-white">ACCESO EXCLUSIVO DE ADMINISTRADOR</h2>
+              <p className="text-xs text-slate-400 max-w-md">FUTURA ha restringido el aprovisionamiento de claves API personalizadas. Este panel solo se encuentra habilitado para el Administrador Principal (heczaroficial@gmail.com).</p>
+            </div>
+          );
+        }
         return <DevPanel />;
       case 'security':
         return <SecuritySection />;
@@ -426,8 +460,6 @@ function AppContent() {
         return <ContentReady />;
       case 'pro':
         return <MembershipPlans profile={profile} onUpdateProfile={handleUpdateProfile} />;
-      case 'launch-guide':
-        return <LaunchGuide />;
       case 'epicenter':
         return (
           <MasterControlEpicenter 
@@ -446,128 +478,91 @@ function AppContent() {
       case '':
         return (
           <>
-            {/* 1. HUD DE SUSCRIPCIÓN DINÁMICA: DEMO LIMITADA VS FUTURA PRO */}
-            <section className="mb-12 glass-panel p-6 rounded-[2.5rem] border-white/5 bg-gradient-to-r from-surface-950 to-brand-primary/5 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-brand-primary/5 rounded-full blur-[80px]" />
-              
-              <div className="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10 text-left">
-                <div className="flex items-center gap-4">
-                  <div className={`p-4 rounded-2xl ${profile.isPremium ? 'bg-brand-primary/20 text-brand-primary animate-pulse' : 'bg-white/5 text-slate-500'}`}>
-                    {profile.isPremium ? <Crown className="w-8 h-8 text-brand-primary" /> : <Lock className="w-8 h-8" />}
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-xl font-display font-black text-white uppercase tracking-tight">
-                        {profile.isPremium ? "MODO DE POTENCIA: FUTURA PRO / ELITE" : "MODO DE USO: VERSIÓN DEMO LIMITADA"}
-                      </h2>
-                      <span className={`px-2.5 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-full ${
-                        profile.isPremium ? 'bg-brand-primary/20 border border-brand-primary/30 text-brand-primary' : 'bg-slate-700 text-slate-300'
-                      }`}>
-                        {profile.isPremium ? 'TIER ELITE SINCRO' : 'GAMA STARTER'}
-                      </span>
+            <section className="mb-16 text-left">
+              <div className="glass-panel p-6 md:p-8 rounded-3xl border border-white/5 bg-surface-950/30 mb-8 space-y-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-brand-primary animate-pulse" />
+                  <span className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-widest block font-bold">OPERACIÓN OPTIMIZADA</span>
+                </div>
+                <h3 className="text-xl md:text-3xl font-display font-bold text-white tracking-tight leading-tight">¿Cómo operar FUTURA de forma rápida y sin complicaciones?</h3>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-5xl">
+                  FUTURA funciona para ti, sin importar tu punto de partida. 
+                  <strong className="text-brand-primary font-bold"> Si aún no tienes una marca clara o una idea de negocio sólida:</strong> ingresa al semillero de <b className="text-white">FUTURA</b> para dar vida a tus conceptos, slogans de alto impacto y pilares comerciales clave en segundos. 
+                  <strong className="text-emerald-400 font-bold"> Si ya cuentas con una marca en el mercado:</strong> simplemente cargas tus datos y enlaces de valor en el <b className="text-white">Baúl de Marca</b> para entrenar tu ecosistema, consultas al consultor sobre tus tácticas de venta SPE y usas el <b className="text-white">Motor Creativo</b> para generar automáticamente imágenes persuasivas de conversión y copies de alto impacto listos para tus redes sociales.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Paso 1 */}
+                <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-brand-primary/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[230px] transition-all group hover:bg-surface-950/60">
+                  <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors">01</div>
+                  <div className="space-y-3">
+                    <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
+                      <Sparkles className="w-5 h-5 animate-pulse" />
                     </div>
-                    <p className="text-slate-400 text-xs leading-relaxed max-w-2xl">
-                      {profile.isPremium 
-                        ? "Acceso ilimitado. Puedes gestionar marcas asimiladas infinitas, vincular ilimitados canales, obtener recomendaciones inteligentes 24/7 y agendar en cola de auto-publicación directa." 
-                        : "Uso limitado para pruebas de flujo. El motor de generación restringe la simulación a 2 cargas y bloquea la inyección automática al calendario."
-                      }
-                    </p>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-1.5 py-0.5 bg-brand-primary/20 text-brand-primary border border-brand-primary/20 rounded text-[7px] font-mono font-black uppercase">SEMILLERO Y CONSULTAS</span>
+                        <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 1: FUTURA Hub</h4>
+                      </div>
+                      <p className="text-xs text-slate-400 leading-relaxed mt-1.5">Sintetiza tu ADN o consulta estrategias tácticas de venta SPE con el estratega definitivo para dar vida a tu oferta sin fricción.</p>
+                    </div>
                   </div>
+                  <button 
+                    onClick={() => setActiveTab('futura')}
+                    className="mt-5 w-full py-2.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-xl border border-brand-primary/30 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-brand-primary/5 hover:scale-[1.01]"
+                  >
+                    INGRESAR A FUTURA <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
 
-                <div className="flex flex-col items-center gap-2 shrink-0">
+                {/* Paso 2 */}
+                <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-purple-500/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[230px] transition-all group hover:bg-surface-950/60">
+                  <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-purple-500/5 transition-colors">02</div>
+                  <div className="space-y-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                      <Layers className="w-5 h-5 animate-pulse" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 border border-purple-500/20 rounded text-[7px] font-mono font-black uppercase">CONECTIVIDAD</span>
+                        <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 2: Baúl de Marca</h4>
+                      </div>
+                      <p className="text-xs text-slate-400 leading-relaxed mt-1.5">Asocia tu estrategia al Baúl, almacena picheos comerciales de ventas de forma segura y ten tu material siempre conectado.</p>
+                    </div>
+                  </div>
                   <button 
-                    onClick={() => handleUpdateProfile({ ...profile, isPremium: !profile.isPremium })}
-                    className={`px-6 py-3.5 rounded-xl font-mono font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center gap-2 cursor-pointer ${
-                      profile.isPremium 
-                        ? 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700' 
-                        : 'bg-brand-primary text-white hover:bg-brand-primary/80 shadow-brand-primary/25'
-                    }`}
+                    onClick={() => setActiveTab('vault')}
+                    className="mt-5 w-full py-2.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-xl border border-purple-500/30 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-purple-500/5 hover:scale-[1.01]"
                   >
-                    {profile.isPremium ? "SUSCRIPCIÓN PRO ACTIVA (Volver a Demo)" : "ACTIVAR POTENCIA GLOBAL PRO"}
-                    <Zap className="w-4 h-4" />
+                    ABRIR BAÚL DE MARCA <ChevronRight className="w-3.5 h-3.5" />
                   </button>
-                  <span className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">
-                    {!profile.isPremium ? `Gasto: ${localStorage.getItem('futura_demo_generations') || '0'}/2 Pruebas Semanales` : "Consumo sin limitaciones"}
-                  </span>
+                </div>
+
+                {/* Paso 3 */}
+                <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-emerald-500/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[230px] transition-all group hover:bg-surface-950/60">
+                  <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-emerald-500/5 transition-colors">03</div>
+                  <div className="space-y-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                      <Zap className="w-5 h-5 animate-pulse" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded text-[7px] font-mono font-black uppercase">ESCALABILIDAD</span>
+                        <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 3: Motor Creativo</h4>
+                      </div>
+                      <p className="text-xs text-slate-400 leading-relaxed mt-1.5">Lanza la fábrica de conversión, crea ideas visuales y copys publicitarios profesionales de tus productos en lote.</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setActiveTab('engine')}
+                    className="mt-5 w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/5 hover:scale-[1.01]"
+                  >
+                    LANZAR MOTOR <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             </section>
-
-
-
-
-              <section className="mb-16 text-left">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                  <div>
-                    <span className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-widest block">OPERACIÓN OPTIMIZADA</span>
-                    <h3 className="text-2xl font-display font-bold text-white tracking-tight">¿Cómo operar FUTURA de forma rápida y sin complicaciones?</h3>
-                    <p className="text-xs text-slate-500 mt-1">Sigue el flujo intuitivo para crear, entrenar y automatizar tus publicaciones en minutos.</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Paso 1 */}
-                  <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-brand-primary/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[220px] transition-all group hover:bg-surface-950/60">
-                    <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors">01</div>
-                    <div className="space-y-3">
-                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-                        <Layers className="w-5 h-5 animate-pulse" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 1: Configura ADN</h4>
-                        <p className="text-xs text-slate-400 leading-relaxed mt-1">Sube tus logotipos, define el tono de voz y la misión en tu <b>Baúl de Marca</b>. Puedes manejar múltiples identidades.</p>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => setActiveTab('vault')}
-                      className="mt-4 w-full py-2.5 bg-purple-500/10 hover:bg-purple-500 text-purple-400 hover:text-white rounded-xl border border-purple-500/20 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                    >
-                      Abrir Baúl de Marca <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  {/* Paso 2 */}
-                  <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-brand-primary/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[220px] transition-all group hover:bg-surface-950/60">
-                    <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors">02</div>
-                    <div className="space-y-3">
-                      <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
-                        <Zap className="w-5 h-5 animate-pulse" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 2: Genera Contenido</h4>
-                        <p className="text-xs text-slate-400 leading-relaxed mt-1">Abre el <b>Motor Creativo</b> para generar imágenes o copies publicitarios alineados instantáneamente con el ADN de tu marca.</p>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => setActiveTab('engine')}
-                      className="mt-4 w-full py-2.5 bg-brand-primary/10 hover:bg-brand-primary text-brand-primary hover:text-white rounded-xl border border-brand-primary/20 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                    >
-                      Lanzar Motor Creativo <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  {/* Paso 3 */}
-                  <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-brand-primary/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[220px] transition-all group hover:bg-surface-950/60">
-                    <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors">03</div>
-                    <div className="space-y-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                        <Calendar className="w-5 h-5 animate-pulse" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 3: Sincroniza</h4>
-                        <p className="text-xs text-slate-400 leading-relaxed mt-1">Revisa el <b>Contenido Listo</b> y tu agenda integrada para inyectar tus posts al aire automáticamente o programar alertas.</p>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => setActiveTab('content')}
-                      className="mt-4 w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white rounded-xl border border-emerald-500/20 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                    >
-                      Ver Contenido Listo <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </section>
 
             {/* SECCIÓN PANTALLA ANTERIOR */}
             <section className="mb-20 space-y-16">
@@ -594,7 +589,7 @@ function AppContent() {
                       </div>
                       <h3 className="font-bold text-lg mb-2 text-white">{phase.name}</h3>
                       <p className="text-sm text-slate-500 leading-relaxed">{phase.desc}</p>
-                      <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-1 text-[10px] font-bold text-brand-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-1 text-[10px] font-bold text-brand-primary opacity-90 transition-opacity">
                         CONSULTAR FASE <ChevronRight className="w-3 h-3" />
                       </div>
                     </motion.div>
@@ -637,8 +632,8 @@ function AppContent() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={cn(
-                  "glass-panel rounded-[3rem] border-brand-primary/20 bg-gradient-to-br from-brand-primary/5 via-surface-950/40 to-transparent relative overflow-hidden shadow-3xl transition-all duration-300",
-                  hubMessages.length > 0 ? "p-6 sm:p-8" : "p-10 md:p-16"
+                  "glass-panel rounded-[2rem] sm:rounded-[3rem] border-brand-primary/20 bg-gradient-to-br from-brand-primary/5 via-surface-950/40 to-transparent relative overflow-hidden shadow-3xl transition-all duration-300",
+                  hubMessages.length > 0 ? "p-4 sm:p-8" : "p-6 sm:p-10 md:p-16"
                 )}
               >
                 <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
@@ -840,7 +835,7 @@ function AppContent() {
                   <motion.div 
                     whileHover={{ scale: 1.01 }}
                     onClick={() => setActiveTab('vault')}
-                    className="glass-panel p-10 rounded-[3.5rem] bg-gradient-to-br from-brand-primary/5 via-surface-950/40 to-transparent border-white/5 hover:border-brand-primary/40 transition-all cursor-pointer group relative overflow-hidden h-[340px] flex flex-col justify-between text-left"
+                    className="glass-panel p-6 sm:p-10 rounded-3xl sm:rounded-[3.5rem] bg-gradient-to-br from-brand-primary/5 via-surface-950/40 to-transparent border-white/5 hover:border-brand-primary/40 transition-all cursor-pointer group relative overflow-hidden h-[340px] flex flex-col justify-between text-left"
                   >
                     <div className="relative z-10">
                       <AnimatePresence mode="wait">
@@ -916,7 +911,7 @@ function AppContent() {
                   <motion.div 
                     whileHover={{ scale: 1.01 }}
                     onClick={() => setActiveTab('security')}
-                    className="glass-panel p-10 rounded-[3.5rem] bg-surface-950 border-white/5 hover:border-brand-primary/40 transition-all cursor-pointer group relative overflow-hidden h-[340px] flex flex-col justify-between text-left"
+                    className="glass-panel p-6 sm:p-10 rounded-3xl sm:rounded-[3.5rem] bg-surface-950 border-white/5 hover:border-brand-primary/40 transition-all cursor-pointer group relative overflow-hidden h-[340px] flex flex-col justify-between text-left"
                   >
                     {/* Animated background lines for security dynamism */}
                     <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden text-left">
@@ -991,7 +986,7 @@ function AppContent() {
                   </div>
                   <h2 className="text-2xl font-display font-bold text-white tracking-tight">Guía de Sistema</h2>
                 </div>
-                <div className="glass-panel p-12 rounded-[4rem] bg-gradient-to-b from-white/5 to-transparent border-white/5 text-left">
+                <div className="glass-panel p-6 md:p-12 rounded-3xl md:rounded-[4rem] bg-gradient-to-b from-white/5 to-transparent border-white/5 text-left">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                     {[
                       { icon: Zap, label: "Fase 1: Eficiencia", desc: "Optimiza tus activos para máxima conversión." },
@@ -1016,9 +1011,9 @@ function AppContent() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#050505] border-t border-white/5 relative w-full">
+    <div className="flex min-h-screen bg-[#050505] border-t border-white/5 relative w-full max-w-full overflow-x-hidden">
       {/* Dynamic Fixed Background-Glows to eliminate black vacuums and scroll blackouts */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-[#050505]">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-[#050505]">
         {/* Ambient grids / dot matrix background for ultra-modern digital depth */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:4rem_4rem]" />
         
@@ -1039,7 +1034,7 @@ function AppContent() {
         setIsOpen={setIsSidebarOpen} 
       />
       
-      <main ref={mainRef} className="flex-1 p-4 md:p-12 pb-32 md:pb-40 relative bg-transparent selection:bg-brand-primary/20 z-10">
+      <main ref={mainRef} className="flex-1 min-w-0 max-w-full overflow-x-hidden p-4 md:p-12 pb-32 md:pb-40 relative bg-transparent selection:bg-brand-primary/20 z-10">
         <header className="mb-8 md:mb-12">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -1057,8 +1052,8 @@ function AppContent() {
                   <span className="text-[10px] font-mono font-bold text-brand-primary uppercase tracking-[0.2em]">Motor Seguro Activo</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="flex flex-col">
-                    <h1 className="text-2xl md:text-3xl font-display font-bold text-white tracking-[0.1em] leading-none mb-1">FUTURE</h1>
+                  <div className="flex flex-col text-left">
+                    <h1 className="text-2xl md:text-3xl font-display font-bold text-white tracking-[0.1em] leading-none mb-1">FUTURA</h1>
                     <div className="h-0.5 w-full bg-gradient-to-r from-brand-primary to-transparent mb-1" />
                     <h2 className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] leading-none">Marketing Consult</h2>
                   </div>
@@ -1083,18 +1078,11 @@ function AppContent() {
           <p className="text-slate-400 max-w-xl text-xs md:text-sm leading-relaxed mt-4">Arquitectos de una presencia digital impactante. Creadores del mañana.</p>
         </header>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
-            className="w-full min-h-[calc(100vh-16rem)] flex flex-col justify-start"
-          >
+        <div className="w-full min-h-[calc(100vh-16rem)] flex flex-col justify-start">
+          <div className="w-full h-full flex flex-col">
             {renderContent()}
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        </div>
       </main>
 
       {/* SPE PHASE DETAIL MODAL (Viewport root) */}
@@ -2599,7 +2587,7 @@ function DevPanel() {
                 />
                 <button
                   onClick={handleSave}
-                  className="bg-brand-primary hover:bg-brand-secondary text-black font-black uppercase text-xs tracking-widest px-6 py-3 rounded-xl transition-colors shrink-0"
+                  className="bg-brand-primary hover:bg-brand-secondary text-white font-black uppercase text-xs tracking-widest px-6 py-3 rounded-xl transition-colors shrink-0 cursor-pointer"
                 >
                   Guardar Conexión
                 </button>

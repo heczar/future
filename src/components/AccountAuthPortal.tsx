@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from './AuthWrapper';
 import { Mail, Lock, ShieldCheck, Play, ArrowRight, Sparkles, Loader2, Info, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { auth, signInAnonymously } from '../lib/firebase';
 
 export default function AccountAuthPortal() {
   const { signIn, signInWithEmail, signUpWithEmail } = useAuth();
@@ -211,6 +212,29 @@ export default function AccountAuthPortal() {
               />
             </svg>
             Ingresar con Google Account
+          </button>
+
+          <button
+            type="button"
+            onClick={async () => {
+              setLoading(true);
+              setErrorMsg(null);
+              setSuccessMsg(null);
+              try {
+                await signInAnonymously(auth);
+                setSuccessMsg('¡Ingreso como Invitado exitoso! Iniciando entorno...');
+              } catch (err: any) {
+                console.error("Anonymous Sign-In caught error:", err);
+                setErrorMsg('El acceso de invitado directo no está activo en Firebase. Por favor regístrate como usuario o utiliza correo electrónico.');
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={loading}
+            className="w-full py-3 bg-indigo-950/40 border border-indigo-800/40 text-indigo-300 hover:text-white hover:bg-indigo-900/60 rounded-xl font-mono text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
+          >
+            <Sparkles className="w-4 h-4 shrink-0 text-indigo-400 animate-pulse" />
+            Acceder como Invitado (Demo Rápida)
           </button>
 
           <div className="text-center pt-2">

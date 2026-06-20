@@ -28,6 +28,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: SidebarProps) {
+  const isMaster = auth.currentUser?.email?.toLowerCase() === 'heczaroficial@gmail.com';
+
   const menuGroups = [
     {
       title: "Núcleo Estratégico",
@@ -39,8 +41,9 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
     {
       title: "Fábrica Creativa",
       items: [
-        { id: 'vault', label: 'Baúl de Marca', icon: Layers },
+        { id: 'futura', label: 'A FUTURA', icon: MessageSquare },
         { id: 'engine', label: 'Motor Creativo', icon: Zap },
+        { id: 'vault', label: 'Baúl de Marca', icon: Layers },
         { id: 'gallery', label: 'Galería de Activos', icon: History },
       ]
     },
@@ -61,7 +64,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
       title: "Consola de Sistema",
       items: [
         { id: 'admin', label: 'Administración', icon: ShieldCheck },
-        { id: 'dev', label: 'Desarrollo API', icon: Settings },
+        ...(isMaster ? [{ id: 'dev', label: 'Desarrollo API', icon: Settings }] : []),
         { id: 'profile', label: 'Mi Perfil', icon: User },
       ]
     }
@@ -88,8 +91,8 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
       )}>
         <div className="p-8 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex flex-col">
-              <h2 className="text-2xl font-display font-bold tracking-[0.1em] text-white leading-none mb-1">FUTURE</h2>
+            <div className="flex flex-col text-left">
+              <h2 className="text-2xl font-display font-bold tracking-[0.1em] text-white leading-none mb-1">FUTURA</h2>
               <div className="h-0.5 w-full bg-gradient-to-r from-brand-primary to-transparent" />
               <p className="text-[7px] font-black text-slate-500 uppercase tracking-[0.4em] mt-1">Marketing Consult</p>
             </div>
