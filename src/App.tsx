@@ -413,71 +413,9 @@ function AppContent() {
     }
   ];
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'futura':
-        return <FuturaHub 
-          profile={profile} 
-          projectsList={projectsList} 
-          onUpdateProfile={handleUpdateProfile} 
-          setActiveTab={setActiveTab}
-          setDashboardPrompt={setDashboardPrompt}
-        />;
-      case 'engine':
-        return <CreativeEngine 
-          profile={profile} 
-          onUpdateProfile={handleUpdateProfile} 
-          onNavigateToVault={() => setActiveTab('vault')} 
-          initialPrompt={dashboardPrompt}
-          onPromptConsumed={() => setDashboardPrompt('')}
-        />;
-      case 'vault':
-        return <ProjectManager 
-          profile={profile} 
-          onUpdateProfile={handleUpdateProfile}
-          onNavigateToEngine={() => setActiveTab('engine')}
-        />;
-      case 'profile':
-        return <Profile />;
-      case 'admin':
-        return <AdminPanel learnedProtocols={learnedProtocols} evolution={neuralEvolution} />;
-      case 'dev':
-        if (user?.email?.toLowerCase() !== 'heczaroficial@gmail.com') {
-          return (
-            <div className="flex flex-col items-center justify-center p-12 min-h-[50vh] text-center space-y-4">
-              <Lock className="w-16 h-16 text-brand-primary animate-pulse" />
-              <h2 className="text-xl font-bold font-display text-white">ACCESO EXCLUSIVO DE ADMINISTRADOR</h2>
-              <p className="text-xs text-slate-400 max-w-md">FUTURA ha restringido el aprovisionamiento de claves API personalizadas. Este panel solo se encuentra habilitado para el Administrador Principal (heczaroficial@gmail.com).</p>
-            </div>
-          );
-        }
-        return <DevPanel />;
-      case 'security':
-        return <SecuritySection />;
-      case 'gallery':
-        return <Gallery />;
-      case 'content':
-        return <ContentReady />;
-      case 'pro':
-        return <MembershipPlans profile={profile} onUpdateProfile={handleUpdateProfile} />;
-      case 'epicenter':
-        return (
-          <MasterControlEpicenter 
-            profile={profile}
-            onUpdateProfile={handleUpdateProfile}
-            projectsList={projectsList}
-            setActiveTab={setActiveTab}
-            isSimplifiedMode={isSimplifiedMode}
-            onTriggerConsult={(text) => {
-              setDashboardPrompt(text);
-              handleHubConsult(text);
-            }}
-          />
-        );
-      case 'dashboard':
-      case '':
-        return (
-          <>
+  const renderDashboardView = () => {
+    return (
+      <>
             <section className="mb-16 text-left">
               <div className="glass-panel p-6 md:p-8 rounded-3xl border border-white/5 bg-surface-950/30 mb-8 space-y-4">
                 <div className="flex items-center gap-2">
@@ -1002,7 +940,6 @@ function AppContent() {
             </section>
           </>
         );
-    }
   };
 
   return (
@@ -1073,9 +1010,99 @@ function AppContent() {
           <p className="text-slate-400 max-w-xl text-xs md:text-sm leading-relaxed mt-4">Arquitectos de una presencia digital impactante. Creadores del mañana.</p>
         </header>
 
-        <div className="w-full min-h-[calc(100vh-16rem)] flex flex-col justify-start">
-          <div className="w-full h-full flex flex-col">
-            {renderContent()}
+        <div className="w-full min-h-[calc(100vh-16rem)] flex flex-col justify-start relative">
+          {/* HOME / DASHBOARD */}
+          <div className={cn("w-full transition-all duration-150", (activeTab === '' || activeTab === 'dashboard') ? "block opacity-100" : "hidden opacity-0")}>
+            {renderDashboardView()}
+          </div>
+
+          {/* FUTURA HUB */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'futura' ? "block opacity-100" : "hidden opacity-0")}>
+            <FuturaHub 
+              profile={profile} 
+              projectsList={projectsList} 
+              onUpdateProfile={handleUpdateProfile} 
+              setActiveTab={setActiveTab}
+              setDashboardPrompt={setDashboardPrompt}
+            />
+          </div>
+
+          {/* CREATIVE ENGINE */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'engine' ? "block opacity-100" : "hidden opacity-0")}>
+            <CreativeEngine 
+              profile={profile} 
+              onUpdateProfile={handleUpdateProfile} 
+              onNavigateToVault={() => setActiveTab('vault')} 
+              initialPrompt={dashboardPrompt}
+              onPromptConsumed={() => setDashboardPrompt('')}
+            />
+          </div>
+
+          {/* BAÚL DE MARCA / PROJECT MANAGER */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'vault' ? "block opacity-100" : "hidden opacity-0")}>
+            <ProjectManager 
+              profile={profile} 
+              onUpdateProfile={handleUpdateProfile}
+              onNavigateToEngine={() => setActiveTab('engine')}
+            />
+          </div>
+
+          {/* PROFILE */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'profile' ? "block opacity-100" : "hidden opacity-0")}>
+            <Profile />
+          </div>
+
+          {/* ADMIN PANEL */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'admin' ? "block opacity-100" : "hidden opacity-0")}>
+            <AdminPanel learnedProtocols={learnedProtocols} evolution={neuralEvolution} />
+          </div>
+
+          {/* DEV PANEL */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'dev' ? "block opacity-100" : "hidden opacity-0")}>
+            {user?.email?.toLowerCase() !== 'heczaroficial@gmail.com' ? (
+              <div className="flex flex-col items-center justify-center p-12 min-h-[50vh] text-center space-y-4">
+                <Lock className="w-16 h-16 text-brand-primary animate-pulse" />
+                <h2 className="text-xl font-bold font-display text-white">ACCESO EXCLUSIVO DE ADMINISTRADOR</h2>
+                <p className="text-xs text-slate-400 max-w-md">FUTURA ha restringido el aprovisionamiento de claves API personalizadas. Este panel solo se encuentra habilitado para el Administrador Principal (heczaroficial@gmail.com).</p>
+              </div>
+            ) : (
+              <DevPanel />
+            )}
+          </div>
+
+          {/* SECURITY SECTION */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'security' ? "block opacity-100" : "hidden opacity-0")}>
+            <SecuritySection />
+          </div>
+
+          {/* GALLERY */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'gallery' ? "block opacity-100" : "hidden opacity-0")}>
+            <Gallery />
+          </div>
+
+          {/* CONTENT READY */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'content' ? "block opacity-100" : "hidden opacity-0")}>
+            <ContentReady />
+          </div>
+
+          {/* MEMBERSHIP PLANS */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'pro' ? "block opacity-100" : "hidden opacity-0")}>
+            <MembershipPlans profile={profile} onUpdateProfile={handleUpdateProfile} />
+          </div>
+
+          {/* MASTER EPICENTER */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'epicenter' ? "block opacity-100" : "hidden opacity-0")}>
+            <MasterControlEpicenter 
+              profile={profile}
+              onUpdateProfile={handleUpdateProfile}
+              projectsList={projectsList}
+              setActiveTab={setActiveTab}
+              isSimplifiedMode={isSimplifiedMode}
+              onTriggerConsult={(text) => {
+                setDashboardPrompt(text);
+                handleHubConsult(text);
+              }}
+            />
           </div>
         </div>
       </main>
