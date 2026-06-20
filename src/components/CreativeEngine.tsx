@@ -1610,7 +1610,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
               
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 {/* Left Side: Conversa con Futura Chat Advisor Area (lg:col-span-5) */}
-                <div className="lg:col-span-5 min-h-[350px] h-[380px] sm:h-[430px] lg:h-[460px] flex flex-col bg-gradient-to-b from-indigo-950/20 via-black/40 to-slate-950 border border-indigo-500/15 rounded-2xl relative overflow-hidden shadow-2xl">
+                <div className="lg:col-span-5 h-[320px] xs:h-[380px] sm:h-[430px] lg:h-[460px] max-h-[80vh] flex flex-col bg-gradient-to-b from-indigo-950/20 via-black/40 to-slate-950 border border-indigo-500/15 rounded-2xl relative overflow-hidden shadow-2xl">
                   {/* Chat Header */}
                   <div className="bg-black/60 border-b border-indigo-500/10 p-3.5 flex items-center justify-between">
                     <div className="flex items-center gap-2">

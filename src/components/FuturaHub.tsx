@@ -371,7 +371,7 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${businessIdea}, extremely simple 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* LEFT COLUMN: Consulting Hub (Chat Terminals) */}
-        <div className="lg:col-span-5 glass-panel border border-white/5 rounded-3xl bg-surface-950/40 p-6 space-y-6 flex flex-col min-h-[460px] h-[550px] sm:h-[620px] lg:h-[650px] relative overflow-hidden">
+        <div className="lg:col-span-5 glass-panel border border-white/5 rounded-3xl bg-surface-950/40 p-4 sm:p-6 space-y-4 sm:space-y-6 flex flex-col h-[400px] xs:h-[480px] sm:h-[600px] lg:h-[650px] max-h-[85vh] relative overflow-hidden">
           <div className="flex items-center justify-between pb-4 border-b border-white/5 shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary border border-brand-primary/20 shadow-md">
@@ -472,7 +472,6 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${businessIdea}, extremely simple 
                 placeholder="Discute tácticas, dudas sobre el SPE, o consultoría..."
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                disabled={isChatLoading}
                 className="w-full bg-[#0d0d0d] border border-white/10 rounded-xl py-3.5 pl-4 pr-12 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary/50 transition-colors"
               />
               <button
