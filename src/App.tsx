@@ -71,6 +71,52 @@ import { AccountProvider } from './components/AccountProvider';
 import { db } from './lib/firebase';
 import { doc, setDoc, onSnapshot, collection, query, where, addDoc, deleteDoc } from 'firebase/firestore';
 
+interface DashboardInputProps {
+  value: string;
+  onSubmit: (text: string) => void;
+  isLoading: boolean;
+}
+
+function DashboardInput({ value, onSubmit, isLoading }: DashboardInputProps) {
+  const [localVal, setLocalVal] = React.useState(value);
+
+  React.useEffect(() => {
+    setLocalVal(value);
+  }, [value]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      onSubmit(localVal);
+    }
+  };
+
+  return (
+    <div className="relative group max-w-3xl mx-auto pt-2">
+      <div className="absolute -inset-1 bg-gradient-to-r from-brand-primary to-purple-600 rounded-2xl blur-xl opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+      <div className="relative flex flex-col sm:flex-row items-center gap-3 bg-surface-950 border border-white/10 p-2 rounded-2xl shadow-3xl group-focus-within:border-brand-primary/40 transition-all">
+        <input 
+          type="text"
+          value={localVal}
+          onChange={(e) => setLocalVal(e.target.value)}
+          placeholder="Consulta sobre tu estrategia corporativa..."
+          className="flex-1 bg-transparent border-none text-white px-4 py-3 focus:ring-0 text-sm placeholder:text-slate-700 outline-none w-full"
+          onKeyDown={handleKeyDown}
+        />
+        <div className="flex w-full sm:w-auto gap-3 p-1 sm:p-0">
+          <button 
+            onClick={() => onSubmit(localVal)}
+            disabled={isLoading}
+            className="flex-1 sm:w-auto px-6 py-3 bg-brand-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-2xl shadow-brand-primary/30 w-full cursor-pointer"
+          >
+            CONSULTAR
+            <Send className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <AuthWrapper>
@@ -709,31 +755,11 @@ function AppContent() {
                   </AnimatePresence>
 
                   {user ? (
-                    <div className="relative group max-w-3xl mx-auto pt-2">
-                      <div className="absolute -inset-1 bg-gradient-to-r from-brand-primary to-purple-600 rounded-2xl blur-xl opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-                      <div className="relative flex flex-col sm:flex-row items-center gap-3 bg-surface-950 border border-white/10 p-2 rounded-2xl shadow-3xl group-focus-within:border-brand-primary/40 transition-all">
-                        <input 
-                          type="text"
-                          value={dashboardPrompt}
-                          onChange={(e) => setDashboardPrompt(e.target.value)}
-                          placeholder="Consulta sobre tu estrategia corporativa..."
-                          className="flex-1 bg-transparent border-none text-white px-4 py-3 focus:ring-0 text-sm placeholder:text-slate-700 outline-none w-full"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleHubConsult();
-                          }}
-                        />
-                        <div className="flex w-full sm:w-auto gap-3 p-1 sm:p-0">
-                          <button 
-                            onClick={() => handleHubConsult()}
-                            disabled={isHubLoading}
-                            className="flex-1 sm:w-auto px-6 py-3 bg-brand-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-2xl shadow-brand-primary/30 w-full cursor-pointer"
-                          >
-                            CONSULTAR
-                            <Send className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                    <DashboardInput 
+                      value={dashboardPrompt}
+                      onSubmit={(text) => handleHubConsult(text)}
+                      isLoading={isHubLoading}
+                    />
                   ) : (
                     <div className="pt-6">
                       <AccountAuthPortal />
@@ -944,16 +970,16 @@ function AppContent() {
 
   return (
     <div className="flex min-h-screen bg-[#050505] border-t border-white/5 relative w-full max-w-full overflow-x-hidden">
-      {/* Dynamic Fixed Background-Glows to eliminate black vacuums and scroll blackouts */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-[#050505]">
+      {/* Dynamic Absolute Background-Glows to eliminate black vacuums and scroll blackouts */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 h-full w-full bg-[#050505]">
         {/* Ambient grids / dot matrix background for ultra-modern digital depth */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:4rem_4rem]" />
         
         {/* Soft glowing ambient orbs */}
-        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-brand-primary/8 blur-[130px] opacity-70" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-brand-secondary/4 blur-[150px] opacity-60" />
-        <div className="absolute top-[30%] right-[15%] w-[40%] h-[40%] rounded-full bg-[#8B5CF6]/5 blur-[120px] opacity-50" />
-        <div className="absolute bottom-[20%] left-[10%] w-[50%] h-[50%] rounded-full bg-brand-primary/4 blur-[140px] opacity-40" />
+        <div className="absolute top-[-5%] left-[-10%] w-[60%] h-[30%] rounded-full bg-brand-primary/8 blur-[130px] opacity-70" />
+        <div className="absolute bottom-[5%] right-[-10%] w-[60%] h-[30%] rounded-full bg-brand-secondary/4 blur-[150px] opacity-60" />
+        <div className="absolute top-[35%] right-[15%] w-[40%] h-[30%] rounded-full bg-[#8B5CF6]/5 blur-[120px] opacity-50" />
+        <div className="absolute bottom-[25%] left-[10%] w-[50%] h-[25%] rounded-full bg-brand-primary/4 blur-[140px] opacity-40" />
       </div>
 
       <AnimatePresence>
