@@ -41,7 +41,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
     {
       title: "Fábrica Creativa",
       items: [
-        { id: 'futura', label: 'A FUTURA', icon: MessageSquare },
+        { id: 'futura', label: 'FUTURA HUB', icon: MessageSquare },
         { id: 'engine', label: 'Motor Creativo', icon: Zap },
         { id: 'vault', label: 'Baúl de Marca', icon: Layers },
         { id: 'gallery', label: 'Galería de Activos', icon: History },

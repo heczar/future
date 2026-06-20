@@ -16,7 +16,7 @@ export default async function handler(req: any, res: any) {
 
   const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
   const { prompt, aspectRatio, styleReferences } = req.body || {};
-  let model = "gemini-3.1-flash-image-preview";
+  let model = "gemini-3.1-flash-image";
 
   try {
     const parts: any[] = [];

@@ -90,7 +90,7 @@ function AppContent() {
   const [selectedPhase, setSelectedPhase] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [showLanding, setShowLanding] = useState(true);
+  const [showLanding, setShowLanding] = useState(false);
   const [showVaultInfo, setShowVaultInfo] = useState(false);
   const [showSecurityInfo, setShowSecurityInfo] = useState(false);
   const [dashboardPrompt, setDashboardPrompt] = useState('');
@@ -127,7 +127,7 @@ function AppContent() {
     return () => clearInterval(interval);
   }, []);
 
-  // Scroll to top when tab changes
+  // Scroll to top when tab changes or when landing closes
   React.useEffect(() => {
     const scrollToTop = () => {
       window.scrollTo(0, 0);
@@ -140,7 +140,7 @@ function AppContent() {
     scrollToTop();
     const t = setTimeout(scrollToTop, 150);
     return () => clearTimeout(t);
-  }, [activeTab]);
+  }, [activeTab, showLanding]);
 
   // Auto-scroll Consultoría
   const scrollChatToBottom = (behavior: ScrollBehavior = 'smooth') => {
@@ -512,7 +512,7 @@ function AppContent() {
                     onClick={() => setActiveTab('futura')}
                     className="mt-5 w-full py-2.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-xl border border-brand-primary/30 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-brand-primary/5 hover:scale-[1.01]"
                   >
-                    INGRESAR A FUTURA <ChevronRight className="w-3.5 h-3.5" />
+                    INGRESAR A FUTURA HUB <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
@@ -574,11 +574,8 @@ function AppContent() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
                   {spePhases.map((phase, i) => (
-                    <motion.div 
+                    <div 
                       key={phase.name}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.1 }}
                       onClick={() => {
                         setSelectedPhase(phase);
                       }}
@@ -592,7 +589,7 @@ function AppContent() {
                       <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-1 text-[10px] font-bold text-brand-primary opacity-90 transition-opacity">
                         CONSULTAR FASE <ChevronRight className="w-3 h-3" />
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
 
@@ -627,10 +624,8 @@ function AppContent() {
                 </div>
               </div>
 
-              <motion.div 
+              <div 
                 ref={hubRef}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
                 className={cn(
                   "glass-panel rounded-[2rem] sm:rounded-[3rem] border-brand-primary/20 bg-gradient-to-br from-brand-primary/5 via-surface-950/40 to-transparent relative overflow-hidden shadow-3xl transition-all duration-300",
                   hubMessages.length > 0 ? "p-4 sm:p-8" : "p-6 sm:p-10 md:p-16"
@@ -818,7 +813,7 @@ function AppContent() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
                 {/* DNA VAULT Section */}

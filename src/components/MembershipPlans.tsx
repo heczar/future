@@ -141,55 +141,131 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
           <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-6 sm:p-8 space-y-6">
             <div>
               <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-widest block mb-1">
-                Comparación de Beneficios
+                MANIOBRA 5: SECTORIZACIÓN CORPORATIVA
               </span>
               <h3 className="text-2xl font-display font-black text-white uppercase tracking-tight">
-                FUTURA Elite vs Starter
+                Matriz Comparativa de Capacidades
               </h3>
               <p className="text-xs text-slate-400 mt-1">
-                Libera la potencia computacional estratégica de nuestra suite generativa.
+                Estructura computacional y funcional de la suite estratégica. Desarrollado bajo la filosofía "Results over Aesthetics" para evitar pérdidas de rendimiento táctico.
               </p>
             </div>
 
+            {/* Structured Side-by-Side Comparison Tariffs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-black/35 p-4 rounded-2xl border border-white/5 space-y-3">
-                <div className="text-slate-400 font-mono text-[10px] uppercase font-bold border-b border-white/5 pb-1">
-                  Starter (Prueba Demo)
+              
+              {/* Sencilla / Starter Card */}
+              <div className="bg-[#0c0d11]/80 border border-white/5 rounded-2xl p-5 space-y-4 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                    <div>
+                      <span className="text-[8px] font-mono font-black text-slate-500 uppercase tracking-wider block">PLAN INICIAL</span>
+                      <h4 className="text-sm font-black text-[#8b949e] uppercase tracking-wide">Membresía Sencilla</h4>
+                    </div>
+                    <span className="text-base font-mono font-black text-slate-400">$0.00</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-500 leading-normal">
+                    Acceso básico simulado perfecto para explorar el entorno funcional. Opera bajo restricciones de cuotas tácticas y datos volátiles local-cache.
+                  </p>
                 </div>
-                <ul className="space-y-1.5 text-xs text-slate-400 font-sans">
-                  <li className="flex items-center gap-2">
-                    <span className="text-red-500 font-bold shrink-0">✕</span> Análisis Limitados de IA
+
+                <ul className="space-y-2 text-[10px] text-slate-400 border-t border-white/5 pt-3">
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-red-500 font-bold shrink-0 text-xs">✕</span>
+                    <span>Análisis limitados de IA (Consumo lento Gemini 3.5-Flash compartido con topes diarios).</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-red-500 font-bold shrink-0">✕</span> Velocidad estándar de carga
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-red-500 font-bold shrink-0 text-xs">✕</span>
+                    <span>Generador de marcas volátil: Logotipos limitados a simulación temporal con marca de agua.</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-red-500 font-bold shrink-0">✕</span> Sin copias de seguridad en la nube
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-red-500 font-bold shrink-0 text-xs">✕</span>
+                    <span>Motor creativo offline: No guarda activos perpetuos ni sincroniza campañas con el servidor.</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-red-500 font-bold shrink-0 text-xs">✕</span>
+                    <span>Guardado local transitorio: Tus marcas se borran si el usuario limpia el caché del navegador.</span>
                   </li>
                 </ul>
+
+                <button
+                  type="button"
+                  disabled
+                  className="w-full mt-3 py-2 bg-white/5 text-slate-500 rounded-xl text-[9px] font-mono uppercase font-black tracking-wider border border-white/5 cursor-not-allowed text-center"
+                >
+                  LICENCIA SÓLO SANDBOX (ACTIVA)
+                </button>
               </div>
 
-              <div className="bg-brand-primary/10 p-4 rounded-2xl border border-brand-primary/25 space-y-3">
-                <div className="text-brand-primary font-mono text-[10px] uppercase font-black border-b border-brand-primary/10 pb-1 flex items-center justify-between">
-                  <span>ELITE PRO TIER</span>
-                  <Sparkles className="w-3.5 h-3.5 text-brand-primary animate-pulse" />
+              {/* Elite PRO Card */}
+              <div className="bg-gradient-to-b from-[#0e1017] to-[#040508] border border-brand-primary/30 rounded-2xl p-5 space-y-4 flex flex-col justify-between shadow-2xl shadow-brand-primary/5 ring-1 ring-brand-primary/10">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between border-b border-brand-primary/10 pb-2">
+                    <div>
+                      <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-widest block animate-pulse">ELITE PRO TIER</span>
+                      <h4 className="text-sm font-black text-white uppercase tracking-wide">Membresía Elite PRO</h4>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-base font-mono font-black text-brand-primary">$10.00</span>
+                      <span className="text-[7px] text-slate-500 uppercase tracking-wide block">Pago Único</span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-normal">
+                    La bestia de cómputo comercial. Desbloquea el pipeline ilimitado con persistencia de grado militar en Firebase Nube. Diseñada para dominar la captación.
+                  </p>
                 </div>
-                <ul className="space-y-1.5 text-xs text-white font-medium font-sans">
-                  <li className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" /> Uso Ilimitado libre de topes
+
+                <ul className="space-y-2 text-[10px] text-white border-t border-brand-primary/10 pt-3">
+                  <li className="flex items-start gap-1.5">
+                    <Check className="w-3 px-0 h-3 text-brand-primary shrink-0" />
+                    <span>Pipeline de IA de alta velocidad ILIMITADO (Usa Gemini 3.5-Flash sin límite de respuesta).</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" /> Máxima velocidad prioritaria
+                  <li className="flex items-start gap-1.5">
+                    <Check className="w-3 px-0 h-3 text-brand-primary shrink-0" />
+                    <span>Acceso libre al Estilógrafo de Identidad Vectorial (Estilos Neón, Brutalista, Tech, Retro).</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" /> Acceso Completo a la API Estratégica
+                  <li className="flex items-start gap-1.5">
+                    <Check className="w-3 px-0 h-3 text-brand-primary shrink-0" />
+                    <span>Respaldo en Firebase Cloud Sync: Los datos de tu marca y activos nunca se pierden.</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" /> Activación perpetua única
+                  <li className="flex items-start gap-1.5">
+                    <Check className="w-3 px-0 h-3 text-brand-primary shrink-0" />
+                    <span>Motor Creativo e Integración en Campaña Omnicanal 100% activa libre de restricciones de descarga.</span>
                   </li>
                 </ul>
+
+                <span className="text-[8px] font-mono text-center text-brand-primary font-black uppercase tracking-widest animate-pulse block">
+                  ✓ ACCESO PERPETUO DE POR VIDA
+                </span>
+              </div>
+
+            </div>
+
+            {/* Sincere SRE and Programming Audit Diagnostic (Requested by user) */}
+            <div className="bg-[#0b0c10]/40 border border-red-500/10 rounded-2xl p-5 space-y-3 relative overflow-hidden text-left">
+              <div className="absolute top-0 right-0 p-3 text-[10px] font-mono font-black text-red-500/20">
+                AUDIT_ID: SRE-55320
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-[9px] font-mono font-black text-red-500 uppercase tracking-wider">
+                  DIAGNÓSTICO CRÍTICO DE INGENIERÍA Y SISTEMAS
+                </span>
+              </div>
+              
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-white uppercase font-sans">
+                  "El suicidio silencioso de la Persistencia Local"
+                </p>
+                <p className="text-[10.5px] text-slate-400 leading-relaxed font-sans">
+                  Como Analista de Programación Principal de la red de desarrollo más importante del mundo, seré críticamente sincero: <strong className="text-white">La Membresía Sencilla es un sandbox inestable para producción real.</strong> Si confías la base de marca de tu negocio únicamente a la memoria volátil del navegador (localStorage), estás a un solo clic de que una limpieza automática de cookies, un reinicio de sistema o una actualización del motor de renderizado borre tu ADN comercial por completo. 
+                </p>
+                <p className="text-[10.5px] text-slate-400 leading-relaxed font-sans pt-1">
+                  La <strong className="text-brand-primary">Membresía Elite PRO</strong> no es sólo un conjunto de botones de colores; es un cambio de arquitectura física. Al habilitar Firebase Firestore, introducimos aislamiento de transacciones de bases de datos indexadas y sincronía multi-hilo en la nube. Desde el punto de vista de seguridad e ingeniería de software, consolidar tu marca con persistencia indestructible en la nube es la única maniobra lógica aceptable para evitar fugas de confianza y disrupciones SRE.
+                </p>
               </div>
             </div>
+
           </div>
         </div>
 
