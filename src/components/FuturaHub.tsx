@@ -61,7 +61,6 @@ export default function FuturaHub({
   const [logoSaveStatus, setLogoSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [logoStyle, setLogoStyle] = useState<'brutalist' | 'neon_geometric' | 'tech_icon' | 'retro_badge'>('brutalist');
   
   // Brand association state
   const [selectedBrandId, setSelectedBrandId] = useState('');
@@ -636,6 +635,16 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${businessIdea}, extremely simple 
                         <p className="text-[10px] text-slate-400 leading-normal">
                           Este logo ha sido concebido bajo conceptos de geometría sagrada y pragmatismo del SPE. Guarda este logotipo en tu Bóveda de Marca para que el Motor Creativo lo integre automáticamente como capa flotante en tus campañas.
                         </p>
+                        {generatedLogoUrl && generatedLogoUrl.includes("photo-1618005182384-a83a8bd57fbe") && (
+                          <div className="mt-2.5 bg-amber-500/10 border border-amber-500/15 text-amber-300 p-3 rounded-xl space-y-1">
+                            <p className="text-[9.5px] font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider font-mono">
+                              ⚠️ LOGOTIPO DE RESPALDO (LÍMITE DE CUOTA 429)
+                            </p>
+                            <p className="text-[9px] text-slate-300 leading-normal">
+                              La API gratuita de Google Gemini ha alcanzado el límite de cuota diario para generación de imágenes. Como tienes activo Google Pro, recuerda configurar la variable de entorno <code className="text-white bg-white/10 px-1 py-0.5 rounded font-mono text-[8px] font-bold">GEMINI_API_KEY</code> en tu panel de control de Vercel (o en Settings &gt; Secrets de AI Studio) con tu clave API de pago real.
+                            </p>
+                          </div>
+                        )}
                       </div>
 
                       {generatedLogoUrl && projectsList.length > 0 && (

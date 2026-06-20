@@ -16,7 +16,7 @@ export default async function handler(req: any, res: any) {
 
   const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
   const { prompt, aspectRatio, styleReferences } = req.body || {};
-  let model = "gemini-3.1-flash-image";
+  let model = "gemini-2.5-flash-image";
 
   try {
     const parts: any[] = [];
@@ -52,7 +52,6 @@ export default async function handler(req: any, res: any) {
         config: {
           imageConfig: {
             aspectRatio: (aspectRatio || "1:1") as any,
-            imageSize: "1K"
           },
         },
       });
@@ -60,11 +59,12 @@ export default async function handler(req: any, res: any) {
       console.warn("Primary image model failed. Trying alternative model...", modelErr.message);
       // Fallback model
       response = await getAiClient(customKey).models.generateContent({
-        model: "gemini-2.5-flash-image",
+        model: "gemini-3.1-flash-image",
         contents: { parts },
         config: {
           imageConfig: {
             aspectRatio: (aspectRatio || "1:1") as any,
+            imageSize: "1K"
           },
         },
       });

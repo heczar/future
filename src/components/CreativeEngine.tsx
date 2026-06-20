@@ -2117,6 +2117,15 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
                             )}
                           </div>
                           
+                          {finalImage && finalImage.includes("photo-1618005182384-a83a8bd57fbe") && (
+                            <div className="bg-amber-500/10 border border-amber-500/15 p-2.5 rounded-xl text-left max-w-[340px] mx-auto space-y-1">
+                              <p className="text-[8.5px] font-bold text-amber-400 font-mono uppercase tracking-wider">⚠️ IMAGEN DE RESPALDO (LÍMITE DE CUOTA 429)</p>
+                              <p className="text-[8px] text-slate-300 leading-normal">
+                                La API de Gemini ha alcanzado el límite de cuota diario de imágenes gratis. Para usar las imágenes generadas por IA de Google Pro, ingresa tu <code className="text-white bg-white/10 px-0.5 rounded">GEMINI_API_KEY</code> de pago en tu panel de control de Vercel.
+                              </p>
+                            </div>
+                          )}
+
                           <p className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Relación de Aspecto Limitada por Formato: {selectedFormat}</p>
                         </div>
                       </div>
