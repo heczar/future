@@ -14,6 +14,26 @@ import { compressImage } from '../lib/imageUtils';
 import DrivePicker from './DrivePicker';
 import { cn } from '../lib/utils';
 
+const virtualFuturaBrand: ProjectContext = {
+  id: 'futura_brand_vault',
+  name: 'FUTURA (Auto-Marketing SPE)',
+  description: 'Misión: Ser la consultora y suite de IA avanzada enfocada en "Resultados sobre Estética" que domina el mercado hispanohablante.\n\nVisión: Capturar clientes de alta rentabilidad listos para pagar reduciendo el ego visual tradicional de las agencias de marketing.\n\nValores: Autenticidad cruda, Conversión extrema, Sistema SPE.\n\nTono: Persuasivo brutal de alta conversión, de élite educadora y analítico pragmático.',
+  logos: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'],
+  trainingMaterial: [
+    'https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=200&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'
+  ],
+  driveContext: [
+    { name: 'Manual_SPE_Origen.pdf', content: 'Metodología Sistema Pentagonal de Ejecución. Resultados sobre estética.' }
+  ],
+  methodology: 'SPE',
+  brandGuidelines: {
+    primaryColor: '#BF5AF2',
+    secondaryColor: '#0A0A0C',
+    tone: 'Persuasivo brutal de alta conversión, de élite educadora y analítico pragmático'
+  }
+};
+
 interface ProjectManagerProps {
   profile: UserProfile;
   onUpdateProfile: (profile: UserProfile) => void;
@@ -91,7 +111,16 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
     }, 600);
 
     if (!auth.currentUser) {
-      // If no authenticated user is present yet, disable loader to let them play with local profile values
+      setProjects([virtualFuturaBrand]);
+      const currentId = 'futura_brand_vault';
+      setSelectedProjectId(currentId);
+      setProject(virtualFuturaBrand);
+      setName(virtualFuturaBrand.name);
+      setDescription(virtualFuturaBrand.description);
+      setLogos(virtualFuturaBrand.logos || []);
+      setTrainingMaterial(virtualFuturaBrand.trainingMaterial || []);
+      setDriveContext(virtualFuturaBrand.driveContext || []);
+      
       const timer = setTimeout(() => {
         setLoading(false);
       }, 300);
@@ -130,15 +159,16 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
       }
 
       const projs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ProjectContext));
-      setProjects(projs);
+      const fullList = [virtualFuturaBrand, ...projs];
+      setProjects(fullList);
 
       let currentId = selectedProjectId;
-      if (!currentId || !projs.some(p => p.id === currentId)) {
-        currentId = projs[0].id;
+      if (!currentId || !fullList.some(p => p.id === currentId)) {
+        currentId = fullList[0].id!;
         setSelectedProjectId(currentId);
       }
 
-      const p = projs.find(pr => pr.id === currentId) || projs[0];
+      const p = fullList.find(pr => pr.id === currentId) || fullList[0];
       setProject(p);
       setName(p.name);
       setDescription(p.description);
@@ -241,6 +271,12 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
       setTrainingMaterial(updatedTraining);
     }
 
+    if (project?.id === 'futura_brand_vault') {
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+      return;
+    }
+
     // Auto-save immediately to Firestore if a project is loaded
     if (auth.currentUser && project?.id) {
       try {
@@ -280,6 +316,12 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
       setTrainingMaterial(updatedTraining);
     }
 
+    if (project?.id === 'futura_brand_vault') {
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+      return;
+    }
+
     // Auto-save immediately to Firestore if a project is loaded
     if (auth.currentUser && project?.id) {
       try {
@@ -301,8 +343,23 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth.currentUser) return;
     setIsSubmitting(true);
+
+    if (project?.id === 'futura_brand_vault') {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 3000);
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    if (!auth.currentUser) {
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const projectData = {

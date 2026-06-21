@@ -127,6 +127,26 @@ export default function App() {
   );
 }
 
+const virtualFuturaBrand: ProjectContext = {
+  id: 'futura_brand_vault',
+  name: 'FUTURA (Auto-Marketing SPE)',
+  description: 'Consultora Estratégica y Suite de IA Avanzada de Future Marketing Consult enfocada en el lema "Resultados sobre Estética". Es un robot pensante y generador de activos de alta conversión bajo la metodología SPE para dominar el mercado hispanohablante de infoproductores y agencias de marketing, capturando clientes listos para pagar.',
+  logos: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'],
+  trainingMaterial: [
+    'Mantra central: Resultados sobre Estética.',
+    'Metodología base: Sistema Pentagonal de Ejecución (SPE).',
+    'Gancho clave: Deja de crear contenido que solo le gusta a tu mamá y empieza a capturar clientes reales.',
+    'Paleta de diseño recomendada: Fucsia eléctrico, Violeta y Slate profundo con gran espacio negativo.',
+    'Enfoque promocional: Destrucción de fricciones de compra mediante la consultoría y la IA de nivel ultra-élite.'
+  ],
+  methodology: 'SPE',
+  brandGuidelines: {
+    primaryColor: '#BF5AF2',
+    secondaryColor: '#0A0A0C',
+    tone: 'Persuasivo brutal de alta conversión, de élite educadora y analítico pragmático'
+  }
+};
+
 function AppContent() {
   const { user, signIn } = useAuth();
   const [activeTab, setActiveTab] = useState('');
@@ -226,7 +246,10 @@ function AppContent() {
 
   // Subscribe to projects to have access to active brand details and style guidelines in the Hub & Advisor
   React.useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setProjectsList([virtualFuturaBrand]);
+      return;
+    }
 
     const q = query(
       collection(db, 'projects'),
@@ -235,9 +258,10 @@ function AppContent() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const projs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
-      setProjectsList(projs);
+      setProjectsList([virtualFuturaBrand, ...projs]);
     }, (err) => {
       console.error("Failed to fetch projects in Hub context:", err);
+      setProjectsList([virtualFuturaBrand]);
     });
 
     return () => unsubscribe();
@@ -999,9 +1023,13 @@ function AppContent() {
               {/* Mobile Menu Toggle */}
               <button 
                 onClick={() => setIsSidebarOpen(true)}
-                className="md:hidden p-3 bg-white/5 rounded-xl text-white"
+                className="md:hidden flex items-center gap-1 px-2.5 py-1.5 bg-brand-primary/10 hover:bg-brand-primary/20 border border-brand-primary/25 rounded-lg text-white transition-all active:scale-95 text-xs font-mono font-bold tracking-wider relative overflow-hidden group shadow-md"
               >
-                <Menu className="w-6 h-6" />
+                <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/10 via-purple-600/10 to-brand-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Menu className="w-3.5 h-3.5 text-brand-primary animate-pulse shrink-0" />
+                <span className="text-[8.5px] font-black uppercase text-brand-primary tracking-widest pl-0.5">MENÚ ☰</span>
+                <span className="absolute -top-0.5 -right-0.5 w-1 h-1 bg-brand-primary rounded-full animate-ping" />
+                <span className="absolute -top-0.5 -right-0.5 w-1 h-1 bg-brand-primary rounded-full" />
               </button>
               
               <div className="flex flex-col gap-1 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setActiveTab('')}>
@@ -1132,6 +1160,18 @@ function AppContent() {
           </div>
         </div>
       </main>
+
+      {/* Floating Mobile Navigation Button (FAB) for seamless guidance as users scroll */}
+      <div className="md:hidden fixed bottom-5 right-5 z-[99] pointer-events-none">
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="pointer-events-auto w-10 h-10 bg-gradient-to-r from-brand-primary to-purple-600 border border-brand-primary/40 rounded-full text-white shadow-xl active:scale-90 hover:scale-105 transition-all flex items-center justify-center relative overflow-hidden group shadow-brand-primary/20"
+          title="Abrir menú de módulos de FUTURA"
+        >
+          <Menu className="w-4 h-4 text-white animate-pulse" />
+          <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </button>
+      </div>
 
       {/* SPE PHASE DETAIL MODAL (Viewport root) */}
       <AnimatePresence>

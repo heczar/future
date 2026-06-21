@@ -64,7 +64,7 @@ service cloud.firestore {
       allow delete: if isOwner(existing().ownerId);
 
       function isValidSavedAsset(data) {
-        return data.imageUrl is string && data.imageUrl.size() <= 2000 &&
+        return data.imageUrl is string &&
                data.brandName is string && data.brandName.size() <= 100 &&
                data.strategy is string && data.strategy.size() <= 10000 &&
                data.format is string && data.format.size() <= 100 &&
@@ -84,6 +84,13 @@ service cloud.firestore {
     // 8. ADVISORIES (Asesorías y Anuncios de Configuración de la Administración)
     match /advisories/{advisoryId} {
       allow read, write: if isSignedIn();
+    }
+
+    // 9. FUTURA COMERCIAL DOCUMENTS
+    match /futura_comercial_docs/{docId} {
+      allow read: if isOwner(resource.data.ownerId);
+      allow create: if isOwner(incoming().ownerId);
+      allow update, delete: if isOwner(existing().ownerId);
     }
   }
 }

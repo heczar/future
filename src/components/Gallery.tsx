@@ -68,13 +68,74 @@ interface BrandVault {
   methodology?: string;
 }
 
+const defaultFuturaAssets: SavedAsset[] = [
+  {
+    id: 'fav_futura_1',
+    imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop',
+    brandName: 'FUTURA (Auto-Marketing SPE)',
+    format: 'Logotipo / Isotipo',
+    style: 'Cyber Slate Geometric',
+    strategy: 'Isotipo fucsia y negro de alta conversión. Representa el núcleo del Hub: Resultados sobre Estética.',
+    createdAt: { toDate: () => new Date() }
+  },
+  {
+    id: 'fav_futura_2',
+    imageUrl: 'https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=600&auto=format&fit=crop',
+    brandName: 'FUTURA (Auto-Marketing SPE)',
+    format: 'Campaña de Redes',
+    style: 'Neon Obsidian brutalista',
+    strategy: 'Portada oficial de video reels: "¿Likes o Nóminas?". Ataca la complacencia decorativa del feed de Instagram.',
+    createdAt: { toDate: () => new Date() }
+  },
+  {
+    id: 'fav_futura_3',
+    imageUrl: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=600&auto=format&fit=crop',
+    brandName: 'FUTURA (Auto-Marketing SPE)',
+    format: 'Visual Publicitario',
+    style: 'Obsidian Minimalist Abstract',
+    strategy: 'Inyección visual para anuncios de conversión. Concepto: "Tu competencia usa SPE; tú sigues editando tipografías en Canva".',
+    createdAt: { toDate: () => new Date() }
+  }
+];
+
+const defaultFuturaPublications: Publication[] = [
+  {
+    id: 'pub_futura_1',
+    title: 'Likes vs Nóminas: La Dura Realidad',
+    copy: '🚨 DEJA DE CREAR CONTENIDO QUE SÓLO LE GUSTA A TU MAMÁ.\n\nLos likes no pagan las nóminas. Las métricas de vanidad no sostienen un negocio.\n\nEn FUTURA operamos bajo un mantra único: Resultados sobre Estética.\n\nEscribe \"SPE\" abajo para auditar tu marca hoy. No hacemos arte, hacemos ingeniería de ventas.',
+    scheduledTime: new Date(Date.now() + 18000000).toISOString(),
+    channels: ['instagram', 'linkedin'],
+    imageUrl: 'https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=400&auto=format&fit=crop',
+    status: 'pending'
+  },
+  {
+    id: 'pub_futura_2',
+    title: '¿Qué es el Sistema SPE?',
+    copy: 'El Sistema Pentagonal de Ejecución (SPE) es el motor que rige la conversión masiva.\n\nFase 1: Enfoque Feroz (Identidad)\nFase 2: Embudo Automatizado\nFase 3: Distribución Multi-canal\n\n¿Estás listo para dejar el ego visual a un lado?',
+    scheduledTime: new Date(Date.now() - 36000000).toISOString(),
+    channels: ['linkedin', 'twitter'],
+    imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400&auto=format&fit=crop',
+    status: 'published'
+  }
+];
+
+const defaultFuturaBrands: BrandVault[] = [
+  {
+    id: 'futura_brand_vault',
+    name: 'FUTURA (Auto-Marketing SPE)',
+    description: 'Misión: Ser la suite de IA y consultora de conversión que domina el mercado hispano.\nMantra: Resultados sobre Estética. Conversión agresiva con copys destructores de objeciones.',
+    logos: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'],
+    methodology: 'SPE'
+  }
+];
+
 export default function Gallery() {
   const [activeTab, setActiveTab] = useState<'visuals' | 'publications' | 'brands'>('visuals');
   
   // Database States
-  const [assets, setAssets] = useState<SavedAsset[]>([]);
-  const [publications, setPublications] = useState<Publication[]>([]);
-  const [brands, setBrands] = useState<BrandVault[]>([]);
+  const [assets, setAssets] = useState<SavedAsset[]>(defaultFuturaAssets);
+  const [publications, setPublications] = useState<Publication[]>(defaultFuturaPublications);
+  const [brands, setBrands] = useState<BrandVault[]>(defaultFuturaBrands);
   
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -87,6 +148,9 @@ export default function Gallery() {
   // Real-Time Firebase Sinc
   useEffect(() => {
     if (!auth.currentUser) {
+      setAssets(defaultFuturaAssets);
+      setPublications(defaultFuturaPublications);
+      setBrands(defaultFuturaBrands);
       setLoading(false);
       return;
     }
@@ -102,11 +166,11 @@ export default function Gallery() {
 
     const unsubAssets = onSnapshot(assetsQuery, (snap) => {
       const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as SavedAsset));
-      setAssets(data);
+      setAssets([...defaultFuturaAssets, ...data]);
       setLoading(false);
     }, (err) => {
       console.error("Error Loading Saved Assets:", err);
-      // Fallback loaders avoid freezing
+      setAssets(defaultFuturaAssets);
       setLoading(false);
     });
 
@@ -118,11 +182,11 @@ export default function Gallery() {
 
     const unsubPubs = onSnapshot(pubsQuery, (snap) => {
       const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as Publication));
-      // Sort client-side so it handles string or timestamp gracefully
       data.sort((a, b) => new Date(b.scheduledTime).getTime() - new Date(a.scheduledTime).getTime());
-      setPublications(data);
+      setPublications([...defaultFuturaPublications, ...data]);
     }, (err) => {
       console.warn("Could not bind publications in gallery:", err);
+      setPublications(defaultFuturaPublications);
     });
 
     // 3. Brand Vault Query
@@ -133,9 +197,10 @@ export default function Gallery() {
 
     const unsubBrands = onSnapshot(brandsQuery, (snap) => {
       const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as BrandVault));
-      setBrands(data);
+      setBrands([...defaultFuturaBrands, ...data]);
     }, (err) => {
       console.warn("Could not bind brands in gallery:", err);
+      setBrands(defaultFuturaBrands);
     });
 
     return () => {

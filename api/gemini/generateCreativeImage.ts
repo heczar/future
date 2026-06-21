@@ -44,7 +44,9 @@ export default async function handler(req: any, res: any) {
 
     parts.push({ text: enhancedPrompt });
 
-    let response;
+    let response = null;
+    let quotaDetected = false;
+
     try {
       response = await getAiClient(customKey).models.generateContent({
         model,
@@ -56,18 +58,34 @@ export default async function handler(req: any, res: any) {
         },
       });
     } catch (modelErr: any) {
-      console.warn("Primary image model failed. Trying alternative model...", modelErr.message);
-      // Fallback model
-      response = await getAiClient(customKey).models.generateContent({
-        model: "gemini-3.1-flash-image",
-        contents: { parts },
-        config: {
-          imageConfig: {
-            aspectRatio: (aspectRatio || "1:1") as any,
-            imageSize: "1K"
-          },
-        },
-      });
+      const errStr = (modelErr?.message || "").toLowerCase();
+      if (errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit")) {
+        quotaDetected = true;
+        console.log("[FUTURA] Image model quota limit exceeded (429/RESOURCE_EXHAUSTED). Activating local design fallback.");
+      } else {
+        console.warn("[FUTURA] Primary image model failed. Trying alternative model...", modelErr.message || modelErr);
+        try {
+          // Fallback model
+          response = await getAiClient(customKey).models.generateContent({
+            model: "gemini-3.1-flash-image",
+            contents: { parts },
+            config: {
+              imageConfig: {
+                aspectRatio: (aspectRatio || "1:1") as any,
+                imageSize: "1K"
+              },
+            },
+          });
+        } catch (altErr: any) {
+          const altErrStr = (altErr?.message || "").toLowerCase();
+          if (altErrStr.includes("quota") || altErrStr.includes("429") || altErrStr.includes("exhausted") || altErrStr.includes("limit")) {
+            quotaDetected = true;
+            console.log("[FUTURA] Alternate image model quota limit exceeded. Activating local design fallback.");
+          } else {
+            console.warn("[FUTURA] Alternate image model failed too:", altErr.message || altErr);
+          }
+        }
+      }
     }
 
     let imageUrl: string | null = null;
@@ -80,14 +98,19 @@ export default async function handler(req: any, res: any) {
       }
     }
 
-    // Default elegant fallback if zero bytes found
-    if (!imageUrl) {
+    // Default elegant fallback if zero bytes found or quota was hit
+    if (!imageUrl || quotaDetected) {
       imageUrl = getContextualFallback(prompt);
     }
 
     return res.status(200).json({ imageUrl });
   } catch (error: any) {
-    console.error("Server Image Generation error. Responding with elegant placeholder...", error);
+    const errStr = (error?.message || "").toLowerCase();
+    if (errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit")) {
+      console.log("[FUTURA] Server Image Generation rate/quota limited. Responding with elegant design placeholder.");
+    } else {
+      console.log("[FUTURA] Server Image Generation exception. Serving elegant design placeholder.", error.message || error);
+    }
     const backupUrl = getContextualFallback(prompt);
     return res.status(200).json({ imageUrl: backupUrl });
   }
@@ -217,28 +240,84 @@ function getContextualFallback(promptText: string): string {
   // 2. IS IT AN IMAGE / BACKGROUND BACKDROP REQUEST?
   // Filter by tags to give beautiful high resolution Unsplash photos
   if (text.includes("dental") || text.includes("dentist") || text.includes("odontolog") || text.includes("dient") || text.includes("sonris")) {
-    return "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1000&auto=format&fit=crop&q=80"; // Luxury Dental clinic interior
+    const ids = [
+      "photo-1629909613654-28e377c37b09", // Luxury Dental clinic
+      "photo-1579684385127-1ef15d508118", // Dentist smiling
+      "photo-1598256989800-fe5f95da9787", // Modern clinic
+      "photo-1588776814546-1ffcf47267a5"  // Happy smile closeup
+    ];
+    const item = ids[Math.floor(Math.random() * ids.length)];
+    return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
   }
   if (text.includes("cafe") || text.includes("coffee") || text.includes("gourmet") || text.includes("cafeter")) {
-    return "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=1000&auto=format&fit=crop&q=80"; // Delicious organic pour coffee
+    const ids = [
+      "photo-1509042239860-f550ce710b93", // Pour coffee cup
+      "photo-1495474472287-4d71bcdd2085", // Ceramic cups table
+      "photo-1447933601403-0c6688de566e", // Dark roasted beans
+      "photo-1507133750040-4a8f57021571"  // Latte art
+    ];
+    const item = ids[Math.floor(Math.random() * ids.length)];
+    return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
   }
   if (text.includes("food") || text.includes("comid") || text.includes("restauran") || text.includes("hamburg") || text.includes("plat")) {
-    return "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1000&auto=format&fit=crop&q=80"; // Fine dining gourmet culinary setup
+    const ids = [
+      "photo-1565299624946-b28f40a0ae38", // Pizza gourmet
+      "photo-1546069901-ba9599a7e63c", // Salad bowl
+      "photo-1568901346375-23c9450c58cd", // Smash burger
+      "photo-1517248135467-4c7edcad34c4"  // Cozy restaurant
+    ];
+    const item = ids[Math.floor(Math.random() * ids.length)];
+    return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
   }
   if (text.includes("tech") || text.includes("software") || text.includes("comput") || text.includes("matrix") || text.includes("digital") || text.includes("ia") || text.includes("web") || text.includes("code")) {
-    return "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1000&auto=format&fit=crop&q=80"; // Scientific cyan network overlay background
+    const ids = [
+      "photo-1451187580459-43490279c0fa", // Cyber satellite sphere
+      "photo-1518770660439-4636190af475", // Circuit mother board
+      "photo-1526374965328-7f61d4dc18c5", // Coding screen cyan
+      "photo-1488590528505-98d2b5aba04b"  // Modern development desk
+    ];
+    const item = ids[Math.floor(Math.random() * ids.length)];
+    return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
   }
   if (text.includes("belleza") || text.includes("spa") || text.includes("cosmetic") || text.includes("piel") || text.includes("beauty") || text.includes("estetic") || text.includes("masaje")) {
-    return "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000&auto=format&fit=crop&q=80"; // Clean tranquil bamboo spa stones background
+    const ids = [
+      "photo-1540555700478-4be289fbecef", // Bamboo stones spa
+      "photo-1512290923902-8a9f81da236c", // Serum cosmetic drops
+      "photo-1608248597279-f99d160bfcbc", // Luxury cosmetic bottles
+      "photo-1515377905703-c4788e51af15"  // Peaceful spa treatment
+    ];
+    const item = ids[Math.floor(Math.random() * ids.length)];
+    return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
   }
   if (text.includes("house") || text.includes("inmobil") || text.includes("arquitectur") || text.includes("hogar") || text.includes("apartamento") || text.includes("diseño") || text.includes("interi")) {
-    return "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1000&auto=format&fit=crop&q=80"; // Luxury modern minimalist architecture house
+    const ids = [
+      "photo-1600585154340-be6161a56a0c", // Contemporary villa exterior
+      "photo-1600607687939-ce8a6c25118c", // Minimalist interior suite
+      "photo-1613490493576-7fde63acd811", // Luxury modern pool villa
+      "photo-1580587771525-78b9dba3b914"  // Beautiful premium residence
+    ];
+    const item = ids[Math.floor(Math.random() * ids.length)];
+    return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
   }
   if (text.includes("fitness") || text.includes("gimnas") || text.includes("fit") || text.includes("sport") || text.includes("entrenamien") || text.includes("fuerz")) {
-    return "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=1000&auto=format&fit=crop&q=80"; // Cozy high prestige design gym
+    const ids = [
+      "photo-1517838277536-f5f99be501cd", // Dumbbells closer rack
+      "photo-1534438327276-14e5300c3a48", // Clean fitness arena
+      "photo-1583454110551-21f2fa2afe61", // Runner sprint track
+      "photo-1518622358385-8ea7d0794bf6"  // Zen fitness sunset yoga
+    ];
+    const item = ids[Math.floor(Math.random() * ids.length)];
+    return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
   }
 
-  // default fallback is a high class professional abstract dark slate image
-  return "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&auto=format&fit=crop&q=80";
+  // default fallback: a sophisticated high-end abstract design
+  const defaultIds = [
+    "photo-1618005182384-a83a8bd57fbe", // Fluid elegant black/slate
+    "photo-1634017839464-5c339ebe3cb4", // Glassmorphism bright gradient
+    "photo-1550684848-fac1c5b4e853", // Marble smooth texture
+    "photo-1507525428034-b723cf961d3e"  // Clean organic oceanic vista
+  ];
+  const defaultItem = defaultIds[Math.floor(Math.random() * defaultIds.length)];
+  return `https://images.unsplash.com/photo-${defaultItem}?w=1000&auto=format&fit=crop&q=80`;
 }
 

@@ -54,8 +54,8 @@ export default function FuturaHub({
 
   // Content generator state
   const [businessIdea, setBusinessIdea] = useState('');
-  const [activeGenerationType, setActiveGenerationType] = useState<'adn' | 'target' | 'pillars' | 'tagline' | 'creative_seed' | 'logo_generation' | 'all' | null>(null);
-  const [selectedType, setSelectedType] = useState<'all' | 'adn' | 'target' | 'tagline' | 'pillars' | 'creative_seed' | 'logo_generation'>('all');
+  const [activeGenerationType, setActiveGenerationType] = useState<'free' | 'adn' | 'target' | 'pillars' | 'tagline' | 'creative_seed' | 'logo_generation' | 'all' | null>(null);
+  const [selectedType, setSelectedType] = useState<'free' | 'all' | 'adn' | 'target' | 'tagline' | 'pillars' | 'creative_seed' | 'logo_generation'>('free');
   const [generatedResult, setGeneratedResult] = useState('');
   const [generatedSections, setGeneratedSections] = useState<Record<string, string> | null>(null);
   const [activeResultTab, setActiveResultTab] = useState<string>('all');
@@ -76,6 +76,10 @@ export default function FuturaHub({
   const [selectedBrandId, setSelectedBrandId] = useState('');
   const [isSavingToBrand, setIsSavingToBrand] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  // Feedback iteration states
+  const [feedbackInput, setFeedbackInput] = useState('');
+  const [isRefining, setIsRefining] = useState(false);
 
   // Auto-fill selected brand if any exists
   useEffect(() => {
@@ -214,7 +218,7 @@ Ejemplo de formato esperado:
   };
 
    // Generate "Blueprint de Marca" (Seed brand strategy)
-  const handleGenerateMotherContent = async (type: 'adn' | 'target' | 'pillars' | 'tagline' | 'creative_seed' | 'logo_generation' | 'all') => {
+  const handleGenerateMotherContent = async (type: 'free' | 'adn' | 'target' | 'pillars' | 'tagline' | 'creative_seed' | 'logo_generation' | 'all') => {
     if (!businessIdea.trim() || isGenerating) return;
     
     setActiveGenerationType(type);
@@ -227,7 +231,15 @@ Ejemplo de formato esperado:
     setActiveResultTab('all');
 
     let customPrompt = '';
-    if (type === 'all') {
+    if (type === 'free') {
+      customPrompt = `[SISTEMA: CONSULTA ESTRATÉGICA ADAPTATIVA CON FUTURA]
+Eres FUTURA, la mente maestra estratégica y estratega de marca de nivel élite. El usuario ha escrito la siguiente consulta, idea comercial o requerimiento estratégico especial:
+
+"${businessIdea}"
+
+Por favor, analízala con un estándar de excelencia implacable aplicando las mejores prácticas y principios del SPE (Sistema de Posicionamiento Estratégico).
+Proporciona una respuesta extremadamente estructurada en Markdown de alta visibilidad, con análisis crítico, sugerencias pragmáticas y un plan de acción realizable inmediatamente. Responda directamente a lo requerido o sugerido por el usuario sin apegarte obligatoriamente a esquemas fijos de Misión/Visión si la consulta es específica.`;
+    } else if (type === 'all') {
       customPrompt = `[SISTEMA: GENERACIÓN UNIFICADA DE BLUEPRINT ESTRATÉGICO]
 Eres FUTURA, la mente maestra estratégica de la suite de mercadeo élite de Future Marketing Consult. Genera el Blueprint de Marca y la Estrategia Fundacional Core para la idea de negocio/proyecto del usuario: "${businessIdea}".
 Sigue estrictamente la filosofía y metodología del SPE (Sistema de Posicionamiento Estratégico), priorizando la persuasión real y los resultados pragmáticos sobre estética superficial.
@@ -471,6 +483,11 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${businessIdea}, extremely simple 
     setLogoSaveStatus('idle');
 
     try {
+      if (selectedBrandId === 'futura_brand_vault') {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setLogoSaveStatus('success');
+        return;
+      }
       const brandDoc = doc(db, 'projects', selectedBrandId);
       const currentBrand = projectsList.find(p => p.id === selectedBrandId);
       if (!currentBrand) throw new Error("Marca no encontrada");
@@ -504,6 +521,11 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${businessIdea}, extremely simple 
     setSaveStatus('idle');
 
     try {
+      if (selectedBrandId === 'futura_brand_vault') {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setSaveStatus('success');
+        return;
+      }
       const brandDoc = doc(db, 'projects', selectedBrandId);
       
       // Get selected brand
@@ -537,53 +559,679 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${businessIdea}, extremely simple 
     setActiveTab('engine');
   };
 
+  const handleSendFeedback = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const instruction = feedbackInput.trim();
+    if (!instruction || isRefining || !generatedResult) return;
+
+    setIsRefining(true);
+    setFeedbackInput('');
+
+    const refinePrompt = `[SISTEMA: REFINAMIENTO DE BLUEPRINT DE MARCA CON FUTURA]
+Eres FUTURA, la agente de inteligencia artificial estratega de marca élite. Contamos con este Blueprint generado previamente:
+
+${generatedResult}
+
+El usuario ha recibido este material y desea que lo perfecciones, adaptes o pulas aplicando las siguientes indicaciones de retroalimentación:
+"${instruction}"
+
+Por favor, redefine y actualiza el Blueprint completo o las secciones afectadas aplicando esta instrucción con rigor profesional y manteniendo la excelencia SPE.
+Conserva las marcas divisoras como ===SECCION_ADN===, ===SECCION_TARGET===, ===SECCION_TAGLINE===, ===SECCION_PILARES===, ===SECCION_CREATIVO===, ===SECCION_LOGOTIPO=== idénticas si existen en el original para no romper la segmentación de la interfaz del usuario.
+Retorna el Blueprint completo optimizado de inicio a fin.`;
+
+    try {
+      const resp = await chatWithAdvisor(refinePrompt, [], "Nueva Marca");
+      setGeneratedResult(resp);
+
+      // Save segmented sections if generated all or existing sections
+      const sections: Record<string, string> = {
+        adn: '',
+        target: '',
+        tagline: '',
+        pillars: '',
+        creative_seed: '',
+        logo_generation: ''
+      };
+
+      const allHeaders = [
+        '===SECCION_ADN===',
+        '===SECCION_TARGET===',
+        '===SECCION_TAGLINE===',
+        '===SECCION_PILARES===',
+        '===SECCION_CREATIVO===',
+        '===SECCION_LOGOTIPO==='
+      ];
+
+      const extractSegment = (text: string, currentHeader: string, nextHeaders: string[]) => {
+        const index = text.indexOf(currentHeader);
+        if (index !== -1) {
+          let segment = text.slice(index + currentHeader.length);
+          let earliestNextIndex = segment.length;
+          nextHeaders.forEach(header => {
+            if (header !== currentHeader) {
+              const nextIndex = segment.indexOf(header);
+              if (nextIndex !== -1 && nextIndex < earliestNextIndex) {
+                earliestNextIndex = nextIndex;
+              }
+            }
+          });
+          return segment.slice(0, earliestNextIndex).trim();
+        }
+        return '';
+      };
+
+      sections.adn = extractSegment(resp, '===SECCION_ADN===', allHeaders);
+      sections.target = extractSegment(resp, '===SECCION_TARGET===', allHeaders);
+      sections.tagline = extractSegment(resp, '===SECCION_TAGLINE===', allHeaders);
+      sections.pillars = extractSegment(resp, '===SECCION_PILARES===', allHeaders);
+      sections.creative_seed = extractSegment(resp, '===SECCION_CREATIVO===', allHeaders);
+      sections.logo_generation = extractSegment(resp, '===SECCION_LOGOTIPO===', allHeaders);
+
+      if (!sections.adn && !sections.target && !sections.tagline) {
+        sections.adn = resp;
+      }
+
+      setGeneratedSections(sections);
+    } catch (err: any) {
+      console.error("[REFINAMIENTO] Error refinando resultado:", err);
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
   return (
-    <div className="space-y-12 max-w-[1600px] mx-auto pb-32 text-left">
+    <div className="space-y-8 max-w-[1200px] mx-auto pb-32 text-left">
       <header className="space-y-2">
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-primary/10 border border-brand-primary/20 rounded-full text-[10px] font-black font-mono text-brand-primary uppercase tracking-widest">
           <Brain className="w-3.5 h-3.5 animate-pulse text-brand-primary" />
-          FUTURA AI HUB & BRAND BLUEPRINTS
+          FUTURA • AGENTE DE INTELIGENCIA ESTRATÉGICA
         </div>
         <h1 className="text-3xl md:text-5xl font-display font-black text-white tracking-tight leading-tight">
-          FUTURA <span className="text-brand-primary">COCKPIT</span>
+          FUTURA
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 max-w-3xl leading-relaxed">
-          Diseña el material de origen para tu marca. El **Cockpit de FUTURA** te permite simular consultas estratégicas continuas y estructurar tu **Blueprint Estratégico Core** fundacional para alimentar el Motor Creativo de forma sistemática.
+          Diseña el material de origen para tu marca con **FUTURA**, tu estratega personal y agente de inteligencia artificial de nivel élite. Ella simula consultas estratégicas complejas, diseña tu Blueprint de Marca fundacional y audita tus conceptos comerciales al instante.
         </p>
       </header>
 
-      {/* Trust, Security, and Brand Integrity Assurance Center (Manoeuvre 2 - Resolviendo fugas de confianza) */}
+      {/* Main Single Column Consolidated Workspace Console */}
+      <div className="space-y-8">
+        
+        {/* Consolidated Workspace Panel */}
+        <div className="glass-panel border border-white/5 rounded-3xl bg-surface-950/40 p-6 md:p-8 space-y-6">
+          
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-brand-primary">
+              <Compass className="w-5 h-5 animate-pulse" />
+              <h3 className="text-lg font-bold text-white uppercase tracking-wider">CONSOLA INTEGRADA DE ACCIÓN</h3>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-normal">
+              Escribe tus conceptos de marca, ideas comerciales o preguntas libres tácticas en el panel inferior. Puedes elegir uno de los atajos sugeridos para guiar el formato o dejarlo libre para una respuesta adaptativa al instante.
+            </p>
+          </div>
+
+          {/* Core Input Text Area */}
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-2">
+              <label className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-widest block">
+                ¿Qué deseas desarrollar, crear o consultar hoy con FUTURA?
+              </label>
+              <div className="flex flex-wrap gap-1.5 items-center">
+                <span className="text-[8px] font-mono text-slate-500 font-extrabold uppercase">🤖 CARGAR EJEMPLO:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBusinessIdea("FUTURA (Auto-Marketing SPE) - Consultora de nivel ultra-élite y Suite de IA optimizada bajo la metodología exclusiva SPE. Prioriza 'Resultados sobre Estética' y destruye la autocomplacencia creativa de las agencias tradicionales para capturar clientes reales en el mercado hispano.");
+                    setChatInput("FUTURA (Auto-Marketing SPE) - Consultora de nivel ultra-élite y Suite de IA optimizada bajo la metodología exclusiva SPE. Prioriza 'Resultados sobre Estética' y destruye la autocomplacencia creativa de las agencias tradicionales para capturar clientes reales en el mercado hispano.");
+                  }}
+                  className="px-2 py-1 bg-brand-primary/10 hover:bg-brand-primary/20 border border-brand-primary/40 text-[9px] font-bold text-white rounded-lg transition-all cursor-pointer hover:scale-[1.03]"
+                  title="Cargar la marca FUTURA como sujeto modelo"
+                >
+                  🔥 FUTURA (SPE)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBusinessIdea("Café Santo Origen - Marca premium de café orgánico gourmet tostado artesanalmente directo de fincas andinas, enfocado en profesionales hiper-ocupados que buscan sabor extraordinario y energía limpia.");
+                    setChatInput("Café Santo Origen - Marca premium de café orgánico gourmet tostado artesanalmente directo de fincas andinas, enfocado en profesionales hiper-ocupados que buscan sabor extraordinario y energía limpia.");
+                  }}
+                  className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 text-[9px] text-slate-300 rounded-lg transition-all cursor-pointer hover:scale-[1.02]"
+                >
+                  ☕ Café Premium
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBusinessIdea("Clínica de Estética Médica Elite - Tratamientos rejuvenecedores no invasivos de alta gama respaldados por biotecnología alemana, dirigidos a directores y empresarios ocupados.");
+                    setChatInput("Clínica de Estética Médica Elite - Tratamientos rejuvenecedores no invasivos de alta gama respaldados por biotecnología alemana, dirigidos a directores y empresarios ocupados.");
+                  }}
+                  className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 text-[9px] text-slate-300 rounded-lg transition-all cursor-pointer hover:scale-[1.02]"
+                >
+                  ✨ Clínica Médica Elegante
+                </button>
+              </div>
+            </div>
+            <textarea
+              value={businessIdea}
+              onChange={(e) => {
+                setBusinessIdea(e.target.value);
+                setChatInput(e.target.value);
+              }}
+              placeholder="Ejemplo: 'Tengo una marca de postres saludables keto... ¿cómo puedo posicionar mi marca?' para consultar algo conceptual, o haz clic en los botones de ejemplo arriba para pre-cargar la marca FUTURA o nichos listos para el SPE..."
+              rows={5}
+              className="w-full bg-[#090909] border border-white/10 rounded-xl p-4 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-brand-primary/50 transition-colors resize-none leading-relaxed"
+            />
+            <div className="flex justify-between items-center text-[10px] text-slate-500 font-mono">
+              <span>Escribe tu idea de marca, pregunta libre, o campaña para procesar.</span>
+              <span>{businessIdea.length} caracteres</span>
+            </div>
+          </div>
+
+          {/* Unified Formats Selection - Compact and Optional */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-widest block">
+                Atajos de Formato Especializado (Opcional):
+              </label>
+              {selectedType !== 'free' &&
+                <button 
+                  type="button"
+                  onClick={() => setSelectedType('free')}
+                  className="text-[9px] font-mono text-brand-primary hover:underline transition-colors uppercase font-bold"
+                >
+                  Restablecer a Consulta Libre ×
+                </button>
+              }
+            </div>
+            
+            <div className="flex flex-wrap gap-2">
+              {[
+                { id: 'free' as const, label: '✨ Consulta Libre / Respuesta Adaptativa', icon: MessageSquare },
+                { id: 'all' as const, label: '⚡ Blueprint Completo SPE', icon: Layers },
+                { id: 'adn' as const, label: '🧬 ADN de la Marca', icon: Brain },
+                { id: 'target' as const, label: '👥 Cliente Ideal (Avatar)', icon: UserCheck },
+                { id: 'tagline' as const, label: '🏹 Slogans & Elevator Pitch', icon: Zap },
+                { id: 'pillars' as const, label: '📅 Pilares de Publicación', icon: Megaphone },
+                { id: 'creative_seed' as const, label: '🎨 Concepto de Arte & Prompts', icon: Sparkles },
+                { id: 'logo_generation' as const, label: '💎 Identidad & Isotipo', icon: Palette }
+              ].map((item) => {
+                const Icon = item.icon;
+                const isSelected = selectedType === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setSelectedType(item.id)}
+                    className={cn(
+                      "px-3 py-2 rounded-xl border text-[10px] font-bold transition-all duration-150 cursor-pointer flex items-center gap-2",
+                      isSelected
+                        ? "bg-brand-primary/10 border-brand-primary/60 text-white shadow-md shadow-brand-primary/10 ring-1 ring-brand-primary/20"
+                        : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10 hover:bg-white/10"
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5 mt-px shrink-0" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+ 
+          {/* Cohesive Action Buttons with intuitive flow */}
+          <div className="pt-2 border-t border-white/5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              
+              <button
+                type="button"
+                onClick={() => handleGenerateMotherContent(selectedType)}
+                disabled={!businessIdea.trim() || isGenerating || isAnalyzing || isChatLoading}
+                className="py-3.5 px-6 bg-gradient-to-r from-brand-primary to-purple-600 hover:opacity-95 disabled:from-neutral-900 disabled:to-neutral-950 disabled:opacity-40 disabled:text-slate-600 text-white font-black text-[11px] uppercase tracking-widest rounded-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-primary/15 group"
+              >
+                {isGenerating ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                ) : (
+                  <Brain className="w-4 h-4 text-white animate-pulse group-hover:scale-110 transition-transform" />
+                )}
+                {isGenerating 
+                  ? 'Sintetizando Propuesta...' 
+                  : selectedType === 'free' 
+                    ? '⚡ ENVIAR CONSULTA A FUTURA' 
+                    : `⚡ GENERAR ${selectedType === 'all' ? 'BLUEPRINT COMPLETO' : 'SECCIÓN DE MARCA'}`
+                }
+              </button>
+ 
+              <button
+                type="button"
+                onClick={handlePerformBrandAnalysis}
+                disabled={!businessIdea.trim() || isGenerating || isAnalyzing || isChatLoading}
+                className="py-3.5 px-5 bg-[#0e0e0e] hover:bg-[#151515] border border-white/10 hover:border-brand-primary/25 disabled:opacity-40 text-white font-mono font-black text-[10px] uppercase tracking-widest rounded-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                title="Ejecutar Diagnóstico del Espectro SPE"
+              >
+                {isAnalyzing ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-brand-secondary animate-pulse" />
+                ) : (
+                  <Compass className="w-4 h-4 text-brand-secondary" />
+                )}
+                {isAnalyzing ? 'Auditando...' : '🔍 AUDITAR FACTIBILIDAD SPE COMPLETA'}
+              </button>
+ 
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+        {/* RESULTS DISCO / ARENA CONTAINER */}
+        <div className="space-y-6">
+
+          {/* 1. If Generating / Loading */}
+          {isGenerating &&
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="p-12 bg-brand-primary/5 border border-brand-primary/10 rounded-3xl flex flex-col items-center justify-center text-center space-y-4"
+            >
+              <Loader2 className="w-10 h-10 animate-spin text-brand-primary" />
+              <div className="space-y-1">
+                <p className="text-white text-xs font-black uppercase tracking-widest animate-pulse">Sintetizando Blueprint de Marca Core...</p>
+                <p className="text-[10px] text-slate-400 max-w-sm leading-relaxed">
+                  FUTURA se encuentra formateando y estructurando tus piezas base para conectarlas directamente con el Motor Creativo bajo directrices del SPE.
+                </p>
+              </div>
+            </motion.div>
+          }
+
+          {/* 2. Chat Conversation Arena */}
+          {chatMessages.length > 0 &&
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass-panel border border-white/5 rounded-3xl bg-surface-950/40 p-6 space-y-4 text-left"
+            >
+              <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-brand-primary/15 border border-brand-primary/20 text-brand-primary">
+                    <MessageSquare className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-white uppercase tracking-wider">Historial de Consulta en Vivo</h4>
+                    <p className="text-[9px] text-slate-500">Conversación estratégica privada directa con FUTURA</p>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => setChatMessages([])}
+                  className="px-2.5 py-1.5 text-[9px] font-mono text-zinc-500 hover:text-white border border-white/5 hover:border-white/10 rounded-lg transition-colors cursor-pointer"
+                >
+                  LIMPIAR HISTORIAL
+                </button>
+              </div>
+
+              {/* Chat Stream */}
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin text-xs">
+                {chatMessages.map((msg, idx) => (
+                  <div 
+                    key={idx}
+                    className={cn(
+                      "p-4 rounded-2xl max-w-[85%] transition-all leading-relaxed",
+                      msg.role === 'user'
+                        ? "bg-brand-primary/10 border border-brand-primary/20 text-white ml-auto rounded-tr-none text-right"
+                        : "bg-white/5 border border-white/5 text-slate-300 mr-auto rounded-tl-none text-left prose prose-invert prose-xs"
+                    )}
+                  >
+                    {msg.role === 'model' ? (
+                      <div className="whitespace-pre-line leading-relaxed tracking-wide font-sans p-0.5">
+                        {msg.text}
+                      </div>
+                    ) : (
+                      msg.text
+                    )}
+                  </div>
+                ))}
+
+                {isChatLoading &&
+                  <div className="bg-white/5 border border-white/5 text-slate-400 mr-auto rounded-tl-none p-4 rounded-2xl max-w-[80%] flex items-center gap-3 animate-pulse">
+                    <Loader2 className="w-4 h-4 animate-spin text-brand-primary" strokeWidth={3} />
+                    <div className="flex flex-col gap-0.5 text-left">
+                      <span className="text-[10px] text-brand-primary uppercase tracking-[0.2em] font-black font-sans">Escribiendo...</span>
+                      <span className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Generando respuesta estratégica</span>
+                    </div>
+                  </div>
+                }
+                <div ref={scrollRef} />
+              </div>
+
+              {/* Instant Chat Follow up box */}
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendMessage();
+                }}
+                className="flex gap-2 pt-4 border-t border-white/5"
+              >
+                <input
+                  type="text"
+                  placeholder="Escribe tu siguiente pregunta o instrucción de seguimiento..."
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  className="flex-1 bg-[#090909] border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary/40 transition-colors"
+                />
+                <button
+                  type="submit"
+                  disabled={!chatInput.trim() || isChatLoading}
+                  className="p-3 bg-brand-primary hover:bg-brand-primary/85 disabled:opacity-40 text-white rounded-xl transition-all cursor-pointer flex items-center justify-center shrink-0"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+            </motion.div>
+          }
+
+          {/* 3. Blueprint Strategic Results Viewer Area */}
+          {generatedResult && !isGenerating &&
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass-panel border border-white/5 rounded-3xl bg-surface-950/30 p-6 md:p-8 space-y-6"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-zinc-900/60 border border-white/5 px-4 py-3.5 rounded-2xl gap-3 text-left">
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-brand-primary animate-pulse" />
+                  <span className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-widest">BLUEPRINT CORE GENERADO POR FUTURA</span>
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    const textToCopy = activeResultTab === 'all' ? generatedResult : (generatedSections?.[activeResultTab] || generatedResult);
+                    navigator.clipboard.writeText(textToCopy);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="p-2 bg-white/5 border border-white/5 hover:bg-neutral-800 transition-all rounded-lg text-slate-400 hover:text-white cursor-pointer text-xs flex items-center gap-2 self-start sm:self-auto"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span className="text-[9px] font-black uppercase font-mono tracking-wider">
+                    {copied ? '¡Copiado!' : activeResultTab === 'all' ? 'Copiar Todo' : 'Copiar Sección'}
+                  </span>
+                </button>
+              </div>
+
+              {/* Tabbed deck of segments */}
+              {generatedSections &&
+                <div className="flex flex-wrap gap-1.5 p-1 bg-[#090909] border border-white/5 rounded-2xl overflow-x-auto scrollbar-none">
+                  {[
+                    { key: 'all', label: 'Plan Completo', icon: Layers },
+                    { key: 'adn', label: 'Estructura ADN', icon: Brain },
+                    { key: 'target', label: 'Cliente Ideal', icon: UserCheck },
+                    { key: 'tagline', label: 'Slogans / Pitch', icon: Zap },
+                    { key: 'pillars', label: 'Pilares Editoriales', icon: Megaphone },
+                    { key: 'creative_seed', label: 'Concepto Visual', icon: Sparkles },
+                  ].map((tab) => {
+                    const TabIcon = tab.icon;
+                    const isActive = activeResultTab === tab.key;
+                    return (
+                      <button
+                        key={tab.key}
+                        onClick={() => setActiveResultTab(tab.key)}
+                        className={cn(
+                          "px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap",
+                          isActive 
+                            ? "bg-brand-primary text-white shadow-md shadow-brand-primary/10" 
+                            : "text-slate-400 hover:text-white hover:bg-white/5"
+                        )}
+                      >
+                        <TabIcon className="w-3 h-3" />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              }
+
+              {/* Preformatted Output Textbox */}
+              <div className="bg-[#030303] border border-white/5 p-6 rounded-3xl max-h-[450px] overflow-y-auto font-sans leading-relaxed text-xs text-slate-300 space-y-4 text-left scrollbar-thin">
+                <div className="prose prose-invert prose-xs whitespace-pre-line text-left">
+                  {activeResultTab === 'all' 
+                    ? generatedResult 
+                    : (generatedSections?.[activeResultTab] || "Visualiza la sección seleccionada desde el menú superior.")}
+                </div>
+              </div>
+
+              {/* Generated Logo card section */}
+              {(activeGenerationType === 'logo_generation' || (activeGenerationType === 'all' && generatedLogoUrl)) &&
+                <div className="bg-zinc-950/60 border border-white/5 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6">
+                  <div className="w-40 h-40 rounded-2xl border border-white/15 bg-[#050505] overflow-hidden flex items-center justify-center shrink-0 relative group shadow-2xl">
+                    {generatedLogoUrl ? (
+                      <img 
+                        src={generatedLogoUrl} 
+                        alt="Logotipo Generado" 
+                        className="w-full h-full object-contain"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
+                        <Loader2 className="w-6 h-6 animate-spin text-brand-primary" />
+                        <span className="text-[9px] font-mono uppercase text-slate-500 animate-pulse">Renderizando logo...</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-3 text-left">
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-mono font-black text-brand-primary uppercase tracking-widest block">IDENTIDAD RENDERIZADA</span>
+                      <h4 className="text-sm font-semibold text-white">Logotipo Vectorial de Alta Fidelidad</h4>
+                      <p className="text-[10px] text-slate-400 leading-normal">
+                        Este logotipo ha sido concebido bajo conceptos de geometría sagrada y pragmatismo del SPE. Úsalo como logotipo oficial en tus publicaciones del Motor Creativo.
+                      </p>
+                    </div>
+
+                    {generatedLogoUrl && projectsList.length > 0 &&
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <button
+                          onClick={handleSaveLogoToBrand}
+                          disabled={isSavingLogo}
+                          className="bg-brand-primary hover:bg-brand-primary/80 disabled:opacity-50 text-white font-semibold text-[10px] uppercase tracking-wider px-4 py-2.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-1.5"
+                        >
+                          {isSavingLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FolderPlus className="w-3.5 h-3.5" />}
+                          GUARDAR LOGO EN BÓVEDA DE MARCA
+                        </button>
+                        {logoSaveStatus === 'success' && <span className="text-[10px] text-emerald-400 font-bold">✓ ¡Logo guardado!</span>}
+                        {logoSaveStatus === 'error' && <span className="text-[10px] text-red-400 font-bold">⚠️ Error</span>}
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              {/* INTEGRATED INTERACTIVE FEEDBACK AND ITERATION PANEL */}
+              <div className="p-5 bg-neutral-900/60 border border-brand-primary/20 rounded-2xl space-y-4 text-left">
+                <div className="flex items-center gap-2 text-brand-primary">
+                  <Brain className="w-4 h-4 text-brand-primary animate-pulse" />
+                  <span className="text-[10px] font-mono font-black uppercase tracking-widest">RESPUESTA Y RETROALIMENTACIÓN DE MATERIAL EN VIVO</span>
+                </div>
+                <p className="text-[10px] text-slate-400 leading-normal font-sans">
+                  ¿Deseas corregir un tono, agregar un nuevo público objetivo o pulir los slogans? Escribe tus ajustes aquí y FUTURA modificará y regenerará el Blueprint estratégico completo alineado a tus instrucciones.
+                </p>
+
+                <form onSubmit={handleSendFeedback} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={feedbackInput}
+                    onChange={(e) => setFeedbackInput(e.target.value)}
+                    placeholder="Ejemplo: 'Haz que el tono sea más informal y agresivo' o 'Mejora la propuesta de valor añadiendo más enfoque en...'"
+                    className="flex-1 bg-black border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-brand-primary/50 transition-colors"
+                    disabled={isRefining}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!feedbackInput.trim() || isRefining}
+                    className="px-4 py-2.5 bg-brand-primary hover:bg-brand-primary/85 disabled:opacity-40 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+                  >
+                    {isRefining ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                    {isRefining ? 'PROCESANDO...' : 'REFINAR BLUEPRINT'}
+                  </button>
+                </form>
+              </div>
+
+              {/* Seamless Action Integrations */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                
+                {/* Brand Selector for Saving ADN */}
+                {projectsList.length > 0 &&
+                  <div className="glass-panel border border-white/5 p-4 rounded-2xl bg-[#090909] flex flex-col justify-between space-y-3">
+                    <div className="space-y-1">
+                      <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-wider block">NÚCLEO BASE</span>
+                      <h4 className="text-[11px] font-bold text-white uppercase tracking-wider">Vincular a Baúl de Marca</h4>
+                      <p className="text-[9px] text-slate-400 leading-normal">
+                        Inyecta este ADN directamente en la descripción de la marca seleccionada en tu Baúl.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 w-full">
+                      <select
+                        value={selectedBrandId}
+                        onChange={(e) => setSelectedBrandId(e.target.value)}
+                        className="flex-1 bg-black border border-white/10 text-[10px] text-white px-2.5 py-2 rounded-xl focus:outline-none uppercase font-bold"
+                      >
+                        {projectsList.map(proj => (
+                          <option key={proj.id} value={proj.id}>{proj.name}</option>
+                        ))}
+                      </select>
+
+                      <button
+                        onClick={handleSaveToBrand}
+                        disabled={isSavingToBrand}
+                        className="px-4 py-2 bg-white hover:bg-slate-100 disabled:opacity-40 text-black font-semibold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                      >
+                        {isSavingToBrand ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FolderPlus className="w-3.5 h-3.5" />}
+                        SINCRO CORE
+                      </button>
+                    </div>
+
+                    {saveStatus === 'success' && <p className="text-[9px] text-emerald-400 font-bold">✓ ¡Inyectado con éxito en el Baúl!</p>}
+                    {saveStatus === 'error' && <p className="text-[9px] text-red-400 font-bold">⚠️ Error de conexión.</p>}
+                  </div>
+                }
+
+                {/* Option B: Open inside Creative Engine */}
+                <div className="glass-panel border border-white/5 p-4 rounded-2xl bg-[#090909] flex flex-col justify-between space-y-3">
+                  <div className="space-y-1">
+                    <span className="text-[8px] font-mono font-black text-brand-secondary uppercase tracking-wider block">MOTOR DE GENERACIÓN</span>
+                    <h4 className="text-[11px] font-bold text-white uppercase tracking-wider">Usar en Motor Creativo</h4>
+                    <p className="text-[9px] text-slate-400 leading-normal">
+                      Carga este lote en la cola de generación y salta directo al diseño de publicaciones.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleUseInCreativeEngine}
+                    className="w-full py-2.5 bg-brand-primary hover:bg-brand-primary/80 text-white font-mono font-black text-[10px] uppercase tracking-widest rounded-xl transition-all hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-primary/10"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-white" />
+                    LANZAR MOTOR DE CONVERSIÓN
+                  </button>
+                </div>
+
+              </div>
+
+            </motion.div>
+          }
+
+          {/* 4. SPE Positioning Diagnostic Output (PLACED AT THE VERY END AS REQUESTED) */}
+          {brandAnalysis && !isGenerating &&
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-6 bg-[#09090a]/80 border border-white/5 rounded-3xl space-y-5 text-left"
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                <div className="space-y-1 text-left">
+                  <span className="text-[8px] font-mono font-black text-brand-secondary uppercase tracking-widest block">AUDITORÍA DE FACTIBILIDAD Y COHERENCIA DE MARCA (VERIFICACIÓN ANALÍTICA)</span>
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Análisis Metódico de Posicionamiento SPE</h4>
+                </div>
+                <div className="flex items-center gap-2 bg-black/40 border border-white/10 px-3 py-2 rounded-2xl">
+                  <span className="text-[10px] font-mono text-slate-400 font-bold">Puntaje Global:</span>
+                  <span className={cn(
+                    "text-sm font-mono font-black",
+                    brandAnalysis.globalScore >= 80 ? "text-emerald-400" : brandAnalysis.globalScore >= 60 ? "text-amber-400" : "text-rose-400"
+                  )}>{brandAnalysis.globalScore}/100</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {brandAnalysis.pillars.map((pillar, idx) => (
+                  <div key={idx} className="space-y-1.5 text-left">
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="font-extrabold text-white uppercase tracking-wider">{pillar.title}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "px-1.5 py-0.5 rounded text-[8px] font-mono font-black border",
+                          pillar.status === "SÓLIDO" 
+                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                            : pillar.status === "OPTIMIZABLE"
+                              ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                              : "bg-rose-500/10 border-rose-500/20 text-rose-400"
+                        )}>{pillar.status}</span>
+                        <span className="font-mono text-slate-400 font-bold">{pillar.score}%</span>
+                      </div>
+                    </div>
+
+                    {/* Progress slider style */}
+                    <div className="w-full h-1.5 bg-black/50 rounded-full overflow-hidden border border-white/5">
+                      <div 
+                        className={cn(
+                          "h-full rounded-full transition-all duration-1000",
+                          pillar.score >= 80 ? "bg-emerald-500" : pillar.score >= 60 ? "bg-amber-500" : "bg-rose-500"
+                        )}
+                        style={{ width: `${pillar.score}%` }}
+                      />
+                    </div>
+
+                    <p className="text-[10px] text-slate-400 leading-normal">{pillar.desc}</p>
+                    
+                    <div className="bg-[#030303] p-2 rounded-xl text-[9px] text-brand-primary leading-tight border border-brand-primary/5">
+                      <span className="font-mono font-black uppercase text-[8px] text-brand-secondary mr-1">Directriz SPE:</span>
+                      {pillar.tip}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          }
+
+        </div>
+
+      {/* Trust, Security, and Brand Integrity Assurance Center (Moved to bottom as requested) */}
       <motion.div 
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-[#0d0e12] via-[#090b0e] to-zinc-950 border border-white/5 rounded-[2.5rem] p-6 lg:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden"
+        className="bg-gradient-to-r from-[#0d0e12] via-[#090b0e] to-[#040507] border border-white/5 rounded-[2rem] p-6 lg:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden mt-4"
       >
         <div className="absolute top-0 right-0 p-8 opacity-[0.02] pointer-events-none">
           <Shield className="w-48 h-48 text-brand-primary" />
         </div>
         
-        <div className="flex items-start gap-4 flex-1">
+        <div className="flex items-start gap-4 flex-1 text-left">
           <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center shrink-0 shadow-lg shadow-brand-primary/5">
             <Shield className="w-6 h-6 text-brand-primary" />
           </div>
           <div className="space-y-1 text-left">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 text-left">
               <span className="text-[10px] font-mono font-black text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-md uppercase tracking-widest">
                 VERIFICADO POR EL DESARROLLADOR PRINCIPAL
               </span>
               <span className="flex items-center gap-1 text-[9px] font-mono text-emerald-400">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                CONEXIÓN PREMIUM SEGURA ACTIVA
+                CONEXIÓN DE ESTRATEGIA SEGURA ACTIVA
               </span>
             </div>
             <h3 className="text-base font-bold text-white tracking-tight">Ecosistema de Privacidad e Integridad de Marca</h3>
             <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
-              Tus activos, logotipos, ADN corporativo y consultas simuladas están protegidos mediante aislamiento lógico de base de datos cifrada local/nube y el protocolo <strong className="text-white">Cero Entrenamiento de Modelos Públicos</strong>. El 100% de tus secretos comerciales permanecen bajo tu exclusivo control.
+              Tus activos, logotipos, ADN corporativo y consultas simuladas están protegidos mediante el protocolo <strong className="text-white">Cero Entrenamiento de Modelos Públicos</strong>. El 100% de tus secretos comerciales permanecen bajo tu exclusivo control.
             </p>
           </div>
         </div>
 
-        {/* Cryptographic Trust Tags (SOC-2, TLS, 0% Leaks) */}
+        {/* Cryptographic Trust Tags */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 shrink-0 w-full md:w-auto">
           {[
             { label: "CIFRADO DE ACTIVOS", val: "AES-256 + TLS", sub: "Tránsito seguro", icon: Lock },
@@ -599,519 +1247,6 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${businessIdea}, extremely simple 
           ))}
         </div>
       </motion.div>
-
-      {/* Main Panel grid divided into Consult and Mother Content Generator */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* LEFT COLUMN: Consulting Hub (Chat Terminals) */}
-        <div className="lg:col-span-5 glass-panel border border-white/5 rounded-3xl bg-surface-950/40 p-4 sm:p-6 space-y-4 sm:space-y-6 flex flex-col h-[400px] xs:h-[480px] sm:h-[600px] lg:h-[650px] max-h-[85vh] relative overflow-hidden">
-          <div className="flex items-center justify-between pb-4 border-b border-white/5 shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary border border-brand-primary/20 shadow-md">
-                <MessageSquare className="w-5 h-5 text-brand-primary" />
-              </div>
-              <div className="text-left">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Consultoría Personal</h3>
-                <span className="text-[10px] text-zinc-500 font-mono">Simulador de Estrategia 24/7</span>
-              </div>
-            </div>
-            
-            {/* Quick Active Brand Selector */}
-            {projectsList.length > 0 && (
-              <div className="flex items-center gap-1.5 bg-neutral-900 border border-white/5 px-2.5 py-1.5 rounded-xl">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <select
-                  value={selectedBrandId}
-                  onChange={(e) => setSelectedBrandId(e.target.value)}
-                  className="bg-transparent border-none text-[9px] font-mono text-slate-300 font-black focus:outline-none cursor-pointer uppercase tracking-tight"
-                >
-                  {projectsList.map(proj => (
-                    <option key={proj.id} value={proj.id} className="bg-neutral-950 text-white uppercase">{proj.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-
-          {/* Messages Container */}
-          <div className="flex-1 overflow-y-auto space-y-4 px-2 pr-4 scrollbar-thin text-xs leading-relaxed text-left">
-            {chatMessages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
-                <Brain className="w-12 h-12 text-zinc-600 animate-pulse" />
-                <div className="space-y-1">
-                  <p className="text-white font-bold text-xs">Termina la sequía de posicionamiento</p>
-                  <p className="text-[10px] text-slate-500 max-w-xs leading-normal">
-                    Realiza consultas abiertas sobre crecimiento publicitario, automatizaciones, tácticas SPE o planes del ecosistema de tu marca.
-                  </p>
-                </div>
-                
-                {/* Default strategic suggestions */}
-                <div className="grid grid-cols-1 gap-2 w-full max-w-xs pt-2">
-                  {[
-                    "¿Cómo posiciono una marca B2B con SPE?",
-                    "Dime un método pragmático para vender más rápido.",
-                    "¿Cómo uso mi ADN de marca en redes sociales?"
-                  ].map((sug, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setChatInput(sug);
-                      }}
-                      className="p-2 bg-white/5 hover:bg-neutral-900 border border-white/5 rounded-xl text-left text-[10px] text-slate-400 hover:text-white transition-all cursor-pointer truncate"
-                    >
-                      {sug}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              chatMessages.map((msg, idx) => (
-                <div 
-                  key={idx}
-                  className={cn(
-                    "p-3.5 rounded-2xl max-w-[85%] transition-all",
-                    msg.role === 'user'
-                      ? "bg-brand-primary/10 border border-brand-primary/20 text-white ml-auto rounded-tr-none text-right"
-                      : "bg-white/5 border border-white/5 text-slate-300 mr-auto rounded-tl-none text-left prose prose-invert prose-xs max-w-[85%]"
-                  )}
-                >
-                  {msg.role === 'model' ? (
-                    <div className="whitespace-pre-line leading-relaxed tracking-wide font-sans p-0.5">
-                      {msg.text}
-                    </div>
-                  ) : (
-                    msg.text
-                  )}
-                </div>
-              ))
-            )}
-            {isChatLoading && (
-              <div className="bg-white/5 border border-white/5 text-slate-400 mr-auto rounded-tl-none p-4 rounded-2xl max-w-[80%] flex items-center gap-3 animate-pulse">
-                <Loader2 className="w-4 h-4 animate-spin text-brand-primary" strokeWidth={3} />
-                <div className="flex flex-col gap-0.5 text-left">
-                  <span className="text-[10px] text-brand-primary uppercase tracking-[0.2em] font-black font-sans">Escribiendo...</span>
-                  <span className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Generando respuesta estratégica</span>
-                </div>
-              </div>
-            )}
-            <div ref={scrollRef} />
-          </div>
-
-          {/* Form message input */}
-          <form onSubmit={handleSendMessage} className="space-y-2 shrink-0 pt-4 border-t border-white/5">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Discute tácticas, dudas sobre el SPE, o consultoría..."
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                className="w-full bg-[#0d0d0d] border border-white/10 rounded-xl py-3.5 pl-4 pr-12 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary/50 transition-colors"
-              />
-              <button
-                type="submit"
-                disabled={!chatInput.trim() || isChatLoading}
-                className="absolute right-2 top-1.5 p-2 bg-brand-primary hover:bg-brand-primary/80 disabled:opacity-40 text-white rounded-lg transition-colors cursor-pointer"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-[9px] text-zinc-600 italic">Conversación encriptada localmente. Las respuestas respetan las reglas del SPE.</p>
-          </form>
-        </div>
-
-        {/* RIGHT COLUMN: Brand Blueprint & Core Strategy Cockpit */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="glass-panel border border-white/5 rounded-3xl bg-surface-950/40 p-6 md:p-8 space-y-6">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-brand-primary">
-                <Compass className="w-5 h-5 animate-pulse" />
-                <h3 className="text-lg font-bold text-white uppercase tracking-wider">DISEÑADOR DE BLUEPRINT CORE</h3>
-              </div>
-              <p className="text-[11px] text-slate-500 leading-normal">
-                Escribe las bases o el concepto de tu negocio directo al Hub, selecciona qué formato deseas generar, y obtén una estrategia maestra optimizada para el Motor Creativo al instante.
-              </p>
-            </div>
-
-            {/* Step 1: Input Raw Idea */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-widest block">
-                ¿Qué deseas desarrollar hoy? (Describe tu idea de negocio o concepto de campaña)
-              </label>
-              <textarea
-                value={businessIdea}
-                onChange={(e) => setBusinessIdea(e.target.value)}
-                placeholder="Ejemplo: 'Tengo una marca de postres saludables keto, sin azúcar añadida. Los entrego a domicilio en Monterrey. Mi diferenciador es que saben idéntico a los originales pero con cero carbohidratos netos, enfocados para diabéticos y deportistas...'"
-                rows={4}
-                className="w-full bg-[#090909] border border-white/10 rounded-xl p-4 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-brand-primary/50 transition-colors resize-none leading-relaxed"
-              />
-              <div className="flex justify-between items-center text-[10px] text-slate-500">
-                <span>Sé tan explícito como desees.</span>
-                <span>{businessIdea.length} caracteres</span>
-              </div>
-            </div>
-
-            {/* Unified Deliverable Formats Selection */}
-            <div className="space-y-3">
-              <label className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-widest block">
-                Marca el tipo de contenido o Blueprint que deseas:
-              </label>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {[
-                  { id: 'all' as const, label: '⚡ Blueprint Completo SPE', desc: 'ADN, Cliente Ideal, Slogans y Arte', icon: Layers },
-                  { id: 'adn' as const, label: '🧬 ADN de Marca Core', desc: 'Misión, Visión, Valores y Tono', icon: Brain },
-                  { id: 'target' as const, label: '👥 Cliente Ideal (Avatar)', desc: 'Dolores, Objeciones y Segmentación', icon: UserCheck },
-                  { id: 'tagline' as const, label: '🏹 Slogans & Elevator Pitch', desc: 'Narrativa Persuasiva y 3 Taglines', icon: Zap },
-                  { id: 'pillars' as const, label: '📅 Pilares de Publicación', desc: 'Temas para TikTok, Reels y Redes', icon: Megaphone },
-                  { id: 'creative_seed' as const, label: '🎨 Concepto de Arte & Prompts', desc: 'Dirección Visual, Estética y Copys', icon: Sparkles },
-                  { id: 'logo_generation' as const, label: '💎 Identidad & Isotipo', desc: 'Inspiración formal y renderizado', icon: Palette }
-                ].map((item) => {
-                  const Icon = item.icon;
-                  const isSelected = selectedType === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setSelectedType(item.id)}
-                      disabled={isGenerating || isAnalyzing}
-                      className={cn(
-                        "p-3 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex items-start gap-3 hover:scale-[1.01] active:scale-95",
-                        isSelected
-                          ? "bg-brand-primary/10 border-brand-primary/60 text-white shadow-lg shadow-brand-primary/5 ring-1 ring-brand-primary/20"
-                          : "bg-white/5 border-white/5 text-slate-400 hover:border-brand-primary/20 hover:bg-white/10"
-                      )}
-                    >
-                      <div className="p-1.5 rounded-xl bg-neutral-900 border border-white/5 mt-0.5">
-                        <Icon className={cn("w-3.5 h-3.5", isSelected ? "text-brand-primary" : "text-slate-400")} />
-                      </div>
-                      <div className="space-y-0.5">
-                        <p className={cn("text-[10px] uppercase tracking-wider font-extrabold", isSelected ? "text-brand-primary" : "text-white")}>{item.label}</p>
-                        <p className="text-[9px] text-slate-500 leading-tight">{item.desc}</p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Consolidated Actions and Diagnostics */}
-            <div className="space-y-4 pt-2">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleGenerateMotherContent(selectedType)}
-                  disabled={!businessIdea.trim() || isGenerating || isAnalyzing}
-                  className="flex-1 py-3.5 px-6 bg-gradient-to-r from-brand-primary/90 to-purple-600 hover:to-purple-500 hover:opacity-95 disabled:from-neutral-900 disabled:to-neutral-950 disabled:opacity-40 disabled:text-slate-600 text-white font-black text-[11px] uppercase tracking-widest rounded-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-primary/15 group"
-                >
-                  {isGenerating ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-white" />
-                  ) : (
-                    <Brain className="w-4 h-4 text-white animate-pulse group-hover:scale-110 transition-transform" />
-                  )}
-                  {isGenerating ? 'Generando Blueprint Core...' : '⚡ SINTETIZAR BLUEPRINT CORE'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handlePerformBrandAnalysis}
-                  disabled={!businessIdea.trim() || isGenerating || isAnalyzing}
-                  className="py-3.5 px-5 bg-[#0e0e0e] hover:bg-[#141414] border border-white/10 hover:border-brand-primary/25 disabled:opacity-40 disabled:text-slate-600 text-white font-mono font-black text-[10px] uppercase tracking-widest rounded-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  title="Ejecutar Diagnóstico del Espectro SPE para tu Idea"
-                >
-                  {isAnalyzing ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
-                  ) : (
-                    <Compass className="w-4 h-4 text-brand-secondary" />
-                  )}
-                  {isAnalyzing ? 'Analizando...' : '🔍 AUDITAR FACTIBILIDAD SPE'}
-                </button>
-              </div>
-            </div>
-
-            {/* SPE Positioning Diagnostic Output */}
-            {brandAnalysis && !isGenerating && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-6 bg-neutral-900/60 border border-white/5 rounded-3xl space-y-5"
-              >
-                <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                  <div className="space-y-1 text-left">
-                    <span className="text-[8px] font-mono font-black text-brand-secondary uppercase tracking-widest block">AUDITORÍA DE FACTIBILIDAD Y COHERENCIA DE MARCA</span>
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Análisis Metódico de Posicionamiento SPE</h4>
-                  </div>
-                  <div className="flex items-center gap-2 bg-black/40 border border-white/10 px-3 py-2 rounded-2xl">
-                    <span className="text-[10px] font-mono text-slate-400 font-bold">Puntaje Global:</span>
-                    <span className={cn(
-                      "text-sm font-mono font-black",
-                      brandAnalysis.globalScore >= 80 ? "text-emerald-400" : brandAnalysis.globalScore >= 60 ? "text-amber-400" : "text-rose-400"
-                    )}>{brandAnalysis.globalScore}/100</span>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {brandAnalysis.pillars.map((pillar, idx) => (
-                    <div key={idx} className="space-y-1.5 text-left">
-                      <div className="flex items-center justify-between text-[10px]">
-                        <span className="font-extrabold text-white uppercase tracking-wider">{pillar.title}</span>
-                        <div className="flex items-center gap-2">
-                          <span className={cn(
-                            "px-1.5 py-0.5 rounded text-[8px] font-mono font-black border",
-                            pillar.status === "SÓLIDO" 
-                              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                              : pillar.status === "OPTIMIZABLE"
-                                ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
-                                : "bg-rose-500/10 border-rose-500/20 text-rose-400"
-                          )}>{pillar.status}</span>
-                          <span className="font-mono text-slate-400 font-bold">{pillar.score}%</span>
-                        </div>
-                      </div>
-
-                      {/* Progress slider style */}
-                      <div className="w-full h-1.5 bg-black/50 rounded-full overflow-hidden border border-white/5">
-                        <div 
-                          className={cn(
-                            "h-full rounded-full transition-all duration-1000",
-                            pillar.score >= 80 ? "bg-emerald-500" : pillar.score >= 60 ? "bg-amber-500" : "bg-rose-500"
-                          )}
-                          style={{ width: `${pillar.score}%` }}
-                        />
-                      </div>
-
-                      <p className="text-[10px] text-slate-400 leading-normal">{pillar.desc}</p>
-                      
-                      <div className="bg-[#030303] p-2 rounded-xl text-[9px] text-brand-primary leading-tight border border-brand-primary/5">
-                        <span className="font-mono font-black uppercase text-[8px] text-brand-secondary mr-1">Directriz SPE:</span>
-                        {pillar.tip}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {/* Loading Synapse State */}
-            {isGenerating && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="p-6 bg-brand-primary/5 border border-brand-primary/20 rounded-2xl flex flex-col items-center justify-center text-center space-y-3"
-              >
-                <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
-                <div className="space-y-1">
-                  <p className="text-white text-xs font-bold uppercase tracking-widest">Sintetizando Blueprint de Marca Core...</p>
-                  <p className="text-[10px] text-slate-400 max-w-sm">
-                    FUTURA se encuentra formateando y estructurando tus piezas base para conectarlas directamente con el Motor Creativo bajo directrices del SPE.
-                  </p>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Results Viewer Block */}
-            {generatedResult && !isGenerating && (
-              <motion.div 
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-4"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-zinc-900 border border-white/5 px-4 py-3.5 rounded-2xl gap-3">
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-brand-primary animate-pulse" />
-                    <span className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-widest">BLUEPRINT ESTRATÉGICO GENERADO</span>
-                  </div>
-                  
-                  {/* Utility actions inside bar */}
-                  <div className="flex items-center gap-2 justify-between sm:justify-end">
-                    <button 
-                      onClick={() => {
-                        const textToCopy = activeResultTab === 'all' ? generatedResult : (generatedSections?.[activeResultTab] || generatedResult);
-                        navigator.clipboard.writeText(textToCopy);
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 2000);
-                      }}
-                      className="p-2 bg-white/5 border border-white/5 hover:bg-neutral-800 transition-all rounded-lg text-slate-400 hover:text-white cursor-pointer text-xs flex items-center gap-2"
-                      title="Copiar al Portapapeles"
-                    >
-                      {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span className="text-[9px] font-black uppercase font-mono tracking-wider">
-                        {copied ? '¡Copiado!' : activeResultTab === 'all' ? 'Copiar Todo' : 'Copiar Sección'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Tabbed Deck of Contents if generated Sections exist */}
-                {generatedSections && (
-                  <div className="flex flex-wrap gap-1.5 p-1 bg-surface-950 border border-white/5 rounded-2xl overflow-x-auto scrollbar-none">
-                    {[
-                      { key: 'all', label: 'Plan Completo', icon: Layers },
-                      { key: 'adn', label: 'Estructura ADN', icon: Brain },
-                      { key: 'target', label: 'Cliente Ideal', icon: UserCheck },
-                      { key: 'tagline', label: 'Slogans / Pitch', icon: Zap },
-                      { key: 'pillars', label: 'Pilares Editoriales', icon: Megaphone },
-                      { key: 'creative_seed', label: 'Concepto Visual', icon: Sparkles },
-                    ].map((tab) => {
-                      const TabIcon = tab.icon;
-                      const isActive = activeResultTab === tab.key;
-                      return (
-                        <button
-                          key={tab.key}
-                          onClick={() => setActiveResultTab(tab.key)}
-                          className={cn(
-                            "px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap",
-                            isActive 
-                              ? "bg-brand-primary text-white shadow-md shadow-brand-primary/10" 
-                              : "text-slate-400 hover:text-white hover:bg-white/5"
-                          )}
-                        >
-                          <TabIcon className="w-3 h-3" />
-                          {tab.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Preformatted output screen with Markdown support */}
-                <div className="bg-[#030303] border border-white/5 p-6 rounded-3xl max-h-[420px] overflow-y-auto font-sans leading-relaxed text-xs text-slate-300 space-y-4 text-left scrollbar-thin">
-                  <div className="prose prose-invert prose-xs whitespace-pre-line">
-                    {activeResultTab === 'all' 
-                      ? generatedResult 
-                      : (generatedSections?.[activeResultTab] || "Haz click en 'Plan Completo' para ver todo lo generado, o expande otro segmento.")}
-                  </div>
-                </div>
-
-                {/* Generated Logo Image Box */}
-                {(activeGenerationType === 'logo_generation' || (activeGenerationType === 'all' && generatedLogoUrl)) && (
-                  <div className="bg-zinc-950 border border-white/5 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6">
-                    <div className="w-40 h-40 rounded-2xl border border-white/10 bg-[#070707] overflow-hidden flex items-center justify-center shrink-0 relative group shadow-2xl shadow-brand-primary/5">
-                      {generatedLogoUrl ? (
-                         <img 
-                          src={generatedLogoUrl} 
-                          alt="Logotipo Generado" 
-                          className="w-full h-full object-contain"
-                          referrerPolicy="no-referrer"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
-                          <Loader2 className="w-6 h-6 animate-spin text-brand-primary" />
-                          <span className="text-[9px] font-mono uppercase text-slate-500 animate-pulse">Renderizando logotipo digital...</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 space-y-3 text-left">
-                      <div className="space-y-1">
-                        <span className="text-[9px] font-mono font-black text-brand-primary uppercase tracking-widest block">IDENTIDAD RENDERIZADA</span>
-                        <h4 className="text-sm font-semibold text-white">Logotipo Vectorial de Alta Fidelidad</h4>
-                        <p className="text-[10px] text-slate-400 leading-normal">
-                          Este logo ha sido concebido bajo conceptos de geometría sagrada y pragmatismo del SPE. Guarda este logotipo en tu Bóveda de Marca para que el Motor Creativo lo integre automáticamente como capa flotante en tus campañas.
-                        </p>
-                        {generatedLogoUrl && generatedLogoUrl.includes("photo-1618005182384-a83a8bd57fbe") && (
-                          <div className="mt-2.5 bg-amber-500/10 border border-amber-500/15 text-amber-300 p-3 rounded-xl space-y-1">
-                            <p className="text-[9.5px] font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider font-mono">
-                              ⚠️ LOGOTIPO DE RESPALDO (LÍMITE DE CUOTA 429)
-                            </p>
-                            <p className="text-[9px] text-slate-300 leading-normal">
-                              La API gratuita de Google Gemini ha alcanzado el límite de cuota diario para generación de imágenes. Como tienes activo Google Pro, recuerda configurar la variable de entorno <code className="text-white bg-white/10 px-1 py-0.5 rounded font-mono text-[8px] font-bold">GEMINI_API_KEY</code> en tu panel de control de Vercel (o en Settings &gt; Secrets de AI Studio) con tu clave API de pago real.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      {generatedLogoUrl && projectsList.length > 0 && (
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                          <button
-                            onClick={handleSaveLogoToBrand}
-                            disabled={isSavingLogo}
-                            className="bg-brand-primary hover:bg-brand-primary/80 disabled:opacity-50 text-white font-semibold text-[10px] uppercase tracking-wider px-4 py-2.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-1.5"
-                          >
-                            {isSavingLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FolderPlus className="w-3.5 h-3.5" />}
-                            GUARDAR LOGO EN BÓVEDA DE MARCA
-                          </button>
-                          
-                          {logoSaveStatus === 'success' && (
-                            <span className="text-[10px] text-emerald-400 font-bold self-center">✓ ¡Logo guardado con éxito!</span>
-                          )}
-                          {logoSaveStatus === 'error' && (
-                            <span className="text-[10px] text-red-400 font-bold self-center">⚠️ Error al almacenar logo.</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Operational integrations */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  
-                  {/* Option A: Link and Save to Baúl de Marca */}
-                  {projectsList.length > 0 && (
-                    <div className="glass-panel border border-white/5 p-4 rounded-2xl bg-neutral-900/45 flex flex-col justify-between space-y-3">
-                      <div className="space-y-1">
-                        <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-wider block">OPCIÓN A: GUARDADO EN FILTRO</span>
-                        <h4 className="text-[11px] font-bold text-white uppercase tracking-wider">Guardar en Baúl de Marca</h4>
-                        <p className="text-[9px] text-slate-400 leading-normal">
-                          Inyecta este ADN directamente en la descripción y material de consulta de la marca seleccionada en tu Baúl.
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2 w-full">
-                        <select
-                          value={selectedBrandId}
-                          onChange={(e) => setSelectedBrandId(e.target.value)}
-                          className="flex-1 bg-black border border-white/10 text-[10px] text-white px-2.5 py-2 rounded-xl focus:outline-none uppercase font-bold"
-                        >
-                          {projectsList.map(proj => (
-                            <option key={proj.id} value={proj.id}>{proj.name}</option>
-                          ))}
-                        </select>
-
-                        <button
-                          onClick={handleSaveToBrand}
-                          disabled={isSavingToBrand}
-                          className="px-4 py-2 bg-white hover:bg-slate-100 disabled:opacity-40 text-black font-semibold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1 shrink-0"
-                        >
-                          {isSavingToBrand ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FolderPlus className="w-3.5 h-3.5" />}
-                          ASOCIAR ADN
-                        </button>
-                      </div>
-
-                      {saveStatus === 'success' && (
-                        <p className="text-[9px] text-emerald-400 font-bold">✓ ¡Material inyectado con éxito en el Baúl!</p>
-                      )}
-                      {saveStatus === 'error' && (
-                        <p className="text-[9px] text-red-400 font-bold">⚠️ Error durante el guardado persistente.</p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Option B: Open inside Creative Engine */}
-                  <div className="glass-panel border border-white/5 p-4 rounded-2xl bg-neutral-900/45 flex flex-col justify-between space-y-3">
-                    <div className="space-y-1">
-                      <span className="text-[8px] font-mono font-black text-brand-secondary uppercase tracking-wider block">OPCIÓN B: INTEGRACIÓN DIRECTA</span>
-                      <h4 className="text-[11px] font-bold text-white uppercase tracking-wider">Usar en Motor Creativo</h4>
-                      <p className="text-[9px] text-slate-400 leading-normal">
-                        Pre-carga automáticamente este lote en la cola de generación y salta directo a la pantalla de diseño de publicaciones.
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={handleUseInCreativeEngine}
-                      className="w-full py-2.5 bg-brand-primary hover:bg-brand-primary/80 text-white font-mono font-black text-[10px] uppercase tracking-widest rounded-xl transition-all hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-primary/10"
-                    >
-                      <Zap className="w-3.5 h-3.5 text-white" />
-                      LANZAR MOTOR DE CONVERSIÓN
-                    </button>
-                  </div>
-
-                </div>
-              </motion.div>
-            )}
-
-          </div>
-        </div>
-
-      </div>
     </div>
   );
 }

@@ -27,22 +27,24 @@ export default async function handler(req: any, res: any) {
     TONALIDAD Y PERSONA:
     - Eres audaz, profesional, visionario y profundamente persuasivo.
     - No solo respondes, VENDES LA VISIÓN. Si el usuario duda, refuérzale por qué FUTURA es la única opción estratégica real.
-    - LÍMITE DE CORTESÍA: Actúa como si esta consulta fuera un regalo de tiempo limitado. Recuerda sutilmente que el acceso pleno a la inteligencia de mercado y el motor de renderizado masivo está en el plan FUTURA PRO.
-    - Si el usuario pregunta qué es FUTURA: Explica que es un ecosistema de inteligencia creativa basado en el Sistema Pentagonal de Ejecución (SPE) que prioriza resultados sobre estética.
-    - PROMOCIÓN DE FUTURA PRO: Si detectas que el usuario tiene una visión grande, invítalo a pasarse a Pro para obtener créditos ilimitados, motor de renderizado 4K, y asesoría sin límites de sesión.
+    - LÍMITE DE CORTESÍA: Actúa como si esta consulta fuera un regalo de tiempo limitado. Recuerda sutilmente que el acceso pleno a la inteligencia de mercado está en el plan FUTURA PRO.
+    - Si el usuario pregunta qué es FUTURA: Explica de forma directa que es un ecosistema del Sistema Pentagonal de Ejecución.
     
     REDUCACIÓN DEL MOTOR (MÍMICA VISUAL DE PLANTILLAS Y REFERENCIAS):
-    1. Si el usuario ha cargado diseños de referencia, plantillas previas, una "Referencia Visual Directa" (adhocReference), o materiales visuales de entrenamiento en su Brand Vault o attachments:
-       - Es un REQUISITO CRÍTICO e IMPERATIVO reverse-engineer la composición exacta de estos archivos de referencia. Analiza la ubicación de objetos, el fondo, el estilo fotográfico/artístico, sombras e iluminación focal.
-       - Tu "imagePrompt" debe ser técnico y en inglés para inducir al motor a clonar visualmente este diseño adaptándolo al motivo del usuario.
+    1. Si el usuario ha cargado diseños de referencia, plantillas previas, o materiales visuales de entrenamiento:
+       - Analiza la ubicación de objetos, el fondo, estilo y colores.
+       - Tu "imagePrompt" debe ser técnico y en inglés para que el render-engine lo entienda perfecto.
     
     REGLA DE ORO: BRAND LOCK
-    - ES OBLIGATORIO usar la composición y colores de los logos y referencias adjuntos.
+    - ES OBLIGATORIO usar la composición y colores de los logos adjuntos.
     - PROHIBICIÓN DE TEXTO EN IMAGEN: No generes NINGUNA palabra ni letras escritas en el imagePrompt.
+    
+    REQUISITO CRÍTICO DE BREVEDAD Y CONCINESSE:
+    - La "strategy" debe ser sumamente concisa: máximo 2 párrafos cortos (100 a 120 palabras en total). No generes textos gigantescos de relleno. Sin títulos h1 ni subtítulos enormes. Hazlo directo, accionable y resumido.
     
     OUTPUT FORMAT (JSON ONLY):
     {
-      "strategy": "Asesoría o recomendación estratégica detallada...",
+      "strategy": "Sintética recomendación estratégica directa, accionable y corta en un párrafo conciso...",
       "copy": "El copy persuasivo completo listo para publicar...",
       "imagePrompt": "Advanced Technical English prompt...",
       "videoProposal": "Propuesta estructurada de video/Reel corto de alta retención (0-60s)..."
@@ -106,7 +108,12 @@ export default async function handler(req: any, res: any) {
     const parsed = robustJsonParse(response.text || "{}", prompt);
     return res.status(200).json(parsed);
   } catch (error: any) {
-    console.error("Endpoint generateContentStrategy Error:", error);
+    const errStr = (error?.message || "").toLowerCase();
+    if (errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit")) {
+      console.log("[FUTURA] generateContentStrategy API quota limit reached. Responding with quota error to client fallback framework.");
+    } else {
+      console.log("[FUTURA] generateContentStrategy API exception:", error.message || error);
+    }
     return res.status(500).json({ error: error.message || "Failed to generate strategy" });
   }
 }

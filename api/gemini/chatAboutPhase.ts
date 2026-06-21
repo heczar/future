@@ -47,7 +47,12 @@ export default async function handler(req: any, res: any) {
 
     return res.status(200).json({ response: response.text || "No response received" });
   } catch (error: any) {
-    console.error("Endpoint chatAboutPhase Error:", error);
+    const errStr = (error?.message || "").toLowerCase();
+    if (errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit")) {
+      console.log("[FUTURA] chatAboutPhase API quota limit reached. Responding with quota error to client fallback framework.");
+    } else {
+      console.log("[FUTURA] chatAboutPhase API exception:", error.message || error);
+    }
     return res.status(500).json({ error: error.message || "Failed to chat about phase" });
   }
 }
