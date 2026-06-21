@@ -5,7 +5,8 @@ import { generateContentStrategy, generateCreativeImage, generateSocialCopy, ref
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { db, auth } from '../lib/firebase';
-import { collection, query, where, getDocs, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { Brain, UserCheck, Megaphone, Palette, FolderPlus } from 'lucide-react';
 import { ProjectContext, UserProfile } from '../types';
 import { cn } from '../lib/utils';
 import { FileText, X, AlertTriangle, Video, Play, Pause, Calendar, Share2, DollarSign, Users, ExternalLink, Globe, AlertCircle, Eye } from 'lucide-react';
@@ -134,7 +135,22 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
   const [nucleusGeneratedResult, setNucleusGeneratedResult] = useState<any>(null);
   const [nucleusSlideIndex, setNucleusSlideIndex] = useState(0);
   const [copySubTab, setCopySubTab] = useState<'nucleus' | 'copy_writer'>('nucleus');
-  const [workspaceMode, setWorkspaceMode] = useState<'graphics' | 'copys'>('graphics');
+  const [workspaceMode, setWorkspaceMode] = useState<'blueprint' | 'graphics' | 'copys'>('graphics');
+
+  // Brand blueprint state variables
+  const [blueprintIdea, setBlueprintIdea] = useState('');
+  const [blueprintSelectedType, setBlueprintSelectedType] = useState<'free' | 'all' | 'adn' | 'target' | 'tagline' | 'pillars' | 'creative_seed' | 'logo_generation'>('all');
+  const [blueprintIsGenerating, setBlueprintIsGenerating] = useState(false);
+  const [blueprintResult, setBlueprintResult] = useState('');
+  const [blueprintSections, setBlueprintSections] = useState<Record<string, string> | null>(null);
+  const [blueprintActiveResultTab, setBlueprintActiveResultTab] = useState<string>('all');
+  const [blueprintLogoUrl, setBlueprintLogoUrl] = useState<string | null>(null);
+  const [blueprintIsSavingLogo, setBlueprintIsSavingLogo] = useState(false);
+  const [blueprintLogoSaveStatus, setBlueprintLogoSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [blueprintSaveStatus, setBlueprintSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [blueprintIsSavingToBrand, setBlueprintIsSavingToBrand] = useState(false);
+  const [blueprintFeedbackInput, setBlueprintFeedbackInput] = useState('');
+  const [blueprintIsRefining, setBlueprintIsRefining] = useState(false);
 
   const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'model', content: string }[]>([]);
   
@@ -288,8 +304,78 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
 
   useEffect(() => {
     if (initialPrompt) {
-      setPrompt(initialPrompt);
-      setDisplayMode('briefing');
+      if (initialPrompt.includes("=== BLUEPRINT GENERADO ===")) {
+        // It's a brand blueprint from FuturaHub! Let's parse it and assign it to blueprint states
+        const ideaMarker = "Idea Comercial: ";
+        const resultMarker = "=== BLUEPRINT GENERADO ===\n";
+        let idea = '';
+        let result = '';
+
+        const ideaIdx = initialPrompt.indexOf(ideaMarker);
+        const resultIdx = initialPrompt.indexOf(resultMarker);
+
+        if (ideaIdx !== -1 && resultIdx !== -1) {
+          idea = initialPrompt.slice(ideaIdx + ideaMarker.length, resultIdx).trim();
+          result = initialPrompt.slice(resultIdx + resultMarker.length).trim();
+        } else {
+          result = initialPrompt;
+        }
+
+        setBlueprintIdea(idea || initialPrompt);
+        setBlueprintResult(result);
+        setBlueprintSelectedType('all');
+        setWorkspaceMode('blueprint');
+        setDisplayMode('engine'); // Open the workspace immediately instead of launcher/briefing
+        
+        // Also parse sections in case they existed
+        const sections: Record<string, string> = {
+          adn: '',
+          target: '',
+          tagline: '',
+          pillars: '',
+          creative_seed: '',
+          logo_generation: ''
+        };
+
+        const allHeaders = [
+          '===SECCION_ADN===',
+          '===SECCION_TARGET===',
+          '===SECCION_TAGLINE===',
+          '===SECCION_PILARES===',
+          '===SECCION_CREATIVO===',
+          '===SECCION_LOGOTIPO==='
+        ];
+
+        const extractSegment = (text: string, currentHeader: string, nextHeaders: string[]) => {
+          const idx = text.indexOf(currentHeader);
+          if (idx !== -1) {
+            let segment = text.slice(idx + currentHeader.length);
+            let earliestNextIndex = segment.length;
+            nextHeaders.forEach(header => {
+              if (header !== currentHeader) {
+                const nextIdx = segment.indexOf(header);
+                if (nextIdx !== -1 && nextIdx < earliestNextIndex) {
+                  earliestNextIndex = nextIdx;
+                }
+               }
+            });
+            return segment.slice(0, earliestNextIndex).trim();
+          }
+          return '';
+        };
+
+        sections.adn = extractSegment(result, '===SECCION_ADN===', allHeaders);
+        sections.target = extractSegment(result, '===SECCION_TARGET===', allHeaders);
+        sections.tagline = extractSegment(result, '===SECCION_TAGLINE===', allHeaders);
+        sections.pillars = extractSegment(result, '===SECCION_PILARES===', allHeaders);
+
+        if (sections.adn || sections.target || sections.tagline) {
+          setBlueprintSections(sections);
+        }
+      } else {
+        setPrompt(initialPrompt);
+        setDisplayMode('briefing');
+      }
       if (onPromptConsumed) onPromptConsumed();
     }
   }, [initialPrompt]);
@@ -486,76 +572,110 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
 
   const getRandomFallbackImage = (promptText: string) => {
     const text = (promptText || "").toLowerCase();
-    if (text.includes("dental") || text.includes("dentist") || text.includes("odontolog") || text.includes("dient") || text.includes("sonris")) {
-      const ids = [
-        "photo-1629909613654-28e377c37b09",
-        "photo-1579684385127-1ef15d508118",
-        "photo-1598256989800-fe5f95da9787",
-        "photo-1588776814546-1ffcf47267a5"
-      ];
-      return `https://images.unsplash.com/photo-${ids[Math.floor(Math.random() * ids.length)]}?w=1000&auto=format&fit=crop&q=80`;
+    const mappings: { [key: string]: string } = {
+      "dental": "dental,dentist,smile",
+      "dentist": "dental,dentist,smile",
+      "odontolo": "dental,dentist,clinic",
+      "dient": "dental,dentist,smile",
+      "sonris": "smile,happy,person",
+      "cafe": "coffee,cafe,bean",
+      "coffee": "coffee,cafe,cup",
+      "gourmet": "gourmet,cuisine,food",
+      "cafeter": "cafe,coffee,bakery",
+      "food": "food,culinary,gourmet",
+      "comid": "food,culinary,dish",
+      "restauran": "restaurant,dining",
+      "hamburg": "burger,fastfood",
+      "plat": "food,dish",
+      "tech": "technology,digital",
+      "software": "code,programming,developer",
+      "comput": "computer,developer,desk",
+      "matrix": "cyberpunk,matrix,cyber",
+      "digital": "digital,abstract",
+      "ia": "artificial-intelligence,tech",
+      "artificial": "technology,cyber",
+      "web": "webdesign,ux,computer",
+      "code": "code,developer",
+      "programac": "code,developer",
+      "belleza": "beauty,spa,cosmetics",
+      "spa": "spa,wellness,bamboo",
+      "cosmetic": "cosmetics,makeup,skincare",
+      "piel": "skincare,serum",
+      "beauty": "beauty,skincare",
+      "estet": "spa,beauty",
+      "masaj": "massage,spa",
+      "house": "architecture,interior,house",
+      "inmobil": "realestate,property,luxury-home",
+      "arquitectur": "architecture,modern-building",
+      "hogar": "home,cozy-living",
+      "apartamento": "apartment,loft,interior",
+      "diseño": "design,interior,architecture",
+      "interi": "interior,minimalist-room",
+      "fitness": "fitness,gym",
+      "gimnas": "gym,fitness",
+      "fit": "fitness,workout",
+      "sport": "sports,athlete",
+      "entrenamien": "training,workout",
+      "fuerz": "gym,workout",
+      "banana": "banana,fruit,yellow",
+      "platano": "banana,fruit,yellow",
+      "zapato": "shoes,sneakers,fashion",
+      "calzado": "shoes,fashion",
+      "vestid": "dress,fashion,apparel",
+      "ropa": "clothing,fashion",
+      "moda": "fashion,style",
+      "auto": "car,automotive,sportscar",
+      "coche": "car,automotive",
+      "carro": "car,luxury-car",
+      "motor": "car,automotive",
+      "perro": "dog,cute-pet",
+      "gato": "cat,cute-pet",
+      "mascota": "pet,dog,cat",
+      "viaje": "travel,adventure,destination",
+      "turism": "travel,landscape",
+      "playa": "beach,ocean,relax",
+      "montaña": "mountain,landscape,nature",
+      "hotel": "luxury-hotel,resort",
+      "marketing": "marketing,business,office",
+      "negocio": "business,workspace,meeting",
+      "finanz": "finance,money,investment",
+      "dinero": "wealth,money",
+      "educac": "education,learning,classroom",
+      "escuel": "school,learning,book",
+      "medicin": "medicine,healthcare,doctor",
+      "salud": "health,wellness"
+    };
+
+    const matchedTags: string[] = [];
+    for (const [key, val] of Object.entries(mappings)) {
+      if (text.includes(key)) {
+        matchedTags.push(val);
+      }
     }
-    if (text.includes("cafe") || text.includes("coffee") || text.includes("gourmet") || text.includes("cafeter")) {
-      const ids = [
-        "photo-1509042239860-f550ce710b93",
-        "photo-1495474472287-4d71bcdd2085",
-        "photo-1447933601403-0c6688de566e",
-        "photo-1507133750040-4a8f57021571"
-      ];
-      return `https://images.unsplash.com/photo-${ids[Math.floor(Math.random() * ids.length)]}?w=1000&auto=format&fit=crop&q=80`;
+
+    let keywords = "";
+    if (matchedTags.length > 0) {
+      keywords = matchedTags.join(",");
+    } else {
+      const cleanWords = text
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // remove spanish accents
+        .replace(/[^a-z0-9\s]/g, "")
+        .split(/\s+/)
+        .filter(w => {
+          return w.length > 3 && 
+                 !["para", "como", "esta", "este", "todo", "sigue", "necesito", "solicit", "solicito", "conectar", "conecta", "crear", "hacer", "diseno", "imagen", "imagenes", "resultado", "resultados", "estilo", "marca", "marcas"].includes(w);
+        });
+      
+      if (cleanWords.length > 0) {
+        keywords = cleanWords.slice(0, 3).join(",");
+      } else {
+        keywords = "abstract,minimal,background";
+      }
     }
-    if (text.includes("food") || text.includes("comid") || text.includes("restauran") || text.includes("hamburg") || text.includes("plat")) {
-      const ids = [
-        "photo-1565299624946-b28f40a0ae38",
-        "photo-1546069901-ba9599a7e63c",
-        "photo-1568901346375-23c9450c58cd",
-        "photo-1517248135467-4c7edcad34c4"
-      ];
-      return `https://images.unsplash.com/photo-${ids[Math.floor(Math.random() * ids.length)]}?w=1000&auto=format&fit=crop&q=80`;
-    }
-    if (text.includes("tech") || text.includes("software") || text.includes("comput") || text.includes("matrix") || text.includes("digital") || text.includes("ia") || text.includes("web") || text.includes("code")) {
-      const ids = [
-        "photo-1451187580459-43490279c0fa",
-        "photo-1518770660439-4636190af475",
-        "photo-1526374965328-7f61d4dc18c5",
-        "photo-1488590528505-98d2b5aba04b"
-      ];
-      return `https://images.unsplash.com/photo-${ids[Math.floor(Math.random() * ids.length)]}?w=1000&auto=format&fit=crop&q=80`;
-    }
-    if (text.includes("belleza") || text.includes("spa") || text.includes("cosmetic") || text.includes("piel") || text.includes("beauty") || text.includes("estetic") || text.includes("masaje")) {
-      const ids = [
-        "photo-1540555700478-4be289fbecef",
-        "photo-1512290923902-8a9f81da236c",
-        "photo-1608248597279-f99d160bfcbc",
-        "photo-1515377905703-c4788e51af15"
-      ];
-      return `https://images.unsplash.com/photo-${ids[Math.floor(Math.random() * ids.length)]}?w=1000&auto=format&fit=crop&q=80`;
-    }
-    if (text.includes("house") || text.includes("inmobil") || text.includes("arquitectur") || text.includes("hogar") || text.includes("apartamento") || text.includes("diseño") || text.includes("interi")) {
-      const ids = [
-        "photo-1600585154340-be6161a56a0c",
-        "photo-1600607687939-ce8a6c25118c",
-        "photo-1613490493576-7fde63acd811",
-        "photo-1580587771525-78b9dba3b914"
-      ];
-      return `https://images.unsplash.com/photo-${ids[Math.floor(Math.random() * ids.length)]}?w=1000&auto=format&fit=crop&q=80`;
-    }
-    if (text.includes("fitness") || text.includes("gimnas") || text.includes("fit") || text.includes("sport") || text.includes("entrenamien") || text.includes("fuerz")) {
-      const ids = [
-        "photo-1517838277536-f5f99be501cd",
-        "photo-1534438327276-14e5300c3a48",
-        "photo-1583454110551-21f2fa2afe61",
-        "photo-1518622358385-8ea7d0794bf6"
-      ];
-      return `https://images.unsplash.com/photo-${ids[Math.floor(Math.random() * ids.length)]}?w=1000&auto=format&fit=crop&q=80`;
-    }
-    const defaultIds = [
-      "photo-1618005182384-a83a8bd57fbe",
-      "photo-1634017839464-5c339ebe3cb4",
-      "photo-1550684848-fac1c5b4e853",
-      "photo-1507525428034-b723cf961d3e"
-    ];
-    return `https://images.unsplash.com/photo-${defaultIds[Math.floor(Math.random() * defaultIds.length)]}?w=1000&auto=format&fit=crop&q=80`;
+
+    const cacheBuster = Math.floor(Math.random() * 1000);
+    return `https://images.unsplash.com/featured/1000x1000/?${encodeURIComponent(keywords)}&sig=${cacheBuster}`;
   };
 
   const handleGenerate = async (customPrompt?: string) => {
@@ -1137,6 +1257,281 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
     canvas.setZoom(1);
     setZoom(1);
     canvas.renderAll();
+  };
+
+  // --- BRAND BLUEPRINT CORE HANDLERS ---
+  const handleGenerateBlueprint = async () => {
+    if (!blueprintIdea.trim() || blueprintIsGenerating) return;
+    
+    setBlueprintIsGenerating(true);
+    setBlueprintResult('');
+    setBlueprintSections(null);
+    setBlueprintLogoUrl(null);
+    setBlueprintLogoSaveStatus('idle');
+    setBlueprintSaveStatus('idle');
+    setBlueprintActiveResultTab('all');
+
+    const type = blueprintSelectedType;
+    let customPrompt = '';
+    if (type === 'all') {
+      customPrompt = `[SISTEMA: GENERACIÓN UNIFICADA DE BLUEPRINT ESTRATÉGICO]
+Eres FUTURA, la mente maestra estratégica de la suite de mercadeo élite de Future Marketing Consult. Genera el Blueprint de Marca y la Estrategia Fundacional Core para la idea de negocio/proyecto del usuario: "${blueprintIdea}".
+Sigue estrictamente la filosofía y metodología del SPE (Sistema de Posicionamiento Estratégico), priorizando la persuasión real y los resultados pragmáticos sobre estética superficial.
+
+Debes entregar un plan de marca unificado, pragmático e hiper-completo (nuestro "Blueprint Estratégico").
+Divide exactamente tu respuesta con las siguientes secciones exactas y usa EXPLICITAMENTE las marcas divisoras como se describe a continuación (no omitas ninguna de estas marcas, son críticas para segmentar la vista del cliente):
+
+===SECCION_ADN===
+### 🌟 MISIÓN DE NEGOCIO (El propósito medible)
+[Misión detallada, pragmática, ambiciosa y medible]
+
+### 🔮 VISIÓN DE LARGO PLAZO (El norte estratégico a 5-10 años bajo principios SPE)
+[Establece una visión ambiciosa con metas realistas de escala]
+
+### 💎 VALORES FUNDAMENTALES (Prácticos, de comportamiento real, no de catálogo corporativo)
+[3 valores rectores de marca explicados en acciones diarias]
+
+### 🎭 TONO DE COMUNICACIÓN (Cómo debe hablarle al mundo)
+[Pautas claras de tono, palabras recomendadas y palabras prohibidas]
+
+===SECCION_TARGET===
+### 👥 PERFIL DEMOGRÁFICO Y ARQUETIPO DE CLIENTE IDEAL
+[Un perfil profundo y detallado de quién es el comprador ideal, su demografía y estilo visual]
+
+### 🛑 FRUSTRACIONES CRÍTICAS (Qué le quita el sueño hoy)
+[Mínimo 3 temores, angustias o frustraciones latentes del target]
+
+### ✨ DESEOS MÁGICOS (Cuál es su escenario de transformación ideal)
+[Situación deseada idílica detallada del cliente ideal]
+
+### 🧱 ALTERNATIVAS & OBJECIONES (Por qué dudaría de tu producto o servicio)
+[Objeciones habituales y la respuesta estratégica para cada una]
+
+===SECCION_TAGLINE===
+### 🏹 PROPUESTA ÚNICA DE VALOR
+[Fórmula clara: Qué es, Para quién, y Cómo te diferencia con alto contraste mercadológico]
+
+### 💎 3 TAGLINES COMERCIALES
+[3 slogans de alto impacto, memorables e ingeniosos para campañas]
+
+### 📣 PITCH DE ELEVADOR (30 segundos para convencer a un socio o cliente)
+[Narrativa oral persuasiva de 30 segundos usando el gancho, historia breve y oferta]
+
+===SECCION_PILARES===
+### 📐 PILAR 1: AUTORIDAD Y VALOR REAL (Educación pragmática)
+[Eje temático educativo para demostrar tu dominio y experiencia]
+
+### ⚡ PILAR 2: INTERACCIÓN Y CONVERSACIÓN (Afinidad de nicho)
+[Eje interactivo o viral de entretenimiento para generar comunidad e identificación rápida]
+
+### 💼 PILAR 3: OFERTA DIRECTA (El gancho comercial con filosofía SPE)
+[Cómo vender de forma agresiva y elegante aplicando reciprocidad]
+
+### 📅 SUGERENCIAS DE TÍTULOS Y REELS (5 ideas listas para usar)
+[5 títulos/temas de alto impacto perfectos para reels/TikToks]
+
+===SECCION_CREATIVO===
+### 🎨 CONCEPTO CREATIVO PARAGUAS DE MARCA
+[La gran idea central conceptual que conecta emocionalmente con tu público]
+
+### 👁️ DIRECCIÓN VISUAL & ESTÉTICA DE REFERENCIA
+[Look & Feel sugerido, paleta de colores rectores, iluminación, texturas y estilo recomendado de fotografía o ilustración para alimentar la IA]
+
+### 🧠 GUÍA DE PROMPTS AVANZADOS PARA LA FÁBRICA DE IMÁGENES
+[3 Prompts avanzados y detallados optimizados en inglés con iluminación y estilo listos para generar en la suite]
+
+### ⚡ ÁNGULOS PERSUASIVOS DE COPIES
+[3 enfoques de copy copywriting persuasivo listos para usar]
+
+===SECCION_LOGOTIPO===
+### 💎 CONCEPTUALIZACIÓN DE IDENTIDAD VISUAL & LOGOTIPO
+[Explicación del simbolismo de la propuesta visual de logo]
+
+### 🎨 PALETA DE COLORES RECTORES SUGERIDA
+[3 colores clave con sus códigos hexadecimales]
+
+### ⚡ PROMPT DE GENERACIÓN DE IMAGEN RECOMENDADO PARA EL LOGO
+IMAGE_PROMPT: Minimalist flat vector logo icon for ${blueprintIdea}, extremely simple geometric symbol, high-contrast, professional 8k graphic design, white brand design, isolated on black background --no letters words text
+
+FIN DE LAS SECCIONES. Genera todo con un estándar de consultoría de clase mundial.`;
+    } else if (type === 'adn') {
+      customPrompt = `[SISTEMA: GENERACIÓN DE BLUEPRINT - ADN ESENCIAL]
+Eres FUTURA, la mente maestra de la suite de mercadeo de Future Marketing Consult. Para el proyecto o negocio de abajo, genera una estructura de ADN Corporativo que sirva como cimiento estratégico ("Blueprint Core").
+Sigue la filosofía de posicionamiento pragmático de FUTURA.
+
+Estructura tu respuesta exactamente con estas secciones detalladas de manera profesional usando Markdown de alta visibilidad:
+### 🌟 MISIÓN DE NEGOCIO (El propósito medible)
+### 🔮 VISIÓN DE LARGO PLAZO (El norte estratégico)
+### 💎 VALORES FUNDAMENTALES (Prácticos, no de catálogo)
+### 🎭 TONO DE COMUNICACIÓN (Cómo debe hablarle al mundo)
+
+DESCRIPCIÓN DE LA IDEA O NEGOCIO:
+"${blueprintIdea}"`;
+    } else if (type === 'target') {
+      customPrompt = `[SISTEMA: GENERACIÓN DE BLUEPRINT - ESTUDIO DE AUDIENCIA CORE]
+Eres FUTURA, el estratega definitivo. Desarrolla un perfil exhaustivo del Cliente Ideal ("Avatar de Marca") para la propuesta empresarial detallada abajo.
+
+Sigue la filosofía del SPE. Estructura el perfil usando la siguiente plantilla estructurada en Markdown:
+### 👥 PERFIL DEMOGRÁFICO Y ARQUETIPO DE CLIENTE
+### 🛑 FRUSTRACIONES CRÍTICAS (Qué le quita el sueño hoy)
+### ✨ DESEOS MÁGICOS (Cuál es su escenario de transformación ideal)
+### 🧱 ALTERNATIVAS & OBJECIONES (Por qué dudaría de tu producto o servicio)
+
+DESCRIPCIÓN DE LA IDEA O NEGOCIO:
+"${blueprintIdea}"`;
+    } else if (type === 'pillars') {
+      customPrompt = `[SISTEMA: GENERACIÓN DE BLUEPRINT - PILARES DE PUBLICACIÓN Y TEMAS]
+Eres FUTURA. Define los ejes editoriales estratégicos para que esta marca pueda alimentar su motor creativo sin quedarse sin ideas.
+
+Sigue las directrices SPE y entrega una guía de publicación estructurada en Markdown:
+### 📐 PILAR 1: AUTORIDAD Y VALOR REAL (Educación pragmática)
+### ⚡ PILAR 2: INTERACCIÓN Y CONVERSACIÓN (Afinidad de nicho)
+### 💼 PILAR 3: OFERTA DIRECTA (El gancho comercial con filosofía SPE)
+### 📅 SUGERENCIAS DE TÍTULOS Y REELS (5 ideas listas para usar en el Motor Creativo)
+
+DESCRIPCIÓN DE LA IDEA O NEGOCIO:
+"${blueprintIdea}"`;
+    } else if (type === 'tagline') {
+      customPrompt = `[SISTEMA: GENERACIÓN DE BLUEPRINT - PROPUESTA DE VALOR Y NARRATIVA]
+Eres FUTURA. Crea la narrativa comercial núcleo para este proyecto.
+
+Aplica la mentalidad de resultados y entrega este manifiesto estratégico en Markdown:
+### 🏹 PROPUESTA ÚNICA DE VALOR (Fórmula clara: Qué haces, Para quién y Cómo te diferencia)
+### 💎 3 TAGLINES COMERCIALES (Slogans de alto impacto y memorabilidad)
+### 📣 PITCH DE ELEVADOR (30 segundos para convencer a un socio o cliente)
+
+DESCRIPCIÓN DE LA IDEA O NEGOCIO:
+"${blueprintIdea}"`;
+    } else if (type === 'logo_generation') {
+      customPrompt = `[SISTEMA: DISEÑADOR ÉLITE DE IDENTIDAD CORPORATIVA - LOGO CORE]
+Eres FUTURA Logo Designer de la suite Future Marketing Consult. Crea el concepto del logotipo y la identidad visual para: "${blueprintIdea}".
+Extrae e integra con precisión cualquier estilo, color, estética o concepto visual específico que el usuario haya indicado en su descripción. Si no especificó estilo, opta por un diseño brutalista/moderno e hiper-minimalista de alta fidelidad.
+
+Escribe una respuesta inspiradora en Markdown estructurada exactamente con estas secciones:
+
+### 💎 CONCEPTO DE IDENTIDAD VISUAL & LOGOTIPO (Explicación conceptual de por qué este diseño representa sus valores, arquetipo y el SPE)
+### 🎨 PALETA DE COLORES RECTORES SUGERIDA (3 colores principales con sus códigos hexadecimales acordes al estilo de marca)
+### ⚡ PROMPT DE GENERACIÓN DE IMAGEN RECOMENDADO (Diseña un prompt de branding altamente conciso y avanzado para renderizar este logotipo como un isotipo vectorizado aislado sobre fondo oscuro)
+
+IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple geometric symbol, high-contrast, professional 8k graphic design --no letters words text`;
+    }
+
+    try {
+      const resp = await chatWithAdvisor(customPrompt, [], "Nueva Marca");
+      setBlueprintResult(resp);
+
+      if (type === 'all' || type === 'logo_generation') {
+        const sections: Record<string, string> = {
+          adn: '',
+          target: '',
+          tagline: '',
+          pillars: '',
+          creative_seed: '',
+          logo_generation: ''
+        };
+
+        const allHeaders = [
+          '===SECCION_ADN===',
+          '===SECCION_TARGET===',
+          '===SECCION_TAGLINE===',
+          '===SECCION_PILARES===',
+          '===SECCION_CREATIVO===',
+          '===SECCION_LOGOTIPO==='
+        ];
+
+        const extractSegment = (text: string, currentHeader: string, nextHeaders: string[]) => {
+          const idx = text.indexOf(currentHeader);
+          if (idx !== -1) {
+            let segment = text.slice(idx + currentHeader.length);
+            let earliestNextIndex = segment.length;
+            nextHeaders.forEach(header => {
+              if (header !== currentHeader) {
+                const nextIdx = segment.indexOf(header);
+                if (nextIdx !== -1 && nextIdx < earliestNextIndex) {
+                  earliestNextIndex = nextIdx;
+                }
+              }
+            });
+            return segment.slice(0, earliestNextIndex).trim();
+          }
+          return '';
+        };
+
+        sections.adn = extractSegment(resp, '===SECCION_ADN===', allHeaders);
+        sections.target = extractSegment(resp, '===SECCION_TARGET===', allHeaders);
+        sections.tagline = extractSegment(resp, '===SECCION_TAGLINE===', allHeaders);
+        sections.pillars = extractSegment(resp, '===SECCION_PILARES===', allHeaders);
+
+        if (!sections.adn && !sections.target && !sections.tagline) {
+          sections.adn = resp;
+        }
+
+        setBlueprintSections(sections);
+      }
+
+      if (type === 'logo_generation' || type === 'all') {
+        let finalImagePrompt = `Minimalist flat vector logo icon for ${blueprintIdea}, extremely simple geometric symbol, white brand design, modern layout, high contrast, studio lighting, isolated on solid black background, professional visual branding --no letters words text`;
+        
+        const lines = resp.split('\n');
+        const promptLine = lines.find(line => line.includes("IMAGE_PROMPT:"));
+        if (promptLine) {
+          finalImagePrompt = promptLine.replace("IMAGE_PROMPT:", "").trim();
+        }
+
+        const imgUrl = await generateCreativeImage(finalImagePrompt, "1:1");
+        if (imgUrl) {
+          setBlueprintLogoUrl(imgUrl);
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      setBlueprintResult(`⚠️ Disrupción neuronal en la generación de tu Blueprint Estratégico: **${err.message || err}**.\nPor favor reintenta con un enfoque de idea más pulido.`);
+    } finally {
+      setBlueprintIsGenerating(false);
+    }
+  };
+
+  const handleSaveLogoToBrandFromEngine = async () => {
+    const brandToSave = activeBrand;
+    if (!blueprintLogoUrl || !brandToSave || !brandToSave.id) return;
+    setBlueprintIsSavingLogo(true);
+    setBlueprintLogoSaveStatus('idle');
+    try {
+      const updatedLogos = [...(brandToSave.logos || []), blueprintLogoUrl];
+      await updateDoc(doc(db, 'projects', brandToSave.id), {
+        logos: updatedLogos
+      });
+      setBlueprintLogoSaveStatus('success');
+      setProjects(prev => prev.map(p => p.id === brandToSave.id ? { ...p, logos: updatedLogos } : p));
+      setActiveBrand({ ...brandToSave, logos: updatedLogos });
+    } catch (err) {
+      console.error(err);
+      setBlueprintLogoSaveStatus('error');
+    } finally {
+      setBlueprintIsSavingLogo(false);
+    }
+  };
+
+  const handleSaveBlueprintToBrand = async () => {
+    const brandToSave = activeBrand;
+    if (!blueprintResult || !brandToSave || !brandToSave.id) return;
+    setBlueprintIsSavingToBrand(true);
+    setBlueprintSaveStatus('idle');
+    try {
+      const formattedDesc = `${brandToSave.description || ''}\n\n=== BLUEPRINT GENERADO POR FUTURA ===\n${blueprintResult}`;
+      await updateDoc(doc(db, 'projects', brandToSave.id), {
+        description: formattedDesc,
+        methodology: 'SPE'
+      });
+      setBlueprintSaveStatus('success');
+      setProjects(prev => prev.map(p => p.id === brandToSave.id ? { ...p, description: formattedDesc, methodology: 'SPE' } : p));
+      setActiveBrand({ ...brandToSave, description: formattedDesc, methodology: 'SPE' });
+    } catch (err) {
+      console.error(err);
+      setBlueprintSaveStatus('error');
+    } finally {
+      setBlueprintIsSavingToBrand(false);
+    }
   };
 
   const cleanStrategy = (text: string) => {

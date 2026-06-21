@@ -562,85 +562,110 @@ export async function generateCreativeImage(
       return `data:image/svg+xml;base64,${btoa(encodeURIComponent(svgString.trim()).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16))))}`;
     }
 
-    if (text.includes("dental") || text.includes("dentist") || text.includes("odontolog") || text.includes("dient") || text.includes("sonris")) {
-      const ids = [
-        "photo-1629909613654-28e377c37b09",
-        "photo-1579684385127-1ef15d508118",
-        "photo-1598256989800-fe5f95da9787",
-        "photo-1588776814546-1ffcf47267a5"
-      ];
-      const item = ids[Math.floor(Math.random() * ids.length)];
-      return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
-    }
-    if (text.includes("cafe") || text.includes("coffee") || text.includes("gourmet") || text.includes("cafeter")) {
-      const ids = [
-        "photo-1509042239860-f550ce710b93",
-        "photo-1495474472287-4d71bcdd2085",
-        "photo-1447933601403-0c6688de566e",
-        "photo-1507133750040-4a8f57021571"
-      ];
-      const item = ids[Math.floor(Math.random() * ids.length)];
-      return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
-    }
-    if (text.includes("food") || text.includes("comid") || text.includes("restauran") || text.includes("hamburg") || text.includes("plat")) {
-      const ids = [
-        "photo-1565299624946-b28f40a0ae38",
-        "photo-1546069901-ba9599a7e63c",
-        "photo-1568901346375-23c9450c58cd",
-        "photo-1517248135467-4c7edcad34c4"
-      ];
-      const item = ids[Math.floor(Math.random() * ids.length)];
-      return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
-    }
-    if (text.includes("tech") || text.includes("software") || text.includes("comput") || text.includes("matrix") || text.includes("digital") || text.includes("ia") || text.includes("web") || text.includes("code")) {
-      const ids = [
-        "photo-1451187580459-43490279c0fa",
-        "photo-1518770660439-4636190af475",
-        "photo-1526374965328-7f61d4dc18c5",
-        "photo-1488590528505-98d2b5aba04b"
-      ];
-      const item = ids[Math.floor(Math.random() * ids.length)];
-      return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
-    }
-    if (text.includes("belleza") || text.includes("spa") || text.includes("cosmetic") || text.includes("piel") || text.includes("beauty") || text.includes("estetic") || text.includes("masaje")) {
-      const ids = [
-        "photo-1540555700478-4be289fbecef",
-        "photo-1512290923902-8a9f81da236c",
-        "photo-1608248597279-f99d160bfcbc",
-        "photo-1515377905703-c4788e51af15"
-      ];
-      const item = ids[Math.floor(Math.random() * ids.length)];
-      return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
-    }
-    if (text.includes("house") || text.includes("inmobil") || text.includes("arquitectur") || text.includes("hogar") || text.includes("apartamento") || text.includes("diseño") || text.includes("interi")) {
-      const ids = [
-        "photo-1600585154340-be6161a56a0c",
-        "photo-1600607687939-ce8a6c25118c",
-        "photo-1613490493576-7fde63acd811",
-        "photo-1580587771525-78b9dba3b914"
-      ];
-      const item = ids[Math.floor(Math.random() * ids.length)];
-      return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
-    }
-    if (text.includes("fitness") || text.includes("gimnas") || text.includes("fit") || text.includes("sport") || text.includes("entrenamien") || text.includes("fuerz")) {
-      const ids = [
-        "photo-1517838277536-f5f99be501cd",
-        "photo-1534438327276-14e5300c3a48",
-        "photo-1583454110551-21f2fa2afe61",
-        "photo-1518622358385-8ea7d0794bf6"
-      ];
-      const item = ids[Math.floor(Math.random() * ids.length)];
-      return `https://images.unsplash.com/photo-${item}?w=1000&auto=format&fit=crop&q=80`;
+    const mappings: { [key: string]: string } = {
+      "dental": "dental,dentist,smile",
+      "dentist": "dental,dentist,smile",
+      "odontolo": "dental,dentist,clinic",
+      "dient": "dental,dentist,smile",
+      "sonris": "smile,happy,person",
+      "cafe": "coffee,cafe,bean",
+      "coffee": "coffee,cafe,cup",
+      "gourmet": "gourmet,cuisine,food",
+      "cafeter": "cafe,coffee,bakery",
+      "food": "food,culinary,gourmet",
+      "comid": "food,culinary,dish",
+      "restauran": "restaurant,dining",
+      "hamburg": "burger,fastfood",
+      "plat": "food,dish",
+      "tech": "technology,digital",
+      "software": "code,programming,developer",
+      "comput": "computer,developer,desk",
+      "matrix": "cyberpunk,matrix,cyber",
+      "digital": "digital,abstract",
+      "ia": "artificial-intelligence,tech",
+      "artificial": "technology,cyber",
+      "web": "webdesign,ux,computer",
+      "code": "code,developer",
+      "programac": "code,developer",
+      "belleza": "beauty,spa,cosmetics",
+      "spa": "spa,wellness,bamboo",
+      "cosmetic": "cosmetics,makeup,skincare",
+      "piel": "skincare,serum",
+      "beauty": "beauty,skincare",
+      "estet": "spa,beauty",
+      "masaj": "massage,spa",
+      "house": "architecture,interior,house",
+      "inmobil": "realestate,property,luxury-home",
+      "arquitectur": "architecture,modern-building",
+      "hogar": "home,cozy-living",
+      "apartamento": "apartment,loft,interior",
+      "diseño": "design,interior,architecture",
+      "interi": "interior,minimalist-room",
+      "fitness": "fitness,gym",
+      "gimnas": "gym,fitness",
+      "fit": "fitness,workout",
+      "sport": "sports,athlete",
+      "entrenamien": "training,workout",
+      "fuerz": "gym,workout",
+      "banana": "banana,fruit,yellow",
+      "platano": "banana,fruit,yellow",
+      "zapato": "shoes,sneakers,fashion",
+      "calzado": "shoes,fashion",
+      "vestid": "dress,fashion,apparel",
+      "ropa": "clothing,fashion",
+      "moda": "fashion,style",
+      "auto": "car,automotive,sportscar",
+      "coche": "car,automotive",
+      "carro": "car,luxury-car",
+      "motor": "car,automotive",
+      "perro": "dog,cute-pet",
+      "gato": "cat,cute-pet",
+      "mascota": "pet,dog,cat",
+      "viaje": "travel,adventure,destination",
+      "turism": "travel,landscape",
+      "playa": "beach,ocean,relax",
+      "montaña": "mountain,landscape,nature",
+      "hotel": "luxury-hotel,resort",
+      "marketing": "marketing,business,office",
+      "negocio": "business,workspace,meeting",
+      "finanz": "finance,money,investment",
+      "dinero": "wealth,money",
+      "educac": "education,learning,classroom",
+      "escuel": "school,learning,book",
+      "medicin": "medicine,healthcare,doctor",
+      "salud": "health,wellness"
+    };
+
+    const matchedTags: string[] = [];
+    for (const [key, val] of Object.entries(mappings)) {
+      if (text.includes(key)) {
+        matchedTags.push(val);
+      }
     }
 
-    const defaultIds = [
-      "photo-1618005182384-a83a8bd57fbe",
-      "photo-1634017839464-5c339ebe3cb4",
-      "photo-1550684848-fac1c5b4e853",
-      "photo-1507525428034-b723cf961d3e"
-    ];
-    const defaultItem = defaultIds[Math.floor(Math.random() * defaultIds.length)];
-    return `https://images.unsplash.com/photo-${defaultItem}?w=1000&auto=format&fit=crop&q=80`;
+    let keywords = "";
+    if (matchedTags.length > 0) {
+      keywords = matchedTags.join(",");
+    } else {
+      const cleanWords = text
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // remove spanish accents
+        .replace(/[^a-z0-9\s]/g, "")
+        .split(/\s+/)
+        .filter(w => {
+          return w.length > 3 && 
+                 !["para", "como", "esta", "este", "todo", "sigue", "necesito", "solicit", "solicito", "conectar", "conecta", "crear", "hacer", "diseno", "imagen", "imagenes", "resultado", "resultados", "estilo", "marca", "marcas"].includes(w);
+        });
+      
+      if (cleanWords.length > 0) {
+        keywords = cleanWords.slice(0, 3).join(",");
+      } else {
+        keywords = "abstract,minimal,background";
+      }
+    }
+
+    const cacheBuster = Math.floor(Math.random() * 1000);
+    return `https://images.unsplash.com/featured/1000x1000/?${encodeURIComponent(keywords)}&sig=${cacheBuster}`;
   };
 
   return executeWithFallback<string | null>(
