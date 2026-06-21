@@ -4,7 +4,6 @@
  */
 
 import { getAiClient, sanitizeGeminiContents, robustJsonParse } from "./utils";
-import { ThinkingLevel } from "@google/genai";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -101,7 +100,6 @@ export default async function handler(req: any, res: any) {
       config: {
         systemInstruction,
         responseMimeType: "application/json",
-        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
       }
     });
 
