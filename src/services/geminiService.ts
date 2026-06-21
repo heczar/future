@@ -282,30 +282,46 @@ async function executeWithFallback<T>(
     return data as T;
   } catch (error: any) {
     const errorStr = (error?.message || "").toLowerCase();
+    
+    // Check if the error is due to a completely unconfigured/missing key
+    const isMissingKey = errorStr.includes("no está configurada") || 
+                         errorStr.includes("no configurada") || 
+                         errorStr.includes("not configured") || 
+                         errorStr.includes("missing key") ||
+                         errorStr.includes("undefined") ||
+                         errorStr.includes("empty");
+
     const isQuotaExceeded = errorStr.includes("quota") || errorStr.includes("429") || errorStr.includes("exhausted") || errorStr.includes("limit");
 
     if (isQuotaExceeded) {
-      console.warn(`[FUTURA HYBRID] Quota limit detected (${error.message}). Activating elegant simulated strategy fallback...`);
+      console.warn(`[FUTURA HYBRID] Límites de cuota detectados. Retornando respuesta estratégica simulada...`);
       return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
     }
 
-    // If it is a fetch connection/network error or we don't have a backend at all (standard CORS/TCP block), failover
+    // If it is a fetch connection/network error, failover to client-side
     if (error instanceof TypeError || (error.message && error.message.includes("fetch"))) {
-      console.warn(`[FUTURA HYBRID] Conexión rechazada con el servidor de la app. Ejecutando respuesta directamente en el navegador...`);
+      console.warn(`[FUTURA HYBRID] Conexión rechazada con el servidor. Intentando ejecutar directamente en el navegador...`);
       try {
         return await fallbackFn();
       } catch (fallbackError: any) {
-        console.warn(`[FUTURA HYBRID] Fallback a la simulación determinista debido a un problema con la clave o quota:`, fallbackError);
+        console.warn(`[FUTURA HYBRID] Fallback a la simulación determinista debido a un problema con la clave local o quota:`, fallbackError);
         return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
       }
     }
 
-    // For other errors, try fallback first as safety
-    console.error(`[FUTURA ERROR] Error en servidor. Intentando respaldo local...`, error);
+    // If the server explicitly returned an error that is NOT a missing/unconfigured key, (e.g. invalid key, quota exceeded, bad request, unsupported location)
+    // we MUST bubble it up to the user so they can diagnose and fix it, instead of showing mock contents!
+    if (!isMissingKey) {
+      console.error(`[FUTURA ERROR] Error real detectado de la API:`, error.message);
+      throw error;
+    }
+
+    // If it is indeed a missing key error, try client fallback
+    console.warn(`[FUTURA] Clave de API faltante en el servidor. Intentando usar clave local en el navegador...`);
     try {
       return await fallbackFn();
     } catch (fallbackError: any) {
-      console.warn(`[FUTURA HYBRID] Fallback a la simulación determinista en base a dolor de nicho debido a error de API:`, fallbackError);
+      console.warn(`[FUTURA HYBRID] Fallback a la simulación determinista dadas las claves ausentes o inválidas:`, fallbackError);
       return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
     }
   }
