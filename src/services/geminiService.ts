@@ -238,13 +238,6 @@ async function executeWithFallback<T>(
                    prompt.toLowerCase().includes("futura") || 
                    JSON.stringify(payload || {}).toLowerCase().includes("futura_brand_vault");
 
-  // Proactive bypass for FUTURA brand to guarantee instant responsiveness and zero queue delay
-  // CRITICAL: We do NOT bypass conversational endpoints (chatWithAdvisor and chatAboutPhase) so that real, logical Gemini responses are triggered.
-  if (isFutura && !apiEndpoint.includes("generateCreativeImage") && !apiEndpoint.includes("chatWithAdvisor") && !apiEndpoint.includes("chatAboutPhase")) {
-    console.log(`[FUTURA SIMULATION] Proactive bypass activated for FUTURA brand verification on ${apiEndpoint}`);
-    return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
-  }
-
   try {
     const userKey = localStorage.getItem("user_gemini_api_key") || "";
     const headers: Record<string, string> = { "Content-Type": "application/json" };
