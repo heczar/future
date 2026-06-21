@@ -302,11 +302,8 @@ async function executeWithFallback<T>(
       try {
         return await fallbackFn();
       } catch (fallbackError: any) {
-        const fbStr = (fallbackError?.message || "").toLowerCase();
-        if (fbStr.includes("quota") || fbStr.includes("429") || fbStr.includes("exhausted") || fbStr.includes("limit")) {
-          return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
-        }
-        throw fallbackError;
+        console.warn(`[FUTURA HYBRID] Fallback a la simulación determinista debido a un problema con la clave o quota:`, fallbackError);
+        return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
       }
     }
 
@@ -315,24 +312,8 @@ async function executeWithFallback<T>(
     try {
       return await fallbackFn();
     } catch (fallbackError: any) {
-      const fbStr = (fallbackError?.message || "").toLowerCase();
-      if (fbStr.includes("quota") || fbStr.includes("429") || fbStr.includes("exhausted") || fbStr.includes("limit")) {
-        console.warn(`[FUTURA HYBRID] Local fallback triggered quota limit. Returning simulated strategy...`);
-        return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
-      }
-
-      // If the original server error explains how to configure GEMINI_API_KEY, let's bubble that up directly
-      if (error && error.message && (error.message.includes("GEMINI_API_KEY") || error.message.includes("clave") || error.message.includes("configurar"))) {
-        throw error;
-      }
-
-      // Re-throw with user instructions if API Keys are missing in AI Studio
-      if (!hasClientApiKey()) {
-        throw new Error(
-          "No se pudo conectar al servidor de FUTURA. " + (error.message || "Asegúrate de configurar la clave 'GEMINI_API_KEY' en la pestaña 'Secrets' (en el menú de Configuración con ícono de engranaje ⚙️) de AI Studio o selecciona la marca FUTURA para continuar la demostración.")
-        );
-      }
-      throw new Error(fallbackError.message || error.message || "Error al procesar la inteligencia artificial.");
+      console.warn(`[FUTURA HYBRID] Fallback a la simulación determinista en base a dolor de nicho debido a error de API:`, fallbackError);
+      return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
     }
   }
 }
