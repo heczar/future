@@ -49,8 +49,12 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
       if (credential?.accessToken) {
         setAccessToken(credential.accessToken);
       }
-    } catch (error) {
-      console.error('Sign-in error:', error);
+    } catch (error: any) {
+      if (error && (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request' || error.message?.includes('popup-closed-by-user'))) {
+        console.warn('Google Sign-In was cancelled or closed by user.');
+      } else {
+        console.error('Sign-in error:', error);
+      }
       throw error;
     }
   };

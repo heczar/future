@@ -321,10 +321,15 @@ async function executeWithFallback<T>(
         return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
       }
 
-      // Re-throw with user instructions if API Keys are missing
+      // If the original server error explains how to configure GEMINI_API_KEY, let's bubble that up directly
+      if (error && error.message && (error.message.includes("GEMINI_API_KEY") || error.message.includes("clave") || error.message.includes("configurar"))) {
+        throw error;
+      }
+
+      // Re-throw with user instructions if API Keys are missing in AI Studio
       if (!hasClientApiKey()) {
         throw new Error(
-          "No se pudo conectar al servidor de FUTURA y no tienes configurada la clave 'VITE_GEMINI_API_KEY' en tu hosting de Vercel. Por favor, configura tus variables de entorno para habilitar las respuestas de IA o selecciona la marca FUTURA para continuar la demostración."
+          "No se pudo conectar al servidor de FUTURA. " + (error.message || "Asegúrate de configurar la clave 'GEMINI_API_KEY' en la pestaña 'Secrets' (en el menú de Configuración con ícono de engranaje ⚙️) de AI Studio o selecciona la marca FUTURA para continuar la demostración.")
         );
       }
       throw new Error(fallbackError.message || error.message || "Error al procesar la inteligencia artificial.");

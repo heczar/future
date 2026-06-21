@@ -178,12 +178,14 @@ export default function AccountAuthPortal() {
                 await signIn();
                 setSuccessMsg('¡Sesión iniciada con éxito con Google!');
               } catch (err: any) {
-                console.error("Google Sign-In caught error:", err);
-                if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user') {
+                if (err && (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user' || err.message?.includes('popup-closed-by-user'))) {
+                  console.warn("Google Sign-In caught cancellation warning:", err);
                   setErrorMsg('La conexión con Google se detuvo o fue bloqueada. Si estás en AI Studio, usa el botón "Open in new tab" (Abrir en pestaña nueva) arriba a la derecha para evitar bloqueos del iframe del navegador.');
                 } else if (err.code === 'auth/popup-blocked') {
+                  console.warn("Google Sign-In caught blocked popup warning:", err);
                   setErrorMsg('El navegador bloqueó la ventana emergente de Google. Habilita las ventanas emergentes o usa "Open in new tab" para continuar.');
                 } else {
+                  console.error("Google Sign-In caught error:", err);
                   setErrorMsg(err.message || 'Error al iniciar sesión con tu cuenta de Google.');
                 }
               } finally {
