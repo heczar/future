@@ -1050,7 +1050,7 @@ function AppContent() {
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex flex-col text-left">
-                    <h1 className="text-2xl md:text-3xl font-display font-bold text-white tracking-[0.1em] leading-none mb-1">FUTURA</h1>
+                    <h1 className="text-2xl md:text-3xl font-display font-bold text-white tracking-[0.1em] leading-none mb-1">FUTURE</h1>
                     <div className="h-0.5 w-full bg-gradient-to-r from-brand-primary to-transparent mb-1" />
                     <h2 className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] leading-none">Marketing Consult</h2>
                   </div>
@@ -1072,7 +1072,6 @@ function AppContent() {
               </div>
             </div>
           </div>
-          <p className="text-slate-400 max-w-xl text-xs md:text-sm leading-relaxed mt-4">Arquitectos de una presencia digital impactante. Creadores del mañana.</p>
         </header>
 
         <div className="w-full min-h-[calc(100vh-16rem)] flex flex-col justify-start relative">

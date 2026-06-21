@@ -92,7 +92,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
         <div className="p-8 shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex flex-col text-left">
-              <h2 className="text-2xl font-display font-bold tracking-[0.1em] text-white leading-none mb-1">FUTURA</h2>
+              <h2 className="text-2xl font-display font-bold tracking-[0.1em] text-white leading-none mb-1">FUTURE</h2>
               <div className="h-0.5 w-full bg-gradient-to-r from-brand-primary to-transparent" />
               <p className="text-[7px] font-black text-slate-500 uppercase tracking-[0.4em] mt-1">Marketing Consult</p>
             </div>
