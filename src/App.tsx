@@ -85,8 +85,9 @@ function DashboardInput({ value, onSubmit, isLoading }: DashboardInputProps) {
   }, [value]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && localVal.trim()) {
       onSubmit(localVal);
+      setLocalVal('');
     }
   };
 
@@ -104,9 +105,14 @@ function DashboardInput({ value, onSubmit, isLoading }: DashboardInputProps) {
         />
         <div className="flex w-full sm:w-auto gap-3 p-1 sm:p-0">
           <button 
-            onClick={() => onSubmit(localVal)}
-            disabled={isLoading}
-            className="flex-1 sm:w-auto px-6 py-3 bg-brand-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-2xl shadow-brand-primary/30 w-full cursor-pointer"
+            onClick={() => {
+              if (localVal.trim()) {
+                onSubmit(localVal);
+                setLocalVal('');
+              }
+            }}
+            disabled={isLoading || !localVal.trim()}
+            className="flex-1 sm:w-auto px-6 py-3 bg-brand-primary disabled:opacity-40 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-2xl shadow-brand-primary/30 w-full cursor-pointer"
           >
             CONSULTAR
             <Send className="w-3.5 h-3.5" />
@@ -427,7 +433,8 @@ function AppContent() {
         'Auditoría de Competencia: Identificando sus fortalezas para superarlas.',
         'Análisis de Tendencias: Proyectando qué será relevante mañana.',
         'Perfil del Consumidor: Definiendo el "Pain Point" exacto que resolvemos.'
-      ]
+      ],
+      prompt: 'Necesito asistencia táctica integral y consultoría de nivel élite sobre la fase de Investigación (Análisis de Mercado y Auditoría de Competidores) para identificar vacíos y superar a mis competidores bajo la metodología SPE.'
     },
     { 
       name: 'Estrategia', 
@@ -440,7 +447,8 @@ function AppContent() {
         'Propuesta de Valor Única (PVU): Tu diferenciador innegable.',
         'Arquitectura de Mensaje: Qué decimos y cuándo lo decimos.',
         'Embudo de Conversión: El camino del usuario desde el espectador hasta el cliente.'
-      ]
+      ],
+      prompt: 'Necesito asistencia táctica integral y consultoría de nivel élite sobre la fase de Estrategia (Plan de Impacto SPE) para definir de manera contundente la Propuesta de Valor Única (PVU) de mi marca con el sistema SPE.'
     },
     { 
       name: 'Despliegue', 
@@ -453,7 +461,8 @@ function AppContent() {
         'Despliegue Visual: Logos, flyers y carruseles optimizados.',
         'Copywriting Estratégico: Palabras que venden y conectan.',
         'Brand Consistency: Garantizando que tu marca se vea igual en todo canal.'
-      ]
+      ],
+      prompt: 'Necesito asistencia táctica integral y consultoría de nivel élite sobre la fase de Despliegue (Materialización de Activos de Alto Impacto) para producir copies persuasivos y consistencia de marca bajo las pautas del sistema SPE.'
     },
     { 
       name: 'Optimización', 
@@ -466,7 +475,8 @@ function AppContent() {
         'Lectura de Métricas: CTR, ROAS y Engagement real.',
         'A/B Testing: Probamos variables para encontrar la configuración ganadora.',
         'Refinamiento IA: Reinyectamos datos al motor para mejorar cada iteración.'
-      ]
+      ],
+      prompt: 'Necesito asistencia táctica integral y consultoría de nivel élite sobre la fase de Optimización (Análisis de Rendimiento Reales) para la lectura adecuada de métricas, pruebas A/B y refinamiento técnico bajo la metodología SPE.'
     },
     { 
       name: 'Escalamiento', 
@@ -479,7 +489,8 @@ function AppContent() {
         'Presupuesto Progresivo: Inversión inteligente donde hay Retorno.',
         'Nuevos Formatos: Del carrusel al video, del video a la campaña masiva.',
         'Dominio del Nicho: Consolidación como autoridad máxima en tu sector.'
-      ]
+      ],
+      prompt: 'Necesito asistencia táctica integral y consultoría de nivel élite sobre la fase de Escalamiento (Expansión y Crecimiento Vertical) para realizar una inversión publicitaria inteligente y consolidar mi dominio de nicho con el sistema SPE.'
     }
   ];
 
@@ -1078,6 +1089,8 @@ function AppContent() {
               onUpdateProfile={handleUpdateProfile} 
               setActiveTab={setActiveTab}
               setDashboardPrompt={setDashboardPrompt}
+              initialPrompt={dashboardPrompt}
+              onPromptConsumed={() => setDashboardPrompt('')}
             />
           </div>
 
@@ -1231,8 +1244,11 @@ function AppContent() {
                  <button 
                    onClick={() => {
                      setSelectedPhase(null);
-                     hubRef.current?.scrollIntoView({ behavior: 'smooth' });
-                     setDashboardPrompt(`Necesito ayuda técnica para la ejecución de la fase de ${selectedPhase.name} de mi marca.`);
+                     setActiveTab('');
+                     setTimeout(() => {
+                        hubRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        handleHubConsult(selectedPhase.prompt);
+                      }, 100);
                    }}
                    className="w-full py-3 bg-brand-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-brand-primary/15 flex items-center justify-center gap-2 cursor-pointer"
                  >

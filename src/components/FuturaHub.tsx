@@ -34,6 +34,8 @@ interface FuturaHubProps {
   onUpdateProfile: (p: any) => void;
   setActiveTab: (tab: string) => void;
   setDashboardPrompt: (prompt: string) => void;
+  initialPrompt?: string;
+  onPromptConsumed?: () => void;
 }
 
 export default function FuturaHub({ 
@@ -41,7 +43,9 @@ export default function FuturaHub({
   projectsList, 
   onUpdateProfile, 
   setActiveTab, 
-  setDashboardPrompt 
+  setDashboardPrompt,
+  initialPrompt,
+  onPromptConsumed
 }: FuturaHubProps) {
   
   // Primary Hub Tab: 'consultation' (Advisory & Audit) vs 'blueprint' (Brand Blueprint & Logo Generator)
@@ -70,7 +74,7 @@ export default function FuturaHub({
   });
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Business Idea for Diagnostic
   const [businessIdea, setBusinessIdea] = useState('');
@@ -82,16 +86,29 @@ export default function FuturaHub({
     pillars: { title: string; score: number; status: string; desc: string; tip: string }[];
   } | null>(null);
 
-  // Scroll chat to bottom
+  // Scroll chat to bottom inside container (no viewport shifts)
   const scrollToBottom = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    setTimeout(() => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }
+    }, 60);
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [chatMessages, isChatLoading]);
+
+  // Handle incoming initial prompt
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.trim()) {
+      setActiveHubTab('consultation');
+      handleSendMessage(undefined, initialPrompt);
+      if (onPromptConsumed) {
+        onPromptConsumed();
+      }
+    }
+  }, [initialPrompt]);
 
   // --- BRAND BLUEPRINT CO-CREATION STATE ---
   const [blueprintIdea, setBlueprintIdea] = useState('');
@@ -120,9 +137,10 @@ export default function FuturaHub({
     const prompt = (customText || chatInput).trim();
     if (!prompt || isChatLoading) return;
 
-    if (!customText) {
-      setChatInput('');
-    }
+    // Instantly blank out all input source boxes
+    setChatInput('');
+    setBusinessIdea('');
+
     const newMsgs = [...chatMessages, { role: 'user' as const, text: prompt }];
     setChatMessages(newMsgs);
     setIsChatLoading(true);
@@ -741,7 +759,7 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                 </div>
 
                 {/* Chat Area */}
-                <div className="flex-1 overflow-y-auto pr-1 space-y-4 scrollbar-thin text-xs py-2">
+                <div ref={chatContainerRef} className="flex-1 overflow-y-auto pr-1 space-y-4 scrollbar-thin text-xs py-2">
                   {chatMessages.map((msg, idx) => (
                     <div 
                       key={idx}
@@ -762,7 +780,6 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                       <span className="text-[10px] text-brand-primary uppercase tracking-[0.25em] font-black font-sans">Escribiendo...</span>
                     </div>
                   )}
-                  <div ref={scrollRef} />
                 </div>
 
                 {/* Input Form */}
