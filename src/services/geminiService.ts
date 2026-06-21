@@ -169,48 +169,52 @@ function getDeterministicSimulationResponse(apiEndpoint: string, payload: any): 
   }
 
   if (apiEndpoint.includes("chatWithAdvisor") || apiEndpoint.includes("chatAboutPhase")) {
-    const isGreeting = prompt.includes("hola") || prompt.includes("buenos") || prompt.includes("salud");
+    const isGreeting = prompt.toLowerCase().includes("hola") || prompt.toLowerCase().includes("buenos") || prompt.toLowerCase().includes("salud") || prompt.toLowerCase().includes("tal");
     if (isFutura) {
       if (isGreeting) {
-        return `¡Hola, Líder! Te doy la bienvenida al centro neurálgico de **FUTURA**. 
+        return `¡Hola! Qué gusto saludarte. Bienvenido al centro de consultoría de **FUTURA**. 
 
-Como tu Asesor de Conversión Élite, estoy listo para guiar tu marca bajo nuestro mantra fundamental: **"Resultados sobre Estética"**. 
+Estoy listo para darte una mano con tu marca, tu estrategia de negocio o cualquier duda de marketing que tengas. 
 
-¿Qué activo estratégico de **FUTURA (Auto-Marketing SPE)** te gustaría desplegar u optimizar hoy en el Hub o a través de nuestro poderoso Motor Creativo?`;
+Cuéntame un poco de tu proyecto o hazme cualquier pregunta que tengas en mente. ¡Hablemos de forma muy sencilla, cómoda y clara!`;
       }
-      if (prompt.includes("que es") || prompt.includes("qué es") || prompt.includes("como funciona") || prompt.includes("cómo funciona") || prompt.includes("metodologia") || prompt.includes("spe") || prompt.includes("sistema pentagonal")) {
-        return `El **Sistema Pentagonal de Ejecución (SPE)** es la metodología exclusiva desarrollada por Future Marketing Consult para dominar el mercado hispano. Consta de 5 fases críticas:
+      if (prompt.toLowerCase().includes("que es") || prompt.toLowerCase().includes("qué es") || prompt.toLowerCase().includes("como funciona") || prompt.toLowerCase().includes("cómo funciona") || prompt.toLowerCase().includes("metodologia") || prompt.toLowerCase().includes("spe") || prompt.toLowerCase().includes("sistema pentagonal")) {
+        return `¡Claro que sí! Con gusto te explico la metodología del **Sistema Pentagonal de Ejecución (SPE)** de forma súper sencilla y cómoda:
 
-1. **Enfoque Feroz (Identidad)**: Resultados sobre Estética. Descubrir la herida central de tu cliente ideal.
-2. **Embudo de Captación Automática**: Diseñar embudos basados en copywriting letal.
-3. **Escala e Inteligencia de Datos**: Distribución de mensajes estratégicos y medición exacta de rendimiento.
-4. **Optimización de Conversión**: Destruir fricciones con ofertas y pitches indestructibles.
-5. **Conectividad & Fidelización de Por Vida**: Sistemas que convierten clientes en evangelizadores de tu marca.
+1. **Enfoque e Identidad**: Se trata de definir con total claridad de qué se trata tu negocio, a quién ayudas y cuál es ese problema principal que solucionas ("Resultados sobre Estética"). 
+2. **Embudo y Captación**: Crear un camino amigable para que las personas conozcan tu oferta sin tantas vueltas, usando palabras sencillas pero muy persuasivas.
+3. **Volumen de Mensajes**: Explicar los beneficios de tu solución, enfocándote en lo que de verdad le duele a tu cliente, con honestidad y de forma directa.
+4. **Optimización Financiera**: Ajustar tus precios y tu propuesta para que sea irresistible y rentable a la vez.
+5. **Fidelización**: Tratar tan bien a tus clientes actuales que ellos mismos sean los que te recomienden con orgullo.
 
-¿Listo para aplicar esta ingeniería comercial a tu propia marca virtual de FUTURA en el Motor Creativo? AI Studio está listo para procesar tus activos en tiempo récord.`;
+¿Qué te parece? Si quieres, podemos empezar a planificar alguna de estas ideas directamente para tu tipo de negocio en el **Motor Creativo**. ¿De qué trata tu proyecto?`;
       }
-      if (prompt.includes("conversa") || prompt.includes("chat") || prompt.includes("consejo") || prompt.includes("estrategia") || prompt.includes("vender") || prompt.includes("cliente")) {
-        return `La clave para vender la marca de **FUTURA** en el mercado hispano es la **destrucción del ego creativo del cliente**. 
+      if (prompt.toLowerCase().includes("conversa") || prompt.toLowerCase().includes("chat") || prompt.toLowerCase().includes("consejo") || prompt.toLowerCase().includes("estrategia") || prompt.toLowerCase().includes("vender") || prompt.toLowerCase().includes("cliente")) {
+        return `Esa es una excelente pregunta. Para conectar con tus clientes reales, el mejor consejo de sentido común es **hablarles con total honestidad de sus problemas cotidianos**.
 
-Debemos confrontar a las agencias tradicionales de marketing demostrándoles que los feeds "bonitos" de Instagram no pagan las nóminas. El valor diferenciador de FUTURA es que es un *robot pensante* entrenado para atacar dolores crónicos reales del consumidor.
+A veces nos enredamos haciendo publicaciones puramente estéticas en redes sociales, pero lo que de verdad le interesa a la gente es saber si entiendes su molestia y si puedes solucionarla rápidamente.
 
-Te recomiendo ir al **Motor Creativo**, seleccionar la marca virtual de FUTURA y generar una **Fábrica de Copys** utilizando el tono "Persuasivo Brutal".`;
+¿Qué tal si vamos al **Motor Creativo** y redactamos un borrador de propuesta muy cercano y amigable para ver cómo reacciona tu audiencia? ¡Es súper rápido de hacer!`;
       }
-      return `La ingeniería de conversión de **FUTURA (Auto-Marketing SPE)** funciona unificando el Baúl de Marca, el Hub de Origen y la Fábrica Creativa. Su mantra principal es **Resultados sobre Estética**.
+      return `¡Qué buen punto! Para avanzar con total claridad y lógica de sentido común, mi mejor recomendación es que mantengamos las cosas lo más simples y directas posible. 
 
-Dime, ¿quieres que redactemos un pitch de ventas devastador o que refinemos tu propuesta de video corto hoy?`;
+En el marketing moderno, la gente ya no busca discursos corporativos complejos; busca honestidad, valor real y soluciones cómodas.
+
+¿Te gustaría que diseñáramos un pitch de ventas muy claro o que preparemos un borrador de copy amigable para tus redes sociales? ¡Cuéntame y nos ponemos manos a la obra!`;
     }
 
     if (isGreeting) {
-      return `¡Bienvenido al epicentro estratégico de **FUTURA**! Es un placer saludarte. 
+      return `¡Hola! Me alegra mucho saludarte. Bienvenido al epicentro de consultoría de **FUTURA**.
 
-Estoy listo para activar el **Sistema Pentagonal de Ejecución (SPE)** en tu marca actual para capturar leads de alta resolución y erradicar objeciones comerciales. 
+Estoy totalmente listo para ser tu compañero de equipo y ayudarte a planificar el crecimiento de tu marca de forma lógica, cómoda y práctica.
 
-¿Qué objetivo prioritario de conversión o posicionamiento de mercado deseas que analicemos hoy en nuestra Fábrica Creativa?`;
+Cuéntame, ¿cuál es tu negocio o qué idea tienes en mente hoy para que empecemos a impulsarla juntos de forma amigable?`;
     }
-    return `Para elevar tu conversión de forma inmediata en este nicho, detén la autocomplacencia visual. El comprador moderno está hiper-estimulado e ignora el diseño corporativo plano, busca valor útil.
+    return `Para elevar tus ventas de manera inmediata, mantengamos las cosas sencillas. Hoy en día, las personas ignoran la publicidad tradicional y buscan conexiones auténticas.
 
-Enfoca tus próximos 3 mensajes exclusivamente en **Dolores Crónicos Ocultos**. Explica con absoluta honestidad técnica por qué tu solución es más costosa, pero un 300% más eficiente a largo plazo. ¿Qué activo de conversión deseas redactar primero?`;
+Te aconsejo enfocar tus mensajes en **solucionar un dolor de cabeza muy específico** de tu cliente, hablándole con honestidad y con palabras comunes que cualquiera pueda asimilar en 5 segundos.
+
+¿Te gustaría que redactáramos una propuesta con esta filosofía en nuestro **Motor Creativo** para probar su impacto?`;
   }
 
   if (apiEndpoint.includes("generateSocialCopy") || apiEndpoint.includes("refineSocialCopy")) {
@@ -235,7 +239,8 @@ async function executeWithFallback<T>(
                    JSON.stringify(payload || {}).toLowerCase().includes("futura_brand_vault");
 
   // Proactive bypass for FUTURA brand to guarantee instant responsiveness and zero queue delay
-  if (isFutura && !apiEndpoint.includes("generateCreativeImage")) {
+  // CRITICAL: We do NOT bypass conversational endpoints (chatWithAdvisor and chatAboutPhase) so that real, logical Gemini responses are triggered.
+  if (isFutura && !apiEndpoint.includes("generateCreativeImage") && !apiEndpoint.includes("chatWithAdvisor") && !apiEndpoint.includes("chatAboutPhase")) {
     console.log(`[FUTURA SIMULATION] Proactive bypass activated for FUTURA brand verification on ${apiEndpoint}`);
     return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
   }
