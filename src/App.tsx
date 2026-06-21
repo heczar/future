@@ -1028,7 +1028,7 @@ function AppContent() {
       />
       
       <main ref={mainRef} className="flex-1 min-w-0 max-w-full overflow-x-hidden p-4 md:p-12 pb-32 md:pb-40 relative bg-transparent selection:bg-brand-primary/20 z-10">
-        <header className="mb-8 md:mb-12">
+        <header className="mb-4 md:mb-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               {/* Mobile Menu Toggle */}
