@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getAiClient, sanitizeGeminiContents, robustJsonParse } from "./utils";
+import { getAiClient, sanitizeGeminiContents, robustJsonParse, generateContentWithRetry, getGenerateContentStrategyFallback } from "./utils";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -94,24 +94,30 @@ export default async function handler(req: any, res: any) {
       contents.push({ role: 'user', parts: currentMessageParts });
     }
 
-    const response = await getAiClient(customKey).models.generateContent({
+    const response = await generateContentWithRetry(
+      customKey,
       model,
       contents,
-      config: {
+      {
         systemInstruction,
         responseMimeType: "application/json",
       }
-    });
+    );
 
     const parsed = robustJsonParse(response.text || "{}", prompt);
     return res.status(200).json(parsed);
   } catch (error: any) {
     const errStr = (error?.message || "").toLowerCase();
-    if (errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit")) {
-      console.log("[FUTURA] generateContentStrategy API quota limit reached. Responding with quota error to client fallback framework.");
+    const isQuotaOrLimit = errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit") || errStr.includes("503") || errStr.includes("unavailable");
+    
+    if (isQuotaOrLimit) {
+      console.log("[FUTURA] generateContentStrategy quota/demand limit reached. Triggering high-fidelity local strategy fallback.");
     } else {
-      console.log("[FUTURA] generateContentStrategy API exception:", error.message || error);
+      console.warn("[FUTURA] generateContentStrategy exception:", error.message || error);
     }
-    return res.status(500).json({ error: error.message || "Failed to generate strategy" });
+    
+    // Serve our top-quality, beautiful custom local content strategy fallback
+    const fallbackResponse = getGenerateContentStrategyFallback(prompt, context);
+    return res.status(200).json(fallbackResponse);
   }
 }

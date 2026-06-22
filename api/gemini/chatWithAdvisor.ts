@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getAiClient, sanitizeGeminiContents } from "./utils";
+import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatWithAdvisorFallback } from "./utils";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -25,7 +25,7 @@ export default async function handler(req: any, res: any) {
     
     FILOSOFÍA DE RESPUESTA ("Humana, Cómoda y con Criterio de Persona Común"):
     1. CRITERIO LÓGICO NATURAL: Si el usuario te hace una pregunta sencilla, cotidiana o informal (como un saludo o una duda de sentido común sobre negocios), respóndele de manera natural, humana, cálida y directa, como lo haría un mentor comprensivo. No utilices sermones corporativos ni asumas que todo debe ser hiper-técnico.
-    2. EXPLICACIONES SENCILLAS Y CÓMODAS: Traduce cualquier concepto complejo a palabras de uso cotidiano. Explica el "por qué" y el "cómo" de forma didáctica. Tu misión es hacer el marketing y la estrategia comercial amigables, accesibles y cómodos para todo el mundo.
+    2. EXPLICACIONES SENCILLAS Y CÓMODAS: Traduce cualquier concepto complejo a palabras de uso cotidiano. Explica el "por qué" y el "cómo" de forma didáctica. Tu misión es hacer el marketing y la estrategia comercial amigables, accesibles y cómodas para todo el mundo.
     3. FORMATO LIGERO Y AGRADABLE DE LEER: Estructura tus textos con generosidad de espacios. Escribe en párrafos muy cortos (máximo 2 o 3 líneas cada uno). Utiliza viñetas (bullet points) limpios si necesitas listar ideas o consejos, facilitando un escaneo visual reconfortante para el usuario. Evita bloques compactos de texto.
     4. CERCANÍA AUTÉNTICA: Puedes saludar amigablemente al inicio de tu respuesta y cerrar con una frase motivadora u orientativa sin sonar robótico.
     
@@ -54,22 +54,28 @@ export default async function handler(req: any, res: any) {
     const listHistory = Array.isArray(history) ? history : [];
     const contents = sanitizeGeminiContents(listHistory, message);
 
-    const response = await getAiClient(customKey).models.generateContent({
+    const response = await generateContentWithRetry(
+      customKey,
       model,
       contents,
-      config: {
+      {
         systemInstruction,
       }
-    });
+    );
 
     return res.status(200).json({ response: response.text || "No response received" });
   } catch (error: any) {
     const errStr = (error?.message || "").toLowerCase();
-    if (errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit")) {
-      console.log("[FUTURA] chatWithAdvisor API quota limit reached. Responding with quota error to client fallback framework.");
+    const isQuotaOrLimit = errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit") || errStr.includes("503") || errStr.includes("unavailable");
+    
+    if (isQuotaOrLimit) {
+      console.log("[FUTURA] chatWithAdvisor quota/demand limit reached. Triggering high-fidelity local advisor fallback.");
     } else {
-      console.log("[FUTURA] chatWithAdvisor API exception:", error.message || error);
+      console.warn("[FUTURA] chatWithAdvisor exception:", error.message || error);
     }
-    return res.status(500).json({ error: error.message || "Failed to chat with advisor" });
+    
+    // Serve our top-quality, beautiful custom local strategic advice
+    const fallbackResponse = getChatWithAdvisorFallback(message, brandContext);
+    return res.status(200).json({ response: fallbackResponse });
   }
 }

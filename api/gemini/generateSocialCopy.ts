@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getAiClient } from "./utils";
+import { getAiClient, generateContentWithRetry, getGenerateSocialCopyFallback } from "./utils";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -62,22 +62,28 @@ export default async function handler(req: any, res: any) {
       4. Conjunto de hashtags de nicho estratégicos y relevantes (máximo 5-6 hashtags efectivos)
     `;
 
-    const response = await getAiClient(customKey).models.generateContent({
+    const response = await generateContentWithRetry(
+      customKey,
       model,
-      contents: [{ parts: [{ text: prompt }] }],
-      config: {
+      [{ parts: [{ text: prompt }] }],
+      {
         systemInstruction,
       }
-    });
+    );
 
     return res.status(200).json({ response: response.text || "" });
   } catch (error: any) {
     const errStr = (error?.message || "").toLowerCase();
-    if (errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit")) {
-      console.log("[FUTURA] generateSocialCopy API quota limit reached. Responding with quota error to client fallback framework.");
+    const isQuotaOrLimit = errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit") || errStr.includes("503") || errStr.includes("unavailable");
+    
+    if (isQuotaOrLimit) {
+      console.log("[FUTURA] generateSocialCopy quota/demand limit reached. Triggering high-fidelity local content copy fallback.");
     } else {
-      console.log("[FUTURA] generateSocialCopy API exception:", error.message || error);
+      console.warn("[FUTURA] generateSocialCopy exception:", error.message || error);
     }
-    return res.status(500).json({ error: error.message || "Error al generar copy" });
+    
+    // Serve our top-quality, beautiful custom local structured social copy fallback
+    const fallbackResponse = getGenerateSocialCopyFallback(params);
+    return res.status(200).json(fallbackResponse);
   }
 }

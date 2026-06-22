@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getAiClient, sanitizeGeminiContents } from "./utils";
+import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatAboutPhaseFallback } from "./utils";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -35,22 +35,28 @@ export default async function handler(req: any, res: any) {
     const listHistory = Array.isArray(history) ? history : [];
     const contents = sanitizeGeminiContents(listHistory, message);
 
-    const response = await getAiClient(customKey).models.generateContent({
+    const response = await generateContentWithRetry(
+      customKey,
       model,
       contents,
-      config: {
+      {
         systemInstruction,
       }
-    });
+    );
 
     return res.status(200).json({ response: response.text || "No response received" });
   } catch (error: any) {
     const errStr = (error?.message || "").toLowerCase();
-    if (errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit")) {
-      console.log("[FUTURA] chatAboutPhase API quota limit reached. Responding with quota error to client fallback framework.");
+    const isQuotaOrLimit = errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit") || errStr.includes("503") || errStr.includes("unavailable");
+    
+    if (isQuotaOrLimit) {
+      console.log("[FUTURA] chatAboutPhase quota/demand limit reached. Triggering high-fidelity local phase fallback.");
     } else {
-      console.log("[FUTURA] chatAboutPhase API exception:", error.message || error);
+      console.warn("[FUTURA] chatAboutPhase exception:", error.message || error);
     }
-    return res.status(500).json({ error: error.message || "Failed to chat about phase" });
+    
+    // Fall back to our local elegant procedural advisor
+    const fallbackText = getChatAboutPhaseFallback(phase, message);
+    return res.status(200).json({ response: fallbackText });
   }
 }

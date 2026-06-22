@@ -594,11 +594,29 @@ export async function generateContentStrategy(
 export async function generateCreativeImage(
   prompt: string,
   aspectRatio: string = "1:1",
-  styleReferences?: string[]
+  styleReferences?: string[],
+  metadata?: {
+    brandName?: string;
+    niche?: string;
+    colors?: { hex: string; name: string }[];
+    logoStyle?: string;
+    mockupType?: string;
+    customMockupDesc?: string;
+  }
 ): Promise<string | null> {
 
   const apiEndpoint = "/api/gemini/generateCreativeImage";
-  const payload = { prompt, aspectRatio, styleReferences };
+  const payload = { 
+    prompt, 
+    aspectRatio, 
+    styleReferences,
+    brandName: metadata?.brandName,
+    niche: metadata?.niche,
+    colors: metadata?.colors,
+    logoStyle: metadata?.logoStyle,
+    mockupType: metadata?.mockupType,
+    customMockupDesc: metadata?.customMockupDesc
+  };
 
   const clientFallback = async () => {
     // We cannot easily run client-side Image Generation if keys are missing or model not activated on free tier.
@@ -626,95 +644,29 @@ export async function generateCreativeImage(
     const isLogo = text.includes("logo") || text.includes("icon") || text.includes("symbol") || text.includes("isotipo") || text.includes("branding") || text.includes("isologo") || text.includes("logotipo");
 
     if (isLogo) {
-      let svgGraphic = "";
+      const getContextualFallback = (
+        promptText: string,
+        brandName?: string,
+        niche?: string,
+        colors?: { hex: string; name: string }[],
+        logoStyle?: string,
+        mockupType?: string,
+        customMockupDesc?: string
+      ): string => {
+        const svgString = generateAdvancedDynamicSVG(promptText, brandName, niche, colors, logoStyle, mockupType, customMockupDesc);
+        const b64 = btoa(encodeURIComponent(svgString.trim()).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16))));
+        return `data:image/svg+xml;base64,${b64}`;
+      };
 
-      if (text.includes("dental") || text.includes("dentist") || text.includes("odontolog") || text.includes("dient") || text.includes("sonris")) {
-        svgGraphic = `
-          <defs>
-            <linearGradient id="cDentalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#00F5FF"/>
-              <stop offset="100%" stop-color="#0A4D92"/>
-            </linearGradient>
-          </defs>
-          <circle cx="200" cy="180" r="100" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" />
-          <circle cx="200" cy="180" r="140" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
-          <polygon points="200,60 310,250 90,250" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1.5" />
-          <path d="M200,90 C250,90 280,130 270,190 C260,230 230,270 200,290 C170,270 140,230 130,190 C120,130 150,90 200,90 Z" fill="none" stroke="url(#cDentalGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M200,120 C220,120 235,145 230,180 C218,220 200,240 200,240 C200,240 182,220 170,180 C165,145 180,120 200,120 Z" fill="url(#cDentalGrad)" opacity="0.85"/>
-          <circle cx="200" cy="165" r="12" fill="#FFFFFF"/>
-          <path d="M200,100 L205,110 L215,115 L205,120 L200,130 L195,120 L185,115 L195,110 Z" fill="#FFD700" />
-        `;
-      } else if (text.includes("cafe") || text.includes("coffee") || text.includes("gourmet") || text.includes("restauran") || text.includes("comid") || text.includes("food") || text.includes("panader") || text.includes("alimento")) {
-        svgGraphic = `
-          <defs>
-            <linearGradient id="cWarmGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#FFD700"/>
-              <stop offset="100%" stop-color="#C58927"/>
-            </linearGradient>
-          </defs>
-          <circle cx="200" cy="180" r="110" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" />
-          <path d="M130,150 L270,150 L255,240 C250,275 220,290 200,290 C180,290 150,275 145,240 Z" fill="none" stroke="url(#cWarmGrad)" stroke-width="12" stroke-linecap="round" />
-          <path d="M270,180 C295,180 300,205 300,215 C300,225 295,240 270,240" fill="none" stroke="url(#cWarmGrad)" stroke-width="12" stroke-linecap="round" />
-          <path d="M165,125 C170,105 165,95 170,80" fill="none" stroke="#FFD700" stroke-width="5" stroke-linecap="round"/>
-          <path d="M200,125 C205,105 200,95 205,80" fill="none" stroke="#FFD700" stroke-width="5" stroke-linecap="round"/>
-          <path d="M235,125 C240,105 235,95 240,80" fill="none" stroke="#FFD700" stroke-width="5" stroke-linecap="round"/>
-        `;
-      } else if (text.includes("tech") || text.includes("software") || text.includes("comput") || text.includes("digital") || text.includes("artificial") || text.includes("ia") || text.includes("ai") || text.includes("program")) {
-        svgGraphic = `
-          <defs>
-            <linearGradient id="cTechGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#00F5FF"/>
-              <stop offset="100%" stop-color="#9400D3"/>
-            </linearGradient>
-          </defs>
-          <polygon points="200,60 310,123 310,250 200,313 90,250 90,123" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2" />
-          <polygon points="200,90 285,139 285,238 200,287 115,238 115,139" fill="none" stroke="url(#cTechGrad)" stroke-width="8" stroke-linejoin="round"/>
-          <circle cx="200" cy="90" r="14" fill="#00F5FF"/>
-          <circle cx="285" cy="238" r="14" fill="#9400D3"/>
-          <circle cx="115" cy="238" r="14" fill="#00F5FF"/>
-          <circle cx="200" cy="188" r="40" fill="none" stroke="url(#cTechGrad)" stroke-width="5" />
-          <circle cx="200" cy="188" r="18" fill="#FFFFFF" />
-        `;
-      } else if (text.includes("wellness") || text.includes("salu") || text.includes("yoga") || text.includes("sport") || text.includes("vida") || text.includes("health") || text.includes("fit") || text.includes("terapia")) {
-        svgGraphic = `
-          <defs>
-            <linearGradient id="cWellGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#39FF14"/>
-              <stop offset="100%" stop-color="#008080"/>
-            </linearGradient>
-          </defs>
-          <circle cx="200" cy="180" r="100" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" />
-          <path d="M200,80 C218,135 255,145 290,165 C235,182 212,198 200,270 C188,198 165,182 110,165 C145,145 182,135 200,80 Z" fill="url(#cWellGrad)" opacity="0.9" />
-          <path d="M200,120 C210,155 235,165 255,180 C220,190 205,200 200,245 C195,200 180,190 145,180 C165,165 190,155 200,120 Z" fill="#FFFFFF" opacity="0.95" />
-        `;
-      } else {
-        svgGraphic = `
-          <defs>
-            <linearGradient id="cDefaultGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#4A00E0"/>
-              <stop offset="100%" stop-color="#8E2DE2"/>
-            </linearGradient>
-          </defs>
-          <circle cx="200" cy="180" r="110" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2" />
-          <circle cx="200" cy="110" r="75" fill="none" stroke="url(#cDefaultGrad)" stroke-width="6" opacity="0.6"/>
-          <circle cx="200" cy="250" r="75" fill="none" stroke="url(#cDefaultGrad)" stroke-width="6" opacity="0.6"/>
-          <circle cx="130" cy="180" r="75" fill="none" stroke="url(#cDefaultGrad)" stroke-width="6" opacity="0.6"/>
-          <circle cx="270" cy="180" r="75" fill="none" stroke="url(#cDefaultGrad)" stroke-width="6" opacity="0.6"/>
-          <circle cx="200" cy="180" r="32" fill="url(#cDefaultGrad)" />
-          <polygon points="200,162 216,189 184,189" fill="#FFFFFF" />
-        `;
-      }
-
-      const svgString = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
-          <rect width="100%" height="100%" fill="#090d16" rx="30"/>
-          <path d="M 0 100 L 400 100 M 0 200 L 400 200 M 0 300 L 400 300 M 100 0 L 100 400 M 200 0 L 200 400 M 300 0 L 300 400" stroke="rgba(255, 255, 255, 0.02)" stroke-width="1" />
-          ${svgGraphic}
-          <text x="200" y="360" text-anchor="middle" fill="#5F708A" font-family="'Inter', system-ui, -apple-system, sans-serif" font-size="11" font-weight="900" letter-spacing="6" opacity="0.6">FUTURA AUTOMATIC ENGINE</text>
-        </svg>
-      `;
-
-      return `data:image/svg+xml;base64,${btoa(encodeURIComponent(svgString.trim()).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16))))}`;
+      return getContextualFallback(
+        prompt, 
+        metadata?.brandName, 
+        metadata?.niche, 
+        metadata?.colors, 
+        metadata?.logoStyle, 
+        metadata?.mockupType, 
+        metadata?.customMockupDesc
+      );
     }
 
     const mappings: { [key: string]: string } = {
@@ -828,6 +780,322 @@ export async function generateCreativeImage(
     payload,
     clientFallback
   );
+}
+
+export function generateAdvancedDynamicSVG(
+  textPrompt: string,
+  brandName?: string,
+  niche?: string,
+  colors?: { hex: string; name: string }[],
+  logoStyle?: string,
+  mockupType?: string,
+  customMockupDesc?: string
+): string {
+  const cleanName = brandName || "FUTURA";
+  const initials = (() => {
+    const parts = cleanName.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return cleanName.trim().slice(0, 2).toUpperCase();
+  })();
+
+  const hex1 = colors?.[0]?.hex || "#FFD700";
+  const hex2 = colors?.[1]?.hex || "#C58927";
+  const hex3 = colors?.[2]?.hex || "#090d16";
+  const hex4 = colors?.[3]?.hex || "#1e293b";
+
+  const isMockup = textPrompt.toLowerCase().includes("mockup") || textPrompt.toLowerCase().includes("valla") || textPrompt.toLowerCase().includes("escaparate") || textPrompt.toLowerCase().includes("packaging") || textPrompt.toLowerCase().includes("letrero");
+
+  if (isMockup) {
+    // Generate a beautiful Mockup simulation inside SVG
+    const mockSelected = mockupType || "Valla Publicitaria Urbana";
+    const bgGradId = "mockBgGrad_" + Math.random().toString(36).substr(2, 9);
+    const contentGradId = "mockContentGrad_" + Math.random().toString(36).substr(2, 9);
+
+    let mockupMainGraphics = "";
+
+    if (mockSelected.includes("Valla") || mockSelected.includes("Billboard")) {
+      mockupMainGraphics = `
+        <!-- High-fidelity Billboard on skyscraper steel structure -->
+        <rect x="30" y="60" width="340" height="200" fill="#0c101a" rx="10" stroke="${hex1}33" stroke-width="2" />
+        <rect x="40" y="70" width="320" height="180" fill="url(#${contentGradId})" rx="6" />
+        
+        <!-- Steel structure legs -->
+        <line x1="100" y1="260" x2="100" y2="350" stroke="#2a3547" stroke-width="6" />
+        <line x1="300" y1="260" x2="300" y2="350" stroke="#2a3547" stroke-width="6" />
+        <line x1="80" y1="350" x2="320" y2="350" stroke="#1e293b" stroke-width="4" />
+        
+        <!-- Spotlights pointing up -->
+        <circle cx="90" cy="275" r="5" fill="#fff" />
+        <polygon points="90,270 50,150 170,150" fill="rgba(255,255,255,0.08)" />
+        <circle cx="310" cy="275" r="5" fill="#fff" />
+        <polygon points="310,270 230,150 350,150" fill="rgba(255,255,255,0.08)" />
+
+        <!-- Logo inside Billboard -->
+        <g transform="translate(140, 100) scale(0.6)">
+          <!-- Abstract emblem icon -->
+          <circle cx="100" cy="80" r="50" fill="none" stroke="${hex1}" stroke-width="6" />
+          <text x="100" y="95" text-anchor="middle" fill="#FFFFFF" font-family="'Inter', sans-serif" font-weight="900" font-size="36" letter-spacing="2">${initials}</text>
+          <text x="100" y="160" text-anchor="middle" fill="${hex1}" font-family="'Space Grotesk', sans-serif" font-weight="bold" font-size="18" letter-spacing="4">${cleanName.toUpperCase()}</text>
+        </g>
+
+        <!-- Dynamic scene contextual text -->
+        <text x="200" y="235" text-anchor="middle" fill="#FFFFFF" opacity="0.6" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="3">STREET BANNER PREVIEW</text>
+      `;
+    } else if (mockSelected.includes("Letrero") || mockSelected.includes("Office") || mockSelected.includes("Lobby")) {
+      mockupMainGraphics = `
+        <!-- Minimalist Luxury Lobby wall with glass 3D sign -->
+        <!-- Wall patterns -->
+        <rect x="20" y="40" width="360" height="320" fill="#141a29" rx="16" />
+        <path d="M 20,40 L 380,360 M 20,120 L 320,360 M 120,40 L 380,280" stroke="rgba(255,255,255,0.015)" stroke-width="1" />
+        
+        <!-- Acrylic Glass Plate backboard -->
+        <rect x="60" y="100" width="280" height="180" fill="rgba(255,255,255,0.02)" rx="12" stroke="rgba(255,255,255,0.1)" stroke-width="1" style="backdrop-filter: blur(5px);" />
+        <!-- Chrome Standoff Bolts in corners -->
+        <circle cx="75" cy="115" r="4" fill="#8a9cbd" />
+        <circle cx="325" cy="115" r="4" fill="#8a9cbd" />
+        <circle cx="75" cy="265" r="4" fill="#8a9cbd" />
+        <circle cx="325" cy="265" r="4" fill="#8a9cbd" />
+
+        <!-- Glow on the main glass -->
+        <ellipse cx="200" cy="190" rx="80" ry="40" fill="${hex1}" opacity="0.1" filter="blur(15px)" />
+
+        <!-- 3D Sign Logo Group -->
+        <g transform="translate(125, 120) scale(0.75)">
+          <path d="M70,30 L130,30 L100,75 Z" fill="none" stroke="${hex1}" stroke-width="5" />
+          <circle cx="100" cy="90" r="10" fill="${hex2}" />
+          <text x="100" y="140" text-anchor="middle" fill="#FFFFFF" font-family="'Inter', sans-serif" font-weight="950" font-size="20" letter-spacing="3">${cleanName.toUpperCase()}</text>
+        </g>
+        
+        <text x="200" y="330" text-anchor="middle" fill="${hex1}" opacity="0.6" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="3">LOBBY 3D RECEPTION SIGN</text>
+      `;
+    } else if (mockSelected.includes("Empaque") || mockSelected.includes("Caja") || mockSelected.includes("Package") || mockSelected.includes("Box")) {
+      mockupMainGraphics = `
+        <!-- High-contrast lux packaging presentation inside studio -->
+        <!-- Box isometric projection or minimalist matte block packaging -->
+        <rect x="80" y="80" width="240" height="240" fill="#0b0e14" rx="20" stroke="rgba(255,255,255,0.05)" stroke-width="2" />
+        <!-- Subtle shadow -->
+        <ellipse cx="200" cy="335" rx="100" ry="12" fill="rgba(0,0,0,0.4)" />
+        
+        <!-- Premium Ribbon or gold band -->
+        <rect x="80" y="160" width="240" height="40" fill="url(#${contentGradId})" opacity="0.4" />
+        
+        <g transform="translate(130, 110) scale(0.7)">
+          <!-- Abstract Emblem -->
+          <circle cx="100" cy="70" r="45" fill="none" stroke="${hex1}" stroke-width="4" stroke-dasharray="10,5" />
+          <text x="100" y="83" text-anchor="middle" fill="#FFFFFF" font-family="'Space Grotesk', sans-serif" font-weight="bold" font-size="32">${initials}</text>
+          <text x="100" y="150" text-anchor="middle" fill="${hex1}" font-family="'Inter', sans-serif" font-weight="bold" font-size="16" letter-spacing="4">${cleanName.toUpperCase()}</text>
+        </g>
+
+        <text x="200" y="300" text-anchor="middle" fill="#5F708A" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="4">MATTE FINISH EMBOSSED BOX</text>
+      `;
+    } else {
+      // Default beautiful multi-purpose mockup (Papercraft/Stationery card or modern backdrop)
+      mockupMainGraphics = `
+        <!-- Elegant Stationery / business cards mockup floating over dark velvet marble -->
+        <!-- Card 1 -->
+        <rect x="50" y="80" width="220" height="130" fill="#0c101a" rx="12" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" transform="rotate(-6, 160, 145)" />
+        <!-- Card 2 (on top) -->
+        <rect x="130" y="140" width="220" height="130" fill="#141d2e" rx="12" stroke="${hex1}2b" stroke-width="1.5" transform="rotate(4, 240, 205)" />
+        
+        <!-- Shadow of Card 2 -->
+        <rect x="135" y="145" width="220" height="130" rx="12" fill="rgba(0,0,0,0.35)" transform="rotate(4, 240, 205)" />
+        <rect x="130" y="140" width="220" height="130" fill="#090d16" rx="12" stroke="${hex1}44" stroke-width="1.5" transform="rotate(4, 240, 205)" />
+
+        <!-- Logo content on Card 2 -->
+        <g transform="translate(155, 160) scale(0.65)">
+          <path d="M 50 30 L 110 30 C 130 30, 130 90, 110 90 L 50 90 Z" fill="none" stroke="${hex1}" stroke-width="6" />
+          <text x="95" y="130" fill="#FFFFFF" font-family="'Inter', sans-serif" font-weight="bold" font-size="20" letter-spacing="3">${cleanName.toUpperCase()}</text>
+          <text x="95" y="155" fill="${hex2}" font-family="'JetBrains Mono', monospace" font-size="11" letter-spacing="5">${niche?.toUpperCase() || "ELITE"}</text>
+        </g>
+        
+        <text x="200" y="325" text-anchor="middle" fill="#5F708A" font-family="'JetBrains Mono', sans-serif" font-size="8" letter-spacing="5">DOUBLE BRANDED STATIONERY</text>
+      `;
+    }
+
+    const mockupSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+        <defs>
+          <linearGradient id="${bgGradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#04060b"/>
+            <stop offset="100%" stop-color="#0a101f"/>
+          </linearGradient>
+          <linearGradient id="${contentGradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="${hex1}"/>
+            <stop offset="100%" stop-color="${hex2}"/>
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#${bgGradId})" rx="28"/>
+        
+        <!-- Clean geometric framing lines -->
+        <path d="M 10 0 L 10 400 M 390 0 L 390 400" stroke="rgba(255, 255, 255, 0.015)" stroke-width="1.5" />
+        
+        ${mockupMainGraphics}
+
+        <!-- Custom prompt descriptor line (If any) -->
+        ${customMockupDesc ? `
+        <rect x="40" y="15" width="320" height="24" fill="rgba(0,0,0,0.6)" rx="6" stroke="rgba(255,255,255,0.04)" stroke-width="0.75" />
+        <text x="200" y="30" text-anchor="middle" fill="${hex1}" font-family="'JetBrains Mono', monospace" font-size="7.5" font-weight="bold" letter-spacing="1">PREFERENCIA: ${customMockupDesc.toUpperCase().slice(0, 42)}...</text>
+        ` : ""}
+      </svg>
+    `;
+    return mockupSvg;
+  }
+
+  // ELSE: LOGO GENERATOR
+  const chosenStyle = logoStyle || "Simétrico y Geométrico de Lujo";
+  const bgGradId = "bgGrad_" + Math.random().toString(36).substr(2, 9);
+  const strokeGradId = "strokeGrad_" + Math.random().toString(36).substr(2, 9);
+
+  let graphicContent = "";
+
+  if (chosenStyle.includes("Monograma") || chosenStyle.includes("Siglas")) {
+    graphicContent = `
+      <!-- High-fidelity fine line Monogram dynamic layout -->
+      <circle cx="200" cy="175" r="95" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
+      <circle cx="200" cy="175" r="85" fill="none" stroke="url(#${strokeGradId})" stroke-width="1.5" />
+      <circle cx="200" cy="175" r="75" fill="none" stroke="url(#${strokeGradId})" stroke-dasharray="4,8" stroke-width="1" />
+      
+      <!-- Micro decoration anchors -->
+      <line x1="200" y1="50" x2="200" y2="70" stroke="${hex1}" stroke-width="1.5" />
+      <line x1="200" y1="280" x2="200" y2="300" stroke="${hex1}" stroke-width="1.5" />
+      <circle cx="200" cy="175" r="58" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
+
+      <!-- Centerpiece Monogram Letters with sophisticated tracking -->
+      <text x="200" y="196" text-anchor="middle" fill="#FFFFFF" font-family="'Space Grotesk', 'Inter', sans-serif" font-weight="900" font-size="58" letter-spacing="-3" fill-opacity="0.95">${initials}</text>
+      <!-- Horizontal strike line -->
+      <line x1="145" y1="172" x2="255" y2="172" stroke="${hex1}" stroke-width="2" />
+    `;
+  } else if (chosenStyle.includes("Orgánico") || chosenStyle.includes("Natural") || chosenStyle.includes("Eco")) {
+    graphicContent = `
+      <!-- Dynamic stylized sacred biology / leaf outline -->
+      <circle cx="200" cy="175" r="110" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
+      <!-- Left leaf petal -->
+      <path d="M200,90 C250,130 250,210 200,260 C150,210 150,130 200,90 Z" fill="none" stroke="url(#${strokeGradId})" stroke-width="6" stroke-linecap="round"/>
+      <!-- Right leaf secondary overlay -->
+      <path d="M200,120 C235,150 235,210 200,250 C165,210 165,150 200,120 Z" fill="url(#${strokeGradId})" opacity="0.3" />
+      <circle cx="200" cy="175" r="10" fill="#FFFFFF" />
+      <!-- Radiant stars -->
+      <path d="M150,120 L153,126 L159,129 L153,132 L150,138 L147,132 L141,129 L147,126 Z" fill="${hex1}" opacity="0.8" />
+      <path d="M250,120 L253,126 L259,129 L253,132 L250,138 L247,132 L241,129 L247,126 Z" fill="${hex1}" opacity="0.8" />
+    `;
+  } else if (chosenStyle.includes("Tecnológico") || chosenStyle.includes("SaaS") || chosenStyle.includes("Tech")) {
+    graphicContent = `
+      <!-- Cybernetic tech nodes & futuristic network vectors -->
+      <polygon points="200,65 295,120 295,230 200,285 105,230 105,120" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="3" />
+      <polygon points="200,80 280,126 280,219 200,265 120,219 120,126" fill="none" stroke="url(#${strokeGradId})" stroke-dasharray="10,6" stroke-width="5" stroke-linejoin="round" />
+      
+      <!-- Concentric tech core -->
+      <circle cx="200" cy="175" r="45" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" />
+      <circle cx="200" cy="175" r="30" fill="none" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1" />
+      <circle cx="200" cy="175" r="15" fill="#FFFFFF" />
+      
+      <!-- Nodes -->
+      <circle cx="200" cy="80" r="12" fill="${hex1}" />
+      <circle cx="280" cy="219" r="12" fill="${hex2}" />
+      <circle cx="120" cy="219" r="12" fill="${hex1}" />
+      <line x1="200" y1="80" x2="200" y2="130" stroke="${hex1}" stroke-width="2" />
+    `;
+  } else if (chosenStyle.includes("Heráldico") || chosenStyle.includes("Emblema") || chosenStyle.includes("Corporativo")) {
+    graphicContent = `
+      <!-- Medieval stark royal heraldry minimalist shield -->
+      <!-- Outer protective shield borders -->
+      <path d="M130,90 L270,90 L270,180 C270,230 200,270 200,270 C200,270 130,230 130,180 Z" fill="none" stroke="url(#${strokeGradId})" stroke-width="8" stroke-linejoin="round" />
+      <path d="M145,105 L255,105 L255,175 C255,215 200,250 200,250 C200,250 145,215 145,175 Z" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" />
+      
+      <!-- Triple star of authority -->
+      <path d="M200,120 L204,130 L214,132 L206,138 L208,148 L200,142 L192,148 L194,138 L186,132 L196,130 Z" fill="${hex1}" />
+      <!-- Central shield icon - Winged shield sword/crown representation -->
+      <path d="M175,160 L225,160 L200,195 Z" fill="url(#${strokeGradId})" />
+      <circle cx="200" cy="215" r="8" fill="#FFFFFF" />
+    `;
+  } else if (chosenStyle.includes("Mascota") || chosenStyle.includes("Urbano") || chosenStyle.includes("Comida")) {
+    graphicContent = `
+      <!-- Modern Bold Streetwear Badge circle badge -->
+      <circle cx="200" cy="175" r="95" fill="none" stroke="url(#${strokeGradId})" stroke-width="10" />
+      <circle cx="200" cy="175" r="80" fill="none" stroke="#FFFFFF" stroke-width="1" stroke-dasharray="6,4" />
+      
+      <!-- Street flame / lighting bolt in center -->
+      <path d="M205,105 L165,185 L195,185 L185,245 L235,155 L195,155 Z" fill="url(#${strokeGradId})" />
+      
+      <!-- Circular text banner -->
+      <path id="badgeTextPath" d="M125,245 A90,90 0 0,1 275,245" fill="none" stroke="transparent" />
+      <text font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold" fill="#5F708A" letter-spacing="3">
+        <textPath href="#badgeTextPath" startOffset="50%" text-anchor="middle">
+          URBAN CORE BRANDING
+        </textPath>
+      </text>
+    `;
+  } else if (chosenStyle.includes("Vintage") || chosenStyle.includes("Industrial")) {
+    graphicContent = `
+      <!-- Elegant vintage diamond typography cogs frame -->
+      <polygon points="200,75 295,170 200,265 105,170" fill="none" stroke="url(#${strokeGradId})" stroke-width="6" />
+      <polygon points="200,90 275,170 200,250 125,170" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1.5" />
+      
+      <!-- Crossed retro lines of heritage -->
+      <line x1="150" y1="125" x2="250" y2="225" stroke="rgba(255,255,255,0.06)" stroke-width="2" />
+      <line x1="250" y1="125" x2="150" y2="225" stroke="rgba(255,255,255,0.06)" stroke-width="2" />
+      
+      <!-- Elegant center circle with brand initial -->
+      <circle cx="200" cy="170" r="38" fill="#090d16" stroke="url(#${strokeGradId})" stroke-width="2" />
+      <text x="200" y="184" text-anchor="middle" fill="#FFFFFF" font-family="'Playfair Display', serif" font-weight="900" font-size="34" letter-spacing="1">${initials.slice(0,1)}</text>
+      
+      <circle cx="200" cy="100" r="4" fill="${hex1}" />
+      <circle cx="200" cy="240" r="4" fill="${hex1}" />
+    `;
+  } else {
+    // Default: Simétrico y Geométrico de Lujo (Premium Gold/Obsidian)
+    graphicContent = `
+      <!-- Interlocking luxurious golden spheres -->
+      <circle cx="200" cy="175" r="95" fill="none" stroke="rgba(255,255,255,0.02)" stroke-width="1" />
+      
+      <circle cx="200" cy="120" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
+      <circle cx="200" cy="230" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
+      <circle cx="145" cy="175" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
+      <circle cx="255" cy="175" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
+      
+      <!-- Inner core diamond -->
+      <polygon points="200,135 235,175 200,215 165,175" fill="url(#${strokeGradId})" opacity="0.85" />
+      <polygon points="200,145 224,175 200,205 176,175" fill="#FFFFFF" />
+      
+      <circle cx="200" cy="175" r="6" fill="#04060b" />
+    `;
+  }
+
+  const svgString = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+      <defs>
+        <linearGradient id="${bgGradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#04060b"/>
+          <stop offset="100%" stop-color="#090e19"/>
+        </linearGradient>
+        <linearGradient id="${strokeGradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${hex1}"/>
+          <stop offset="100%" stop-color="${hex2}"/>
+        </linearGradient>
+      </defs>
+      
+      <!-- Rounded dark space background -->
+      <rect width="100%" height="100%" fill="url(#${bgGradId})" rx="28"/>
+      
+      <!-- Fine vector background grids -->
+      <path d="M 0 50 L 400 50 M 0 100 L 400 100 M 0 150 L 400 150 M 0 200 L 400 200 M 0 250 L 400 250 M 0 300 L 400 300 M 0 350 L 400 350" stroke="rgba(255, 255, 255, 0.015)" stroke-width="0.75" />
+      <path d="M 50 0 L 50 400 M 100 0 L 100 400 M 150 0 L 150 400 M 200 0 L 200 400 M 250 0 L 250 400 M 300 0 L 300 400 M 350 0 L 350 400" stroke="rgba(255, 255, 255, 0.015)" stroke-width="0.75" />
+      
+      <!-- Circular safe framing ring -->
+      <circle cx="200" cy="175" r="130" fill="none" stroke="rgba(255,255,255,0.01)" stroke-width="1" />
+
+      <!-- Graphic vector composition -->
+      ${graphicContent}
+
+      <!-- Clean textual composition with brand name -->
+      <text x="200" y="340" text-anchor="middle" fill="#FFFFFF" font-family="'Space Grotesk', 'Inter', sans-serif" font-weight="bold" font-size="14" letter-spacing="6" fill-opacity="0.9">${cleanName.toUpperCase()}</text>
+      <text x="200" y="360" text-anchor="middle" fill="${hex1}" font-family="'JetBrains Mono', monospace" font-size="7.5" font-weight="bold" letter-spacing="4" fill-opacity="0.8">${niche ? niche.toUpperCase().slice(0, 36) : "FUTURA AUTOMATIC DESIGN"}</text>
+    </svg>
+  `;
+
+  return svgString;
 }
 
 // 3. Advisor Chat (Hub Principal / Consola)

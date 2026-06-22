@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getAiClient } from "./utils";
+import { getAiClient, generateContentWithRetry, getRefineSocialCopyFallback } from "./utils";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,9 +21,10 @@ export default async function handler(req: any, res: any) {
   const systemInstruction = "Eres un editor experto de copywriting. Refina el copy provisto siguiendo las instrucciones brutales del usuario, manteniendo la fuerza persuasiva, el gancho magnético, el formato cómodo para móvil y la filosofía pragmática 'Results over Aesthetics'.";
 
   try {
-    const response = await getAiClient(customKey).models.generateContent({
+    const response = await generateContentWithRetry(
+      customKey,
       model,
-      contents: [{
+      [{
         parts: [{
           text: `
             COPY ACTUAL:
@@ -38,19 +39,24 @@ export default async function handler(req: any, res: any) {
           `
         }]
       }],
-      config: { 
+      { 
         systemInstruction,
       }
-    });
+    );
 
     return res.status(200).json({ response: response.text || currentCopy });
   } catch (error: any) {
     const errStr = (error?.message || "").toLowerCase();
-    if (errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit")) {
-      console.log("[FUTURA] refineSocialCopy API quota limit reached. Responding with quota error to client fallback framework.");
+    const isQuotaOrLimit = errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit") || errStr.includes("503") || errStr.includes("unavailable");
+    
+    if (isQuotaOrLimit) {
+      console.log("[FUTURA] refineSocialCopy quota/demand limit reached. Triggering high-fidelity local refinement fallback.");
     } else {
-      console.log("[FUTURA] refineSocialCopy API exception:", error.message || error);
+      console.warn("[FUTURA] refineSocialCopy exception:", error.message || error);
     }
-    return res.status(500).json({ error: error.message || "Error al refinar copy" });
+    
+    // Serve our custom local copywriting refinement fallback
+    const fallbackResponse = getRefineSocialCopyFallback(currentCopy, refineInstructions);
+    return res.status(200).json(fallbackResponse);
   }
 }

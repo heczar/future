@@ -73,6 +73,11 @@ interface GeneratedBrand {
   mission: string;
   vision: string;
   visualDirection: string;
+  colorPalette: { name: string; hex: string }[];
+  values: string[];
+  story: string;
+  logoDirective: string;
+  mockupDirective: string;
 }
 
 interface ContentReadyProps {
@@ -100,6 +105,18 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
   const [ignitionOffer, setIgnitionOffer] = useState('');
   const [ignitionAudience, setIgnitionAudience] = useState('');
   const [ignitionTone, setIgnitionTone] = useState('Persuasivo de Elite');
+  const [ignitionViewpoint, setIgnitionViewpoint] = useState('');
+  const [ignitionLogoStyle, setIgnitionLogoStyle] = useState('Simétrico y Geométrico de Lujo (Premium Gold/Obsidian)');
+  const [ignitionMockupType, setIgnitionMockupType] = useState('Valla Publicitaria Urbana (Gigamesh Downtown Billboard)');
+  const [ignitionCustomMockupDesc, setIgnitionCustomMockupDesc] = useState('');
+  const [ignitionFormTab, setIgnitionFormTab] = useState<'essence' | 'style'>('essence');
+
+  // Brand rendering and copy states
+  const [generatedLogoUrl, setGeneratedLogoUrl] = useState<string | null>(null);
+  const [generatedMockupUrl, setGeneratedMockupUrl] = useState<string | null>(null);
+  const [isGeneratingLogo, setIsGeneratingLogo] = useState(false);
+  const [isGeneratingMockup, setIsGeneratingMockup] = useState(false);
+  const [copiedHexIndex, setCopiedHexIndex] = useState<number | null>(null);
 
   // Ignitron Generation state
   const [isGeneratingBrand, setIsGeneratingBrand] = useState(false);
@@ -107,6 +124,7 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
   const [selectedBrandName, setSelectedBrandName] = useState('');
   const [brandSaveStatus, setBrandSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [newlySavedBrand, setNewlySavedBrand] = useState<any | null>(null);
+  const [isConfigPanelCollapsed, setIsConfigPanelCollapsed] = useState(false);
 
   // General Campaign Form States
   const [selectedPresetId, setSelectedPresetId] = useState<string>('pain_point');
@@ -183,6 +201,8 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
     setGeneratedBrandData(null);
     setNewlySavedBrand(null);
     setBrandSaveStatus('idle');
+    setGeneratedLogoUrl(null);
+    setGeneratedMockupUrl(null);
 
     // Quota validation
     if (auth.currentUser) {
@@ -196,13 +216,16 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
     }
 
     const brandGenerationPrompt = `
-      Cubre una estructuración e identidad de marca premium desde cero bajo la metodología de alto impacto comercial SPE.
+      Cubre una estructuración e identidad de marca de élite completa desde cero bajo la metodología de alto impacto comercial SPE.
       
-      VARIABLES APORTADAS:
-      - Nicho: ${ignitionNiche}
+      VARIABLES DE IDENTIDAD Y ESTILO ENTRADAS POR EL USUARIO:
+      - Nicho del Negocio: ${ignitionNiche}
       - Oferta principal / Producto: ${ignitionOffer || "Servicios premium integrados"}
-      - Público Objetivo: ${ignitionAudience || "Público General de Alto Valor"}
-      - Tono Estratégico: ${ignitionTone}
+      - Público Objetivo / Target: ${ignitionAudience || "Público General de Alto Valor"}
+      - Filosofía / Enfoque Especial / Punto de Vista: ${ignitionViewpoint || "Sencillez, alto rendimiento y valor premium sin fricción"}
+      - Estilo del Logotipo Deseado: ${ignitionLogoStyle}
+      - Tipo de Escenario de Mockup / Valla Publicitaria Deseado: ${ignitionMockupType}
+      ${ignitionCustomMockupDesc ? `- Indicaciones directas del Mockup / Escenario Personalizado: ${ignitionCustomMockupDesc}` : ""}
 
       Entrega una propuesta impecable. Genera un formato con encabezados exactos en corchetes como se muestra a continuación, utilizando un español asertivo y de negocios:
 
@@ -220,6 +243,25 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
 
       ### [DIRECCIÓN DE ARTE VISUAL]
       Propón un estilo visual y colores base sofisticados y modernos (ej: "Obsidian Minimalist", "Gold Brutalist", "Retro Amber Rust") y describe una breve directriz en inglés para usar como base gráfica de imágenes.
+
+      ### [PALETA DE COLORES]
+      Genera exactamente 4 colores en formato hexadecimal listados con números del 1 al 4, siguiendo exactamente esta sintaxis (un color por línea):
+      1. Primario: #HEX (Cabo de marca elegante)
+      2. Secundario: #HEX (Luminosidad secundaria)
+      3. Acento: #HEX (Foco interactivo)
+      4. Fondo: #HEX (Lienzo neutral)
+
+      ### [VALORES CORPORATIVOS]
+      Genera exactamente 3 valores corporativos fundamentales expresados como palabras de impacto seguidas de una breve línea explicativa.
+
+      ### [NARRATIVA DE MARCA]
+      Genera una historia motivadora, corta e inspiradora (de 2 párrafos) de la marca basada en el nicho y la filosofía del punto de vista que conecte con el público objetivo.
+
+      ### [DIRECTRIZ PARA LOGO]
+      Describe un prompt de imagen en inglés hiper-detallado de 3 líneas diseñado para crear un imagotipo o isotipo vectorial simétrico, elegante, minimalista y de alto contraste (sin ningún texto decorativo ni letras). DEBE alinearse al estilo deseado "${ignitionLogoStyle}" y ser profundamente temático según el nicho "${ignitionNiche}" (ej: si es odontología, abstracción elegante de esmalte protector; si es hamburguesas, un isotipo de llama y geometría heráldica moderna; si es SaaS, flujos vectoriales sofisticados). NO des prompts vagos ni repetitivos.
+
+      ### [DIRECTRIZ PARA MOCKUP]
+      Describe un prompt de imagen en inglés hiper-detallado de 3 líneas para generar un mockup publicitario realista para la marca. DEBE escenificar directamente la opción "${ignitionMockupType}" ${ignitionCustomMockupDesc ? `e integrar la preferencia detallada del usuario: "${ignitionCustomMockupDesc}"` : ""}. Asegura la integración visual ideal para colocar el logo (por ejemplo: "branding mockup of a minimalist black box with debossed gold emblem, photorealistic studio lighting, high contrast", "giant billboard on a modern glass facade skyscraper in Tokyo showing the clean logo, photorealistic", o "glass wall in a minimalist office with 3d steel sign of the logo").
     `;
 
     try {
@@ -231,6 +273,11 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
       let mission = "Empoderar clientes mediante maestría técnica.";
       let vision = "Dominar el nicho con soluciones inigualables.";
       let visualDirection = "Brutalist Gold & Dark Slate colors, luxury, minimal";
+      let colorPalette: { name: string; hex: string }[] = [];
+      let values: string[] = [];
+      let story = "";
+      let logoDirective = "";
+      let mockupDirective = "";
 
       const parts = response.split('###');
       parts.forEach(part => {
@@ -247,15 +294,61 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
           vision = part.replace(/\[visión de impacto directo\]/i, '').trim();
         } else if (lowerPart.includes('[dirección de arte visual]')) {
           visualDirection = part.replace(/\[dirección de arte visual\]/i, '').trim();
+        } else if (lowerPart.includes('[paleta de colores]')) {
+          const rawColors = part.replace(/\[paleta de colores\]/i, '').trim();
+          const lines = rawColors.split('\n').filter(l => l.trim().length > 0);
+          lines.forEach(line => {
+            const hexMatch = line.match(/#[0-9A-Fa-f]{6}/);
+            if (hexMatch) {
+              const hex = hexMatch[0];
+              let name = line.replace(/^\d+\.\s*/, '').split(':')[0].replace(/[\(\):\-]/g, '').trim();
+              if (!name) name = "Color";
+              colorPalette.push({ name, hex });
+            }
+          });
+        } else if (lowerPart.includes('[valores corporativos]')) {
+          const rawValues = part.replace(/\[valores corporativos\]/i, '').trim();
+          values = rawValues.split('\n').filter(l => l.trim().length > 0).slice(0, 3);
+        } else if (lowerPart.includes('[narrativa de marca]')) {
+          story = part.replace(/\[narrativa de marca\]/i, '').trim();
+        } else if (lowerPart.includes('[directriz para logo]')) {
+          logoDirective = part.replace(/\[directriz para logo\]/i, '').trim();
+        } else if (lowerPart.includes('[directriz para mockup]')) {
+          mockupDirective = part.replace(/\[directriz para mockup\]/i, '').trim();
         }
       });
 
       // If parser failed, fallback cleanups
       if (nameOptions.length === 0) {
-        nameOptions = ["1. " + (ignitionNiche.split(' ')[0] || "Futur") + " Elevate", "2. Nexus Prime", "3. " + (ignitionNiche.split(' ')[0] || "Aero") + " Labs"];
+        nameOptions = ["1. " + (ignitionNiche.split(' ')[0] || "Futur") + " Elevate: La deconstrucción geométrica del nicho.", "2. Nexus Prime: El punto de converción máximo.", "3. " + (ignitionNiche.split(' ')[0] || "Aero") + " Labs: Laboratorio de ingeniería mercantil."];
       }
       if (sloganOptions.length === 0) {
         sloganOptions = ["1. Resultados sobre Estética.", "2. Tu visión, ejecutada sin fricciones.", "3. La solución real para tu nicho."];
+      }
+      if (colorPalette.length === 0) {
+        colorPalette = [
+          { name: "Primario: #0B0C10", hex: "#0B0C10" },
+          { name: "Secundario: #1F2833", hex: "#1F2833" },
+          { name: "Acento: #66FCF1", hex: "#66FCF1" },
+          { name: "Fondo: #121212", hex: "#121212" }
+        ];
+      }
+      if (values.length === 0) {
+        values = [
+          "Excelencia: Compromiso irrompible con la calidad suprema.",
+          "Disrupción: Cambiar el juego de las reglas tradicionales de forma implacable.",
+          "Velocidad: Ejecutar cada aspecto con máxima velocidad y sin fricciones."
+        ];
+      }
+      if (!story) {
+        story = `Fundada sobre los pilares inquebrantables de la innovación y la deconstrucción de problemas reales, nuestra marca nace para demoler las fricciones operativas que impiden el crecimiento. Al enfocarnos en la filosofía "${ignitionViewpoint || "Resultados sobre Estética"}", elevamos a nuestros clientes de forma ágil y transparente.\n\nEn un mercado abarrotado de soluciones intrascendentes, nos posicionamos como el socio de confianza que redefine los horizontes del nicho a través de una ejecución milimétrica.`;
+      }
+      const pName = nameOptions[0].replace(/^\d+\.\s*/, '').split(':')[0].trim();
+      if (!logoDirective) {
+        logoDirective = `minimalist flat vector icon logo for ${pName} brand, related to ${ignitionNiche}, ${ignitionLogoStyle} style, clean solid background, symmetrical high contrast design, no text, premium look`;
+      }
+      if (!mockupDirective) {
+        mockupDirective = `branding mockup of ${ignitionMockupType} for ${pName} brand, ${ignitionCustomMockupDesc ? `depicting ${ignitionCustomMockupDesc}` : "with the clean brand logo elegantly displayed on it"}, ultra photorealistic, professional brand studio photography, high contrast`;
       }
 
       setGeneratedBrandData({
@@ -263,7 +356,12 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
         sloganOptions,
         mission,
         vision,
-        visualDirection
+        visualDirection,
+        colorPalette,
+        values,
+        story,
+        logoDirective,
+        mockupDirective
       });
 
       // Pre-select first name option
@@ -280,6 +378,107 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
       setErrorMessage(`Ocurrió una interrupción al generar tu marca: ${err.message || err}`);
     } finally {
       setIsGeneratingBrand(false);
+    }
+  };
+
+  // HANDLER: GENERATE LOGO VISUAL ASSET (IGNITON)
+  const handleGenerateBrandLogo = async () => {
+    if (!generatedBrandData) return;
+    setIsGeneratingLogo(true);
+    setGeneratedLogoUrl(null);
+    setErrorMessage(null);
+
+    // Image quota validation
+    if (auth.currentUser) {
+      try {
+        await assertHasQuota(auth.currentUser.uid, profile?.isPremium ?? false, 'image');
+      } catch (quotaErr: any) {
+        setErrorMessage(quotaErr.message);
+        setIsGeneratingLogo(false);
+        return;
+      }
+    }
+
+    try {
+      const imgUrl = await generateCreativeImage(
+        generatedBrandData.logoDirective,
+        "1:1",
+        ["Modern Vector"],
+        {
+          brandName: selectedBrandName || (generatedBrandData.nameOptions && generatedBrandData.nameOptions[0]) || "Futura",
+          niche: ignitionNiche,
+          colors: generatedBrandData.colorPalette,
+          logoStyle: ignitionLogoStyle,
+          mockupType: ignitionMockupType,
+          customMockupDesc: ignitionCustomMockupDesc
+        }
+      );
+
+      setGeneratedLogoUrl(imgUrl);
+
+      // Charge credits
+      if (auth.currentUser) {
+        await trackActionConsumption(auth.currentUser.uid, profile?.isPremium ?? false, 'image');
+      }
+    } catch (err: any) {
+      console.error("Error generating brand logo asset:", err);
+      setErrorMessage(`Error al renderizar el Logotipo de Prueba: ${err.message || err}`);
+    } finally {
+      setIsGeneratingLogo(false);
+    }
+  };
+
+  // HANDLER: GENERATE MOCKUP VISUAL ASSET (IGNITON PREMIUM ACCESSIBLE)
+  const handleGenerateBrandMockup = async () => {
+    if (!generatedBrandData) return;
+    
+    // Active membership check
+    if (!profile?.isPremium) {
+      setErrorMessage("La generación de Mockups en Contexto está disponible exclusivamente para miembros ÉLITE.");
+      return;
+    }
+
+    setIsGeneratingMockup(true);
+    setGeneratedMockupUrl(null);
+    setErrorMessage(null);
+
+    // Image quota validation
+    if (auth.currentUser) {
+      try {
+        await assertHasQuota(auth.currentUser.uid, profile?.isPremium ?? false, 'image');
+      } catch (quotaErr: any) {
+        setErrorMessage(quotaErr.message);
+        setIsGeneratingMockup(false);
+        return;
+      }
+    }
+
+    try {
+      const imgUrl = await generateCreativeImage(
+        generatedBrandData.mockupDirective,
+        "1:1",
+        ["Real Photographic"],
+        {
+          brandName: selectedBrandName || (generatedBrandData.nameOptions && generatedBrandData.nameOptions[0]) || "Futura",
+          niche: ignitionNiche,
+          colors: generatedBrandData.colorPalette,
+          logoStyle: ignitionLogoStyle,
+          mockupType: ignitionMockupType,
+          customMockupDesc: ignitionCustomMockupDesc
+        }
+      );
+
+      setGeneratedMockupUrl(imgUrl);
+
+      // Charge credits
+      if (auth.currentUser) {
+        await trackActionConsumption(auth.currentUser.uid, profile?.isPremium ?? false, 'image');
+      }
+    } catch (err: any) {
+      console.error("Error generating brand mockup asset:", err);
+      setErrorMessage(`Error al renderizar el Mockup publicitario: ${err.message || err}`);
+    } finally {
+      setIsGeneratingMockup(false);
     }
   };
 
@@ -604,8 +803,15 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
             exit={{ opacity: 0, y: -15 }}
             className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left"
           >
-            {/* COLUMN 1: CONFIGURATION CONTROL (5 cols) */}
-            <div className="lg:col-span-5 space-y-6">
+            {/* COLUMN 1: CONFIGURATION CONTROL (Dynamic width for Ignición vs Propulsion) */}
+            <div className={cn(
+              "space-y-6 transition-all duration-300",
+              isConfigPanelCollapsed ? "hidden lg:hidden" : (
+                selectedProfile === 'ignicion' 
+                  ? "lg:col-span-4" 
+                  : "lg:col-span-5"
+              )
+            )}>
               
               {/* BRAND / PROFILE SUMMARY CONTAINER */}
               <div className="bg-surface-950 border border-white/5 p-5 rounded-3xl shadow-xl space-y-4">
@@ -644,69 +850,152 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
                 <div className="space-y-4">
                   {selectedProfile === 'ignicion' ? (
                     /* IGNICIÓN INPUT FIELDS (BRAND CREATION) */
-                    <div className="space-y-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">1. Nicho / Giro comercial *</label>
-                        <input 
-                          type="text" 
-                          value={ignitionNiche}
-                          onChange={(e) => setIgnitionNiche(e.target.value)}
-                          placeholder="Ej: Odontología Estética, Hamburguesería Gourmet, Software SaaS" 
-                          className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-primary/45 transition"
-                        />
-                      </div>
-                      
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">2. ¿Qué producto/servicio ofreces? *</label>
-                        <textarea 
-                          rows={2}
-                          value={ignitionOffer}
-                          onChange={(e) => setIgnitionOffer(e.target.value)}
-                          placeholder="Ej: Ortodoncia invisible premium con diagnóstico 3D incluido o Hamburguesas de costilla ahumada con pan brioche artesanal." 
-                          className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-brand-primary/45 transition resize-none"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between items-center">
-                          <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">3. Público objetivo (Target)</label>
-                          <span className="text-[9px] font-mono text-slate-600">Opcional</span>
-                        </div>
-                        <input 
-                          type="text" 
-                          value={ignitionAudience}
-                          onChange={(e) => setIgnitionAudience(e.target.value)}
-                          placeholder="Ej: Profesionales jóvenes de 25-40 años, amantes de la comida rápida premium" 
-                          className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-primary/45 transition"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">4. Tono de Voz Sugerido</label>
-                        <select
-                          value={ignitionTone}
-                          onChange={(e) => setIgnitionTone(e.target.value)}
-                          className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none"
+                    <div className="space-y-4 animate-fade-in">
+                      <div className="grid grid-cols-2 gap-1 p-1 bg-surface-900 border border-white/5 rounded-xl font-mono text-[9px] font-bold">
+                        <button
+                          type="button"
+                          onClick={() => setIgnitionFormTab('essence')}
+                          className={cn(
+                            "py-1.5 px-2 rounded-lg transition uppercase tracking-wider cursor-pointer",
+                            ignitionFormTab === 'essence' 
+                              ? "bg-amber-500 text-black shadow-md font-black" 
+                              : "text-slate-400 hover:text-white"
+                          )}
                         >
-                          <option value="Persuasivo de Elite SRE">Persuasivo de Elite SRE</option>
-                          <option value="Analítico Brutalista Stark">Analítico Brutalista Stark</option>
-                          <option value="Seductor y Audaz">Seductor y Audaz</option>
-                          <option value="Serio, Corporativo y Científico">Serio, Corporativo y de Alta Autoridad</option>
-                        </select>
+                          1. Esencia {ignitionNiche ? "✓" : "*"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIgnitionFormTab('style')}
+                          className={cn(
+                            "py-1.5 px-2 rounded-lg transition uppercase tracking-wider cursor-pointer",
+                            ignitionFormTab === 'style' 
+                              ? "bg-amber-500 text-black shadow-md font-black" 
+                              : "text-slate-400 hover:text-white"
+                          )}
+                        >
+                          2. Estilo {ignitionLogoStyle ? "✓" : "*"}
+                        </button>
                       </div>
+
+                      {ignitionFormTab === 'essence' ? (
+                        <div className="space-y-3.5 animate-fade-in text-left">
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block">Nicho / Giro comercial *</label>
+                            <input 
+                              type="text" 
+                              value={ignitionNiche}
+                              onChange={(e) => setIgnitionNiche(e.target.value)}
+                              placeholder="Ej: Odontología Estética, Software SaaS" 
+                              className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500/40 transition font-sans"
+                            />
+                          </div>
+                          
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block">¿Qué producto/servicio ofreces? *</label>
+                            <textarea 
+                              rows={3}
+                              value={ignitionOffer}
+                              onChange={(e) => setIgnitionOffer(e.target.value)}
+                              placeholder="Ej: Ortodoncia invisible premium con diagnóstico 3D..." 
+                              className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-amber-500/40 transition resize-none leading-relaxed font-sans"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between items-center">
+                              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">Público objetivo (Target)</label>
+                              <span className="text-[9px] font-mono text-slate-600">Opcional</span>
+                            </div>
+                            <input 
+                              type="text" 
+                              value={ignitionAudience}
+                              onChange={(e) => setIgnitionAudience(e.target.value)}
+                              placeholder="Ej: Profesionales jóvenes de 25-40 años..." 
+                              className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500/40 transition font-sans"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3.5 animate-fade-in text-left">
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between items-center">
+                              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block font-mono">Filosofía / Punto de Vista</label>
+                              <span className="text-[9px] font-mono text-slate-600">Opcional</span>
+                            </div>
+                            <textarea 
+                              rows={2}
+                              value={ignitionViewpoint}
+                              onChange={(e) => setIgnitionViewpoint(e.target.value)}
+                              placeholder="Ej: Sencillez radical, minimalismo de lujo..." 
+                              className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-amber-500/40 transition resize-none leading-relaxed font-sans"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block font-mono">Estilo de Logotipo</label>
+                            <select 
+                              value={ignitionLogoStyle}
+                              onChange={(e) => setIgnitionLogoStyle(e.target.value)}
+                              className="w-full bg-surface-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/40 transition cursor-pointer font-sans"
+                            >
+                              <option value="Simétrico y Geométrico de Lujo (Premium Gold/Obsidian)">Simétrico y Geométrico de Lujo (Premium Gold/Obsidian)</option>
+                              <option value="Monograma Minimalista de Líneas Finas / Siglas">Monograma Minimalista de Líneas Finas / Siglas</option>
+                              <option value="Isotipo Orgánico, Natural y Fluido (Bienestar/Eco)">Isotipo Orgánico, Natural y Fluido (Bienestar/Eco)</option>
+                              <option value="Símbolo Tecnológico de Nodos Cinemáticos (SaaS/Tech)">Símbolo Tecnológico de Nodos Cinemáticos (SaaS/Tech)</option>
+                              <option value="Emblema Heráldico Stark (Corporativo de Alta Autoridad)">Emblema Heráldico Stark (Corporativo de Alta Autoridad)</option>
+                              <option value="Mascota Ilustrada / Logotipo Urbano (Comida/Streetwear)">Mascota Ilustrada / Logotipo Urbano (Comida/Streetwear)</option>
+                              <option value="Logotipo Vintage Industrial / Tipográfico rústico">Logotipo Vintage Industrial / Tipográfico rústico</option>
+                            </select>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block font-mono">Escenario / Mockup</label>
+                            <select 
+                              value={ignitionMockupType}
+                              onChange={(e) => setIgnitionMockupType(e.target.value)}
+                              className="w-full bg-surface-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/40 transition cursor-pointer font-sans"
+                            >
+                              <option value="Valla Publicitaria Urbana (Downtown Giant Billboard)">Valla Publicitaria Urbana (Downtown Giant Billboard)</option>
+                              <option value="Letrero de Cristal 3D en Lobby / Frente de Oficina">Letrero de Cristal 3D en Lobby / Frente de Oficina</option>
+                              <option value="Empaque Premium / Caja de Lujo Mate">Empaque Premium / Caja de Lujo Mate</option>
+                              <option value="Papelería Corporativa Completa y Tarjeta de Presentación">Papelería Corporativa Completa y Tarjeta de Presentación</option>
+                              <option value="Uniforme, Camiseta y Gorra de Personal (Streetwear)">Uniforme, Camiseta y Gorra de Personal (Streetwear)</option>
+                              <option value="Vaso de Café y Bolsa de Kraft Minimalista">Vaso de Café y Bolsa de Kraft Minimalista</option>
+                              <option value="Pantalla UX de App en iPhone sobre base elegante">Pantalla UX de App en iPhone sobre base elegante</option>
+                              <option value="Vehículo Comercial / Van de Entregas Rotulada">Vehículo Comercial / Van de Entregas Rotulada</option>
+                            </select>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between items-center">
+                              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block font-mono">Idea del Mockup (Opcional)</label>
+                              <span className="text-[9px] font-mono text-slate-600">Pega tu idea</span>
+                            </div>
+                            <input 
+                              type="text" 
+                              value={ignitionCustomMockupDesc}
+                              onChange={(e) => setIgnitionCustomMockupDesc(e.target.value)}
+                              placeholder="Ej: Letrero luminoso de noche..." 
+                              className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500/40 transition font-sans"
+                            />
+                          </div>
+                        </div>
+                      )}
 
                       <button
+                        type="button"
                         onClick={handleGenerateBrandDNA}
                         disabled={isGeneratingBrand || !ignitionNiche}
-                        className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-black rounded-xl font-mono text-[10px] font-black uppercase tracking-widest transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-500/15"
+                        className="w-full py-3.5 mt-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-black rounded-xl font-mono text-[10px] font-black uppercase tracking-widest transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-500/15 animate-fade-in"
                       >
                         {isGeneratingBrand ? (
                           <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" /> PRODUCIONANDO ADN CORPORATIVO...
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" /> PRODUCIONANDO ADN...
                           </>
                         ) : (
                           <>
-                            <Sparkles className="w-3.5 h-3.5" /> GENERAR ADN E IDENTIDAD DE MARCA
+                            <Sparkles className="w-3.5 h-3.5" /> {generatedBrandData ? "REGENERAR ADN DE MARCA" : "GENERAR ADN E IDENTIDAD"}
                           </>
                         )}
                       </button>
@@ -880,8 +1169,13 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
               )}
             </div>
 
-            {/* COLUMN 2: STRATEGIC RESULTS & MATERIAL (7 cols) */}
-            <div className="lg:col-span-7">
+            {/* COLUMN 2: STRATEGIC RESULTS & MATERIAL (Dynamic width/visibility for Ignición vs Propulsion) */}
+            <div className={cn(
+              "transition-all duration-300",
+              selectedProfile === 'ignicion'
+                ? (isConfigPanelCollapsed ? "lg:col-span-12" : "lg:col-span-8")
+                : (isConfigPanelCollapsed ? "lg:col-span-12" : "lg:col-span-7")
+            )}>
               <AnimatePresence mode="wait">
                 {selectedProfile === 'ignicion' && !generatedBrandData && (
                   /* IGNICIÓN EMPTY STATE - CAPTURE AND WAIT BRAND DEFINITION */
@@ -909,80 +1203,368 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0 }}
-                    className="space-y-6 text-left"
+                    className="space-y-6 text-left font-sans"
                   >
-                    <div className="bg-surface-950 border border-white/10 p-6 rounded-3xl shadow-2xl relative overflow-hidden">
+                    {/* Header Row */}
+                    <div className="bg-surface-950 border border-white/10 p-6 rounded-3xl shadow-2xl relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
-                      
-                      <div className="flex justify-between items-center border-b border-white/5 pb-4 mb-4 relative z-10">
-                        <div>
-                          <span className="text-[9px] font-mono font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1">
-                            <Flame className="w-3.5 h-3.5 fill-amber-500/10" /> ADN de Marca Producido
-                          </span>
-                          <h4 className="text-md font-display font-black text-white uppercase tracking-tight mt-1">Estructura Corporativa SPE</h4>
-                        </div>
-                        <span className="text-[10px] bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full text-amber-400 font-mono font-bold">
+                      <div className="relative z-10">
+                        <span className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1">
+                          <Flame className="w-3.5 h-3.5 fill-amber-500/10" /> ADN de Marca Producido
+                        </span>
+                        <h4 className="text-xl font-display font-black text-white uppercase tracking-tight mt-1 flex items-center gap-1.5 font-sans">
+                          {selectedBrandName || "Marca Incubada"} 
+                          <span className="text-xs text-amber-400/85 font-mono lowercase font-normal tracking-normal normal-case">by Futura</span>
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-2 relative z-10 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setIsConfigPanelCollapsed(!isConfigPanelCollapsed)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-slate-350 hover:text-white font-mono text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer mr-1"
+                          title={isConfigPanelCollapsed ? "Mostrar panel lateral de configuración" : "Expandir vista a pantalla completa"}
+                        >
+                          <Sliders className="w-3 h-3 text-amber-500" />
+                          <span>{isConfigPanelCollapsed ? "Mostrar Ajustes" : "Pantalla Completa"}</span>
+                        </button>
+                        <span className="text-[10px] bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full text-amber-400 font-mono font-bold">
                           Ignición Activa
                         </span>
                       </div>
+                    </div>
 
-                      {/* Proposed Names with radio picker to select the favorite */}
-                      <div className="space-y-3 relative z-10">
-                        <label className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block">Nombres Producidos (Selecciona tu Favorito):</label>
-                        <div className="grid grid-cols-1 gap-2">
-                          {generatedBrandData.nameOptions.map((nameOpt, index) => {
-                            const cleanNameObj = nameOpt.replace(/^\d+\.\s*/, '').trim();
-                            const isSelected = selectedBrandName === cleanNameObj.split(':')[0].trim();
-                            return (
-                              <div 
-                                key={index}
-                                onClick={() => setSelectedBrandName(cleanNameObj.split(':')[0].trim())}
-                                className={cn(
-                                  "p-3 rounded-xl border text-xs cursor-pointer transition flex items-center justify-between",
-                                  isSelected 
-                                    ? "bg-amber-500/10 border-amber-500/40 text-white font-bold" 
-                                    : "bg-white/[0.01] border-white/5 text-slate-300 hover:border-white/10"
-                                )}
-                              >
-                                <span>{nameOpt}</span>
-                                <div className={cn(
-                                  "w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ml-2",
-                                  isSelected ? "border-amber-500 bg-amber-500" : "border-slate-600"
-                                )}>
-                                  {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-black"></div>}
+                    {/* Bento Grid Row 1: Names and Slogans side-by-side */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Name Options Card */}
+                      <div className="bg-surface-950 border border-white/5 p-5 rounded-3xl shadow-md relative overflow-hidden flex flex-col justify-between">
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block font-mono">1. Propuestas de Nombre Comercial:</label>
+                          <div className="grid grid-cols-1 gap-2">
+                            {generatedBrandData.nameOptions.map((nameOpt, index) => {
+                              const cleanNameObj = nameOpt.replace(/^\d+\.\s*/, '').trim();
+                              const isSelected = selectedBrandName === cleanNameObj.split(':')[0].trim();
+                              return (
+                                <div 
+                                  key={index}
+                                  onClick={() => setSelectedBrandName(cleanNameObj.split(':')[0].trim())}
+                                  className={cn(
+                                    "p-3 rounded-xl border text-xs cursor-pointer transition flex items-center justify-between",
+                                    isSelected 
+                                      ? "bg-amber-500/15 border-amber-500/40 text-white font-bold" 
+                                      : "bg-white/[0.01] border-white/5 text-slate-300 hover:border-white/10"
+                                  )}
+                                >
+                                  <span>{nameOpt}</span>
+                                  <div className={cn(
+                                    "w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ml-2",
+                                    isSelected ? "border-amber-500 bg-amber-500" : "border-slate-600"
+                                  )}>
+                                    {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-black"></div>}
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
 
-                      {/* Slogans */}
-                      <div className="space-y-2 mt-5 relative z-10">
-                        <label className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block">Slogans de Conversión Redactados:</label>
-                        <div className="bg-white/[0.01] border border-white/5 p-4 rounded-xl space-y-2 text-xs text-slate-300">
-                          {generatedBrandData.sloganOptions.map((slogan, index) => (
-                            <p key={index} className="flex gap-1.5"><strong className="text-amber-500 font-mono shrink-0 select-none">↳</strong> {slogan}</p>
+                      {/* Slogans Card */}
+                      <div className="bg-surface-950 border border-white/5 p-5 rounded-3xl shadow-md flex flex-col justify-between">
+                        <div className="space-y-3 h-full">
+                          <label className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block font-mono">2. Eslogan de Conversión de Marca:</label>
+                          <div className="bg-white/[0.01] border border-white/5 p-4 rounded-xl space-y-3 text-xs text-slate-300 h-full flex flex-col justify-center font-sans">
+                            {generatedBrandData.sloganOptions.map((slogan, index) => (
+                              <p key={index} className="flex gap-1.5 leading-relaxed font-sans">
+                                <strong className="text-amber-500 font-mono shrink-0 select-none">↳</strong> {slogan}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bento Grid Row 2: Mission/Vision and Color/Art Direction side-by-side */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Mission and Vision Card */}
+                      <div className="bg-surface-950 border border-white/5 p-5 rounded-3xl shadow-md space-y-4">
+                        <label className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block font-mono">3. Propósito y Enfoque Directivo:</label>
+                        <div className="space-y-3.5 font-sans">
+                          <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-1">
+                            <span className="text-[9px] font-mono font-bold text-amber-400 tracking-wider block uppercase mb-1 font-mono">Misión Comercial</span>
+                            <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">"{generatedBrandData.mission}"</p>
+                          </div>
+                          <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-1">
+                            <span className="text-[9px] font-mono font-bold text-amber-400 tracking-wider block uppercase mb-1 font-mono">Visión de Dominio</span>
+                            <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">"{generatedBrandData.vision}"</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Color Palette & Visual Direction Card */}
+                      <div className="bg-surface-950 border border-white/5 p-5 rounded-3xl shadow-md space-y-4 flex flex-col justify-between">
+                        <div>
+                          <label className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block font-mono mb-3">4. Manual Cromático y Estético (Haz clic para copiar):</label>
+                          
+                          <div className="grid grid-cols-2 gap-2">
+                            {generatedBrandData.colorPalette?.map((color, idx) => (
+                              <div 
+                                key={idx} 
+                                onClick={() => {
+                                  navigator.clipboard.writeText(color.hex);
+                                  setCopiedHexIndex(idx);
+                                  setTimeout(() => setCopiedHexIndex(null), 1500);
+                                }}
+                                className="bg-white/[0.02] border border-white/5 p-2 rounded-xl flex items-center gap-2 cursor-pointer hover:border-white/10 transition animate-fade-in font-sans animate-fade-in"
+                              >
+                                <div 
+                                  className="w-7 h-7 rounded-lg shadow-inner border border-white/10 shrink-0" 
+                                  style={{ backgroundColor: color.hex }}
+                                ></div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-[8px] font-mono font-bold uppercase truncate text-slate-400 leading-none">{color.name}</p>
+                                  <p className="text-[9px] font-mono text-amber-400 flex items-center gap-1 mt-1 leading-none">
+                                    {color.hex} 
+                                    {copiedHexIndex === idx && <Check className="w-2.5 h-2.5 text-emerald-400 shrink-0" />}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="bg-white/[0.01] border border-white/5 p-3 rounded-xl mt-3">
+                          <span className="text-[9px] font-mono font-bold text-amber-400 uppercase tracking-wider block mb-1">Dirección Estética:</span>
+                          <p className="text-[11px] text-slate-400 font-mono leading-relaxed">{generatedBrandData.visualDirection}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bento Grid Row 3: Values and Story side-by-side */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Values Card */}
+                      <div className="bg-surface-950 border border-white/5 p-5 rounded-3xl shadow-md">
+                        <label className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block font-mono mb-3">5. Valores Piloto de Marca:</label>
+                        <div className="bg-white/[0.01] border border-white/5 p-4 rounded-xl space-y-3 text-xs text-slate-350 font-sans">
+                          {generatedBrandData.values?.map((val, idx) => (
+                            <div key={idx} className="flex gap-2.5 items-start">
+                              <span className="w-5 h-5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-500 font-mono text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                {idx + 1}
+                              </span>
+                              <p className="leading-relaxed font-sans">
+                                <span className="font-bold text-white">{val.split(':')[0]}</span>:
+                                {val.split(':').slice(1).join(':')}
+                              </p>
+                            </div>
                           ))}
                         </div>
                       </div>
 
-                      {/* Mission & Vision */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5 relative z-10 font-sans">
-                        <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-1">
-                          <span className="text-[9px] font-mono font-bold text-amber-400 uppercase tracking-wider block">Misión de Combate</span>
-                          <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">"{generatedBrandData.mission}"</p>
-                        </div>
-                        <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-1">
-                          <span className="text-[9px] font-mono font-bold text-amber-400 uppercase tracking-wider block">Visión de Dominio</span>
-                          <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">"{generatedBrandData.vision}"</p>
+                      {/* Story Card */}
+                      <div className="bg-surface-950 border border-white/5 p-5 rounded-3xl shadow-md">
+                        <label className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block font-mono mb-3">6. Narrativa Estratégica Corporativa:</label>
+                        <div className="bg-black/30 border border-white/5 p-4 rounded-2xl text-xs text-slate-300 leading-relaxed max-h-[220px] overflow-y-auto space-y-3 whitespace-pre-wrap font-sans thin-scrollbar">
+                          {generatedBrandData.story}
                         </div>
                       </div>
+                    </div>
 
-                      {/* Creative Art direction suggested */}
-                      <div className="space-y-1 mt-5 bg-white/[0.01] border border-white/5 p-4 rounded-xl relative z-10">
-                        <span className="text-[9px] font-mono font-bold text-amber-400 uppercase tracking-wider block">Dirección de Arte Visual Recomendada:</span>
-                        <p className="text-xs text-slate-400 mt-1 font-mono">{generatedBrandData.visualDirection}</p>
+                    {/* Bento Grid Row 4: Logo and Mockup generators side-by-side (Horizontal Division) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-white/5 pt-6">
+                      
+                      {/* LOGO CARD */}
+                      <div className="bg-surface-950 border border-white/10 p-5 rounded-3xl shadow-2xl flex flex-col justify-between gap-4 font-sans font-sans">
+                        <div>
+                          <span className="text-[8px] font-mono font-bold text-amber-400 uppercase tracking-wider block font-mono">LOGOTIPO DE PRUEBA</span>
+                          <h4 className="text-xs font-bold text-white uppercase tracking-wider mt-0.5">Isotipo Vectorial Minimalista</h4>
+                          <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
+                            Renderiza un logotipo vectorial simétrico y minimalista basado en el ADN de esta marca.
+                          </p>
+                        </div>
+                        
+                        <div className="aspect-square w-full max-w-[150px] mx-auto bg-black border border-white/5 rounded-2xl flex items-center justify-center overflow-hidden relative group">
+                          {isGeneratingLogo ? (
+                            <div className="flex flex-col items-center gap-2">
+                              <Loader2 className="w-6 h-6 text-amber-400 animate-spin" />
+                              <span className="text-[9px] font-mono text-amber-400 tracking-widest uppercase animate-pulse">GIRANDO...</span>
+                            </div>
+                          ) : generatedLogoUrl ? (
+                            <>
+                              <img src={generatedLogoUrl} alt="Logo Propuesto" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                              <a 
+                                href={generatedLogoUrl}
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="absolute bottom-2 right-2 bg-black/80 hover:bg-black text-[9px] font-mono border border-white/10 px-2 py-1 rounded text-white transition animate-fade-in"
+                              >
+                                Ver Logo
+                              </a>
+                            </>
+                          ) : (
+                            <div className="text-center p-3 animate-fade-in">
+                              <Flame className="w-6 h-6 text-slate-700 mx-auto mb-1 animate-pulse" />
+                              <span className="text-[9px] font-mono text-slate-600 block">SIN ACTIVO GENERADO</span>
+                            </div>
+                          )}
+                        </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-mono font-bold text-slate-500 uppercase tracking-widest block">Ajustar Directriz del Logo (Prompt):</label>
+                            <textarea
+                              rows={3}
+                              value={generatedBrandData.logoDirective}
+                              onChange={(e) => setGeneratedBrandData(prev => prev ? { ...prev, logoDirective: e.target.value } : null)}
+                              className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] text-slate-300 font-mono focus:outline-none focus:border-amber-500/30 transition resize-none leading-relaxed"
+                              placeholder="Describe cómo quieres tu logo..."
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <button
+                              onClick={handleGenerateBrandLogo}
+                              disabled={isGeneratingLogo}
+                              className="w-full py-2.5 bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/20 text-amber-400 font-mono text-[9px] font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                              {isGeneratingLogo ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Sparkles className="w-3 h-3" />
+                              )}
+                              GENERAR LOGO DE PRUEBA
+                            </button>
+
+                            {/* Acciones de descarga basadas en límites de membresía */}
+                            <div className="pt-1.5 border-t border-white/5 flex flex-col gap-1.5">
+                              <button
+                                onClick={() => {
+                                  const textReport = `MARCA E IDENTIDAD: ${selectedBrandName}\n\nMISIÓN SPE: ${generatedBrandData.mission}\n\nVISIÓN SPE: ${generatedBrandData.vision}\n\nSLOGANS:\n${generatedBrandData.sloganOptions.join('\n')}\n\nVALORES PILOTO:\n${generatedBrandData.values?.join('\n')}\n\nNARRATIVA DE MARCA:\n${generatedBrandData.story}`;
+                                  const blob = new Blob([textReport], { type: 'text/plain;charset=utf-8' });
+                                  const url = URL.createObjectURL(blob);
+                                  const link = document.createElement('a');
+                                  link.href = url;
+                                  link.download = `${selectedBrandName}_BRAND_KIT_SPE.txt`;
+                                  link.click();
+                                }}
+                                className="w-full py-2 bg-white/5 hover:bg-white/10 text-slate-300 font-mono text-[9px] tracking-wider uppercase rounded-lg transition text-center font-bold"
+                              >
+                                📥 Descargar Reporte de Marca (Básico)
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  if (!profile?.isPremium) {
+                                    setErrorMessage("🔒 La exportación de Kit Vectorial SVG/HD y Manual en PDF requiere Cuenta de Membresía ÉLITE.");
+                                  } else {
+                                    window.print();
+                                  }
+                                }}
+                                className="w-full py-2 bg-gradient-to-r from-amber-500/10 to-amber-600/10 hover:from-amber-500/15 hover:to-amber-600/15 border border-amber-500/20 text-[9px] text-amber-400 font-mono tracking-wider uppercase rounded-lg transition flex items-center justify-center gap-1 font-black"
+                              >
+                                {profile?.isPremium ? (
+                                  <>📂 Descargar Kit Vectorial & PDF (Manual Completo)</>
+                                ) : (
+                                  <>🔒 Exportar Vectorial SVG & Manual PDF (Limitado)</>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* MOCKUP ENGINE */}
+                        <div className="bg-white/[0.01] border border-white/5 p-4 rounded-2xl flex flex-col justify-between space-y-4 font-sans">
+                          <div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-[8px] font-mono font-bold text-amber-400 uppercase tracking-wider block">MOCKUP REALISTA</span>
+                              <span className="text-[8px] bg-brand-primary/10 border border-brand-primary/20 px-1.5 py-0.5 rounded text-brand-primary font-mono font-bold uppercase animate-pulse">
+                                Elite
+                              </span>
+                            </div>
+                            <h4 className="text-xs font-bold text-white uppercase tracking-wider mt-0.5">Empaque o Letrero Publicitario</h4>
+                            <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
+                              Renderiza la marca aplicada a empaques u oficinas corporativas con acabados fotográficos.
+                            </p>
+                          </div>
+
+                          <div className="aspect-square w-full max-w-[150px] mx-auto bg-black border border-white/5 rounded-2xl flex items-center justify-center overflow-hidden relative group">
+                            {isGeneratingMockup ? (
+                              <div className="flex flex-col items-center gap-2">
+                                <Loader2 className="w-6 h-6 text-amber-400 animate-spin" />
+                                <span className="text-[9px] font-mono text-amber-400 tracking-widest uppercase animate-pulse">CREANDO MOCKUP...</span>
+                              </div>
+                            ) : generatedMockupUrl ? (
+                              <>
+                                <img src={generatedMockupUrl} alt="Mockup Propuesto" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                                <a 
+                                  href={generatedMockupUrl}
+                                  target="_blank" 
+                                  rel="noreferrer"
+                                  className="absolute bottom-2 right-2 bg-black/80 hover:bg-black text-[9px] font-mono border border-white/10 px-2 py-1 rounded text-white transition animate-fade-in"
+                                >
+                                  Ver Mockup
+                                </a>
+                              </>
+                            ) : (
+                              <div className="text-center p-3 flex flex-col items-center justify-center animate-fade-in">
+                                {!profile?.isPremium && <Sliders className="w-6 h-6 text-zinc-700 mb-1" />}
+                                <span className="text-[9px] font-mono text-slate-600 block text-center leading-normal">
+                                  {!profile?.isPremium ? "🔒 Exclusivo de Miembros ÉLITE" : "SIN ACTIVO GENERADO"}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <label className="text-[8px] font-mono font-bold text-slate-500 uppercase tracking-widest block">Ajustar Escenario (Prompt):</label>
+                              {!profile?.isPremium && <span className="text-[7px] text-amber-500 uppercase font-bold">Lector Únicamente</span>}
+                            </div>
+                            <textarea
+                              rows={3}
+                              disabled={!profile?.isPremium}
+                              value={generatedBrandData.mockupDirective}
+                              onChange={(e) => setGeneratedBrandData(prev => prev ? { ...prev, mockupDirective: e.target.value } : null)}
+                              className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] text-slate-300 font-mono focus:outline-none focus:border-amber-500/30 transition resize-none leading-relaxed disabled:opacity-40"
+                              placeholder={profile?.isPremium ? "Describe el diseño o valla publicitaria del mockup..." : "Inscribe membresía elite para personalizar este escenario"}
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <button
+                              onClick={handleGenerateBrandMockup}
+                              disabled={isGeneratingMockup}
+                              className={cn(
+                                "w-full py-2.5 font-mono text-[9px] font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer",
+                                profile?.isPremium 
+                                  ? "bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/20 text-amber-400" 
+                                  : "bg-zinc-900 border border-zinc-800 text-zinc-500 opacity-60"
+                              )}
+                            >
+                              {isGeneratingMockup ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : profile?.isPremium ? (
+                                <Sparkles className="w-3 h-3" />
+                              ) : (
+                                "🔒 GENERAR MOCKUP REALISTA (BLOQUEADO)"
+                              )}
+                            </button>
+
+                            <button
+                              disabled={!profile?.isPremium || !generatedMockupUrl}
+                              onClick={() => {
+                                if (generatedMockupUrl) {
+                                  window.open(generatedMockupUrl, "_blank");
+                                }
+                              }}
+                              className={cn(
+                                "w-full py-2 font-mono text-[9px] tracking-wider uppercase rounded-lg transition text-center font-bold",
+                                profile?.isPremium && generatedMockupUrl
+                                  ? "bg-white/5 hover:bg-white/10 text-slate-300 pointer-events-auto"
+                                  : "bg-black/25 text-slate-700 border border-transparent cursor-not-allowed"
+                              )}
+                            >
+                              📥 Descargar Archivo HD de Mockup
+                            </button>
+                          </div>
+                        </div>
                       </div>
 
                       {/* DATABASE CONSOLIDATION BUTTON */}
@@ -1022,7 +1604,6 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
                           </button>
                         )}
                       </div>
-                    </div>
                   </motion.div>
                 )}
 
@@ -1059,12 +1640,23 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
                       {/* Concept */}
                       <div className="space-y-2">
                         <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                          <span className="text-[9px] font-mono font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1">
-                            <Sliders className="w-3.5 h-3.5 text-amber-500" /> Concepto de Choque SPE Activo
+                          <span className="text-[9px] font-mono font-bold text-brand-primary uppercase tracking-widest flex items-center gap-1">
+                            <Sliders className="w-3.5 h-3.5 text-brand-primary" /> Concepto de Choque SPE Activo
                           </span>
-                          <span className="text-[10px] bg-white/5 text-slate-400 font-mono py-1 px-3 rounded-full uppercase">
-                            Para: {targetPlatform}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setIsConfigPanelCollapsed(!isConfigPanelCollapsed)}
+                              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-slate-450 hover:text-white font-mono text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                              title={isConfigPanelCollapsed ? "Mostrar panel de configuración" : "Expandir a pantalla completa"}
+                            >
+                              <Sliders className="w-2.5 h-2.5 text-amber-500" />
+                              <span>{isConfigPanelCollapsed ? "Mostrar Ajustes" : "Pantalla Completa"}</span>
+                            </button>
+                            <span className="text-[10px] bg-white/5 text-slate-400 font-mono py-1 px-3 rounded-full uppercase font-bold">
+                              Para: {targetPlatform}
+                            </span>
+                          </div>
                         </div>
                         <p className="text-xs text-slate-300 font-sans leading-relaxed italic bg-white/[0.01] p-3 rounded-xl border border-white/5">
                           "{campaignOutputs.concept}"
