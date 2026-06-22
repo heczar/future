@@ -16,7 +16,7 @@ export default async function handler(req: any, res: any) {
 
   const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
   const { message, history, brandContext } = req.body || {};
-  const model = "gemini-3.5-flash";
+  const model = "gemini-2.5-flash";
   console.log(`[FUTURA SERVER] chatWithAdvisor invocado con mensaje: "${message || ""}". Usando modelo: ${model}`);
 
   const systemInstruction = `

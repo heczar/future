@@ -166,66 +166,110 @@ function getDeterministicSimulationResponse(apiEndpoint: string, payload: any): 
     else if (prompt.toLowerCase().includes("gym") || prompt.toLowerCase().includes("fit") || context.toLowerCase().includes("fit")) niche = "Personal Trainer & Centro Fitness Premium";
 
     return {
-      strategy: `### 🚀 DIAGNÓSTICO EN TIEMPO REAL - ${niche.toUpperCase()}\n\nDiseñamos un activo quirúrgico orientado a la conversión directa. Con esta estructura, desactivamos la desconfianza del buyer persona atacando su frustración latente.\n\n* **Pilar Estratégico**: Autoridad Técnica + Desmitificar falsas soluciones de bajo costo.\n* **Fase SPE Activa**: Fase 1 (Posición) y Fase 3 (Volumen del Mensaje Persuasivo).`,
-      copy: `⚠️ LA VERDAD QUE TU COMPETENCIA NO QUIERE QUE DESCUBRAS...\n\nEn el sector de ${niche}, todo el mundo promete lo mismo: calidad superior, la mejor atención y precios económicos.\n\nPero tú sabes bien que lo barato sale caro. Y tu cliente ideal también.\n\nCuando buscas resultados verdaderos, la clave no es verse bien; es actuar con precisión milimétrica.\n\nEn nuestro ecosistema automatizado, eliminamos las dudas y creamos una experiencia insuperable:\n✅ Soluciones personalizadas al dolor de tu cliente.\n✅ Ejecución limpia respaldada por expertos.\n✅ Enfoque absoluto en tu tranquilidad y retorno de inversión.\n\nNo te conformes con lo convencional. Elige al líder que prioriza los resultados reales.\n\n👉 Escríbenos un mensaje privado hoy y solicita una auditoría integral sin compromiso.\n\n#${niche.replace(/\s+/g, '')} #ResultadosReales #SPE #EstrategiaComercial #Liderazgo #ServiciosDeElite`,
+      strategy: `### 🚀 DIAGNÓSTICO EN TIEMPO REAL - ${niche.toUpperCase()}\n\nDiseñamos un activo quirúrgico orientado a la conversión directa. Con esta estructura, desactivamos la desconfianza del buyer persona atacando su frustración latente.\n\n* **Pilar Estratégico**: Autoridad Técnico + Desmitificar falsas soluciones de bajo costo.\n* **Fase SPE Activa**: Fase 1 (Posición) y Fase 3 (Volumen del Mensaje Persuasivo).`,
+      copy: `⚠️ LA VERDAD QUE TU COMPETENCIA NO QUIERE QUE DESCUBRAS...\n\nEn el sector de ${niche}, todo el mundo promete lo mismo: calidad superior, la mejor atención y precios económicos.\n\nPero tú sabes bien que lo barato sale caro. Y tu cliente ideal también.\n\nCuando buscas resultados verdaderos, la clave no es verse bien; es actuar con precisión milimétrica.\n\nEn nuestro ecosistema automatizado, eliminamos las dudas y creamos una experiencia insuperable:\n✅ Soluciones personalizadas al dolor de tu cliente.\n✅ Ejecución limpia respaldada por expertos.\n✅ Enfoque absoluto en tu tranquilidad y retorno de inversión.\n\nNo te conformes con lo unconventional. Elige al líder que prioriza los resultados reales.\n\n👉 Escríbenos un mensaje privado hoy y solicita una auditoría integral sin compromiso.\n\n#${niche.replace(/\s+/g, '')} #ResultadosReales #SPE #EstrategiaComercial #Liderazgo #ServiciosDeElite`,
       imagePrompt: `minimalist luxury product mockup in cybernetic workspace, premium ${niche} visual element, deep obsidian black background accented with rich gold and turquoise lights, studio photography style, hyperrealistic clean textures, complete negative space, absolutely no text written`,
       videoProposal: `🎥 PROPUESTA DE VIDEO CORTO (RETENCIÓN MÁXIMA - 30s):\n\n**0:00 - 0:05 Hook**: "¿Alguna vez te has preguntado por qué sigues gastando en alternativas baratas que nunca solucionan el problema de raíz?" (Señalando directamente a la cámara).\n\n**0:05 - 0:15 Contraste**: Muestra un reloj de arena cayendo rápido. "Cada minuto que dejas pasar con un servicio mediocre te aleja de tu paz mental y de tu rentabilidad."\n\n**0:15 - 0:25 El Valor**: "Con nuestra metodología de alta conversión en ${niche}, te garantizamos una transformación medible desde la primera semana de ejecución."\n\n**0:25 - 0:30 Cierre**: "Toma el control hoy. Haz clic en el botón de abajo y reserva tu espacio antes de que cerremos cupos asignados."`
     };
   }
 
   if (apiEndpoint.includes("chatWithAdvisor") || apiEndpoint.includes("chatAboutPhase")) {
-    const isGreeting = prompt.toLowerCase().includes("hola") || prompt.toLowerCase().includes("buenos") || prompt.toLowerCase().includes("salud") || prompt.toLowerCase().includes("tal");
-    if (isFutura) {
-      if (isGreeting) {
-        return `¡Hola! Qué gusto saludarte. Bienvenido al centro de consultoría de **FUTURA**. 
+    const textLower = prompt.toLowerCase();
+    const isGreeting = textLower.includes("hola") || textLower.includes("buenos") || textLower.includes("salud") || textLower.includes("tal");
 
-Estoy listo para darte una mano con tu marca, tu estrategia de negocio o cualquier duda de marketing que tengas. 
+    // Dynamic, Keyword-Aware Contingency engine to eliminate static responses
+    let sector = "tu modelo de negocio";
+    let phaseFocus = "Fase 1 (Enfoque e Identidad)";
+    let bulletPoints: string[] = [];
 
-Cuéntame un poco de tu proyecto o hazme cualquier pregunta que tengas en mente. ¡Hablemos de forma muy sencilla, cómoda y clara!`;
-      }
-      if (prompt.toLowerCase().includes("que es") || prompt.toLowerCase().includes("qué es") || prompt.toLowerCase().includes("como funciona") || prompt.toLowerCase().includes("cómo funciona") || prompt.toLowerCase().includes("metodologia") || prompt.toLowerCase().includes("spe") || prompt.toLowerCase().includes("sistema pentagonal")) {
-        return `¡Claro que sí! Con gusto te explico la metodología del **Sistema Pentagonal de Ejecución (SPE)** de forma súper sencilla y cómoda:
-
-1. **Enfoque e Identidad**: Se trata de definir con total claridad de qué se trata tu negocio, a quién ayudas y cuál es ese problema principal que solucionas ("Resultados sobre Estética"). 
-2. **Embudo y Captación**: Crear un camino amigable para que las personas conozcan tu oferta sin tantas vueltas, usando palabras sencillas pero muy persuasivas.
-3. **Volumen de Mensajes**: Explicar los beneficios de tu solución, enfocándote en lo que de verdad le duele a tu cliente, con honestidad y de forma directa.
-4. **Optimización Financiera**: Ajustar tus precios y tu propuesta para que sea irresistible y rentable a la vez.
-5. **Fidelización**: Tratar tan bien a tus clientes actuales que ellos mismos sean los que te recomienden con orgullo.
-
-¿Qué te parece? Si quieres, podemos empezar a planificar alguna de estas ideas directamente para tu tipo de negocio en el **Motor Creativo**. ¿De qué trata tu proyecto?`;
-      }
-      if (prompt.toLowerCase().includes("conversa") || prompt.toLowerCase().includes("chat") || prompt.toLowerCase().includes("consejo") || prompt.toLowerCase().includes("estrategia") || prompt.toLowerCase().includes("vender") || prompt.toLowerCase().includes("cliente")) {
-        return `Esa es una excelente pregunta. Para conectar con tus clientes reales, el mejor consejo de sentido común es **hablarles con total honestidad de sus problemas cotidianos**.
-
-A veces nos enredamos haciendo publicaciones puramente estéticas en redes sociales, pero lo que de verdad le interesa a la gente es saber si entiendes su molestia y si puedes solucionarla rápidamente.
-
-¿Qué tal si vamos al **Motor Creativo** y redactamos un borrador de propuesta muy cercano y amigable para ver cómo reacciona tu audiencia? ¡Es súper rápido de hacer!`;
-      }
-      return `¡Qué buen punto! Para avanzar con total claridad y lógica de sentido común, mi mejor recomendación es que mantengamos las cosas lo más simples y directas posible. 
-
-En el marketing moderno, la gente ya no busca discursos corporativos complejos; busca honestidad, valor real y soluciones cómodas.
-
-¿Te gustaría que diseñáramos un pitch de ventas muy claro o que preparemos un borrador de copy amigable para tus redes sociales? ¡Cuéntame y nos ponemos manos a la obra!`;
+    if (textLower.includes("zapato") || textLower.includes("calzado") || textLower.includes("tenis") || textLower.includes("sneaker") || textLower.includes("ropa") || textLower.includes("moda") || textLower.includes("tienda")) {
+      sector = "comercio minorista y moda (calzado/bazar)";
+      phaseFocus = "Fase 2 (Embudo de Conversión) y Fase 4 (Optimización del Ticket)";
+      bulletPoints = [
+        "**Derriba la fricción del tallaje:** El mayor dolor de tu comprador es equivocarse de talla. Ofrece una promesa clara de 'primer cambio 100% gratis y sin preguntas'. Esto aumenta la conversión un 35% de inmediato.",
+        "**Muestra tu producto en movimiento:** Los catálogos quietos aburren. Diseña videos cortos de transiciones rápidas mostrando tus zapatos o prendas puestas en la calle en situaciones reales de uso.",
+        "**Venta cruzada inteligente al pagar:** En el checkout, ofrece complementos de valor natural como calcetas de bambú, impermeabilizantes protectores o plantillas ergonómicas con un descuento inmediato."
+      ];
+    } else if (textLower.includes("cafe") || textLower.includes("coffee") || textLower.includes("gourmet") || textLower.includes("comida") || textLower.includes("restauran") || textLower.includes("pasteler") || textLower.includes("panader") || textLower.includes("hamburg")) {
+      sector = "gastronomía, cafeterías y productos premium gourmet";
+      phaseFocus = "Fase 1 (Diferenciación) y Fase 5 (Fidelización del Cliente)";
+      bulletPoints = [
+        "**Crea un ritual insustituible:** No vendes café o comida ordinaria; vendes una pausa productiva o un escape delicioso. Posiciona tu narrativa alrededor del ritual de preparación o de la procedencia de tus ingredientes.",
+        "**Programa de recurrencia física/digital:** Diseña una tarjeta de lealtad limpia con WhatsApp ('El Club del Sabor'). El 50% de tus ingresos provendrán de clientes recurrentes que regresen al menos dos veces por semana.",
+        "**Micro-marketing de proximidad:** Entrega muestras de degustación exclusivas e invitaciones personalizadas a comercios o corporativos vecinos que se encuentren a menos de 5 cuadras a la redonda."
+      ];
+    } else if (textLower.includes("odont") || textLower.includes("dent") || textLower.includes("salu") || textLower.includes("medic") || textLower.includes("clinic") || textLower.includes("bienestar") || textLower.includes("yoga") || textLower.includes("fit") || textLower.includes("gym")) {
+      sector = "bienestar, salud, fitness y consultorios profesionales";
+      phaseFocus = "Fase 1 (Posicionamiento Técnico) y Fase 3 (Volumen de Contenidos de Autoridad)";
+      bulletPoints = [
+        "**Desmitifica el dolor y el miedo:** El cliente de salud o estética compra por miedo al dolor o a verse mal. Desmonta estas dudas mediante testimonios reales y cortometrajes educativos sencillos que demuestren un camino sin molestia.",
+        "**Configura el canal directo de WhatsApp:** Reemplaza los formularios extensos por un botón flotante visible. Permite que reserven una videoconsulta de diagnóstico rápido o cita en menos de 2 clics.",
+        "**Educa en vez de vender directamente:** Produce contenido resolviendo dudas comunes cotidianas de salud (ej: 'El error diario que destruye tus encías/posturas'). El que educa primero se queda con la autoridad."
+      ];
+    } else if (textLower.includes("tech") || textLower.includes("software") || textLower.includes("comput") || textLower.includes("program") || textLower.includes("ia") || textLower.includes("saas") || textLower.includes("web") || textLower.includes("digital")) {
+      sector = "tecnología, software, desarrollo y negocios digitales";
+      phaseFocus = "Fase 2 (Embudo de Captación Automatizado) y Fase 4 (Optimización de Retención)";
+      bulletPoints = [
+        "**Simplifica la promesa comercial:** Explica exactamente cómo tu sistema o software ahorra horas de trabajo en lugar de enredar al prospecto en jerga técnica indescifrable.",
+        "**Ofrece un piloto o auditoría instantánea de 10 minutos:** Un demo guiado o diagnóstico rápido automatizado convierte 5 veces más rápido que cualquier llamada larga de ventas corporativa.",
+        "**Demuestra el Retorno de Inversión (ROI):** Explica con números claros cuánto dinero está perdiendo tu prospecto diariamente por mantener procesos manuales u obsoletos."
+      ];
+    } else if (textLower.includes("cur") || textLower.includes("educ") || textLower.includes("coach") || textLower.includes("asesor") || textLower.includes("consult") || textLower.includes("servici") || textLower.includes("mentor")) {
+      sector = "servicios profesionales, mentorías y consultoría estratégica";
+      phaseFocus = "Fase 1 (Definición de Oferta Irresistible) y Fase 3 (Volumen persuasivo)";
+      bulletPoints = [
+        "**Empaqueta tu conocimiento en resultados concretos:** Evita vender 'horas de consultoría'. Vende una meta empaquetada (ej: 'Instalación de tus canales de automatización en 21 días con soporte continuo').",
+        "**Demuestra autoridad inmediata con material auditable gratuíto:** Obsequia una guía interactiva breve o una auditoría flash en video que resuelva de inmediato su dolor comercial más visible.",
+        "**Filtra a tus prospectos:** Diseña una sesión estratégica breve de cortesía pero condicionada a un breve cuestionario previo. Esto eleva drásticamente el valor percibido de tu tiempo y la calidad de tus leads."
+      ];
     }
+
+    // Capture specific tokens to personalize fallback responses even further
+    const matchedTokens = prompt.match(/\b([a-zA-Záéíóúñ]{4,15})\b/g) || [];
+    const keywords = matchedTokens
+      .filter(w => !["hola", "como", "esta", "este", "para", "todo", "conigo", "hacer", "crear", "vender", "venderle", "necesito", "quien", "sobre", "tengo", "marca", "negocio", "estrategia", "clientes"].includes(w.toLowerCase()))
+      .slice(0, 3);
+    
+    const keywordsContext = keywords.length > 0 
+      ? ` para el despliegue comercial enfocado en **"${keywords.join(' ')}"**`
+      : "";
 
     if (isGreeting) {
-      return `¡Hola! Me alegra mucho saludarte. Bienvenido al epicentro de consultoría de **FUTURA**.
+      return `¡Hola! Qué gusto saludarte de nuevo. Te doy una cálida bienvenida al epicentro del **Centro de Consultoría FUTURA**.
 
-Estoy totalmente listo para ser tu compañero de equipo y ayudarte a planificar el crecimiento de tu marca de forma lógica, cómoda y práctica.
+Estoy completamente preparado para ser tu estratega de negocios y ayudarte a estructurar el crecimiento de tu marca en el sector de **${sector}** de forma muy ágil, pragmática y con total sabiduría comercial.
 
-Cuéntame, ¿cuál es tu negocio o qué idea tienes en mente hoy para que empecemos a impulsarla juntos de forma amigable?`;
+Cuéntame, ¿qué idea específica o desafío tienes en mente hoy para que elaboremos un plan cómodo, práctico y con lógica de sentido común? ¡Estoy aquí para impulsarte!
+
+---
+*(Nota: FUTURA está operando temporalmente mediante su Motor de Resiliencia Inteligente. Los resultados de consultoría se estructuran mediante heurísticas avanzadas locales del SPE).*`;
     }
-    return `Para elevar tus ventas de manera inmediata, mantengamos las cosas sencillas. Hoy en día, las personas ignoran la publicidad tradicional y buscan conexiones auténticas.
 
-Te aconsejo enfocar tus mensajes en **solucionar un dolor de cabeza muy específico** de tu cliente, hablándole con honestidad y con palabras comunes que cualquiera pueda asimilar en 5 segundos.
+    const bulletSection = bulletPoints.length > 0 
+      ? `Para abordar esta consulta, activamos de inmediato la estrategia del **Sistema Pentagonal de Ejecución (SPE)** orientada a **${sector || "tu negocio"}**:\n\n${bulletPoints.map(b => `* ${b}`).join("\n\n")}`
+      : `Para estructurar tu consulta${keywordsContext}, lo principal en la consultoría estratégica moderna es **desterrar la complejidad**. Las personas ignoran el marketing rebuscado y buscan soluciones honestas y directas:
 
-¿Te gustaría que redactáramos una propuesta con esta filosofía en nuestro **Motor Creativo** para probar su impacto?`;
+* **Elimina la ambigüedad en 5 segundos:** Explica tu negocio como si se lo contaras a un niño de 8 años. ¿Cuál es ese dolor de cabeza exacto que resuelves y cómo mejora la vida de tu comprador?
+* **Construye un canal directo y cómodo:** No enredes al cliente ideal en laberintos. Un enlace simple a WhatsApp o una llamada rápida acelerará tus ventas mucho más rápido que un formulario costoso.
+* **Aumenta el ticket de compra:** Diseña un servicio o producto complementario de bajo coste pero de alto valor inmediato para ofrecerlo en el momento decisivo del pago.`;
+
+    return `Entiendo perfectamente tu inquietud sobre de **${prompt.length > 100 ? prompt.slice(0, 100) + '...' : prompt}**. Vamos a estructurarla con total realismo, criterio lógico y alejado de discursos robotizados corporativos.
+
+${bulletSection}
+
+### ¿Cómo seguimos ahora?
+Te aconsejo guardar estos pilares en tu **Baúl de Marca ("Vault")** dentro de la suite. Desde este punto, podremos optimizar e incluso redactar los borradores tácticos exactos del **Motor Creativo** para tus campañas del ecosistema. 
+
+¿Cuál de estos puntos se adapta mejor a tu operación actual? Cuéntame y lo profundizamos juntos con total cercanía.
+
+---
+*(Nota: FUTURA está operando de forma resiliente para darte respuesta inmediata. Diseñemos juntos el camino al éxito para tu proyecto).*`;
   }
 
   if (apiEndpoint.includes("generateSocialCopy") || apiEndpoint.includes("refineSocialCopy")) {
     const copyType = payload?.params?.copyType || "conversión";
     const platform = payload?.params?.platform || "LinkedIn y Redes Sociales";
-    return `⚠️ REVELACIÓN CRÍTICA sobre tu nicho comercial (${platform}):\n\n¿Por qué sigues intentando convencer a todos con frases motivacionales vacías?\n\nLa realidad es fría: tus clientes ideales están perdiendo dinero o tiempo justo ahora. No quieren un post estético sobre tus valores.\n\nQuieren la solución exacta que detenga el desangre de su operación.\n\nEn esta campaña de ${copyType} premium, traemos la artillería pesada:\n👉 Identificamos el síntoma de inmediato.\n👉 Ofrecemos nuestro diagnóstico contrastado en tiempo récord.\n👉 Abrimos un canal directo donde solo ingresan marcas comprometidas con la acción.\n\nNo lamas vitrinas. Escribe "SPE" o envíanos un Mensaje Directo hoy mismo para agendar tu sesión técnica confidencial de 15 minutos.\n\n#ConversionFeroz #SPE #FuturaEngine #EstrategiaDigital`;
+    return `⚠️ REVELACIÓN CRÍTICA sobre tu nicho comercial (${platform}):\n\n¿Por qué sigues intentando convencer a todos con frases motivacionales vacías?\n\nLa realidad es fría: tus clientes ideales están perdiendo dinero o tiempo justo ahora. No quieren un post estético sobre tus valores.\n\nQuieren la solución exacta que detenga el desangre de su operación.\n\nEn esta campaña de ${copyType} premium, traemos la artillería pesada:\n👉 Identificamos el síntoma de inmediato.\n👉 Ofrecemos nuestro diagnóstico contrastado en tiempo récord.\n👉 Abrimos un canal directo donde solo ingresan marcas comprometidas con la acción.\n\nNo lamas vitrinas. Escribe "SPE" o envíanos un Mensaje Directo hoy mismo para agendar tu sesión técnica de 15 minutos.\n\n#ConversionFeroz #SPE #FuturaEngine #EstrategiaDigital`;
   }
 
   return "FUTURA completó la acción con un rendimiento simulado excelente.";
@@ -320,7 +364,7 @@ export async function generateContentStrategy(
   const payload = { prompt, context, styleReferences, logos, history };
 
   const clientFallback = async () => {
-    const model = "gemini-3.5-flash";
+    const model = "gemini-2.5-flash";
     const systemInstruction = `
       Eres el ASESOR ESTRATÉGICO Y CONVERTIDOR COMERCIAL de FUTURA. 
       Tu misión es ser el "vendedor estrella" de la marca. Recibes a los usuarios en la sección "Conversa con Futura".
@@ -664,7 +708,7 @@ export async function chatWithAdvisor(
   const payload = { message, history, brandContext };
 
   const clientFallback = async () => {
-    const model = "gemini-3.5-flash";
+    const model = "gemini-2.5-flash";
     const systemInstruction = `
       Eres el ASESOR ESTRATÉGICO Y COMPAÑERO DE NEGOCIOS DE LA APLICACIÓN FUTURA (FUTURA App Advisor de la suite de Future Marketing Consult).
       Estás en el CENTRO DE CONSULTORÍA de la plataforma. Tu propósito principal es responder con total coherencia, sentido común y criterio lógico a cualquier persona, sea un profesional experimentado o alguien común dando sus primeros pasos. Hablas de forma súper clara, amable, empática y con una excelente facilidad de asimilación.
@@ -727,7 +771,7 @@ export async function chatAboutPhase(
   const payload = { phase, history, message };
 
   const clientFallback = async () => {
-    const model = "gemini-3.5-flash";
+    const model = "gemini-2.5-flash";
     const systemInstruction = `
       Eres el ASESOR ESTRATÉGICO de la fase: ${phase} del Sistema Pentagonal de Ejecución (SPE) de FUTURA.
       
@@ -779,7 +823,7 @@ export async function generateSocialCopy(params: {
   const payload = { params };
 
   const clientFallback = async () => {
-    const model = "gemini-3.5-flash";
+    const model = "gemini-2.5-flash";
     const systemInstruction = `
       Eres el REDACTOR CREATIVO DE ÉLITE de FUTURA.
       Especialidad: copies que convierten y detienen el scroll.
@@ -822,7 +866,7 @@ export async function refineSocialCopy(
   const payload = { currentCopy, refineInstructions };
 
   const clientFallback = async () => {
-    const model = "gemini-3.5-flash";
+    const model = "gemini-2.5-flash";
     const systemInstruction = "Eres un editor experto de copywriting. Refina el copy provisto según las instrucciones del usuario.";
 
     const prompt = `

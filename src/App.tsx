@@ -410,11 +410,25 @@ function AppContent() {
     return () => unsubscribe();
   }, [user]);
 
+  const sanitizeForFirestore = (obj: any): any => {
+    if (obj === null || obj === undefined) return null;
+    if (Array.isArray(obj)) return obj.map(item => sanitizeForFirestore(item));
+    if (typeof obj === 'object') {
+      const copy: Record<string, any> = {};
+      for (const key of Object.keys(obj)) {
+        copy[key] = obj[key] === undefined ? null : sanitizeForFirestore(obj[key]);
+      }
+      return copy;
+    }
+    return obj;
+  };
+
   const handleUpdateProfile = async (newProfile: UserProfile) => {
-    setProfile(newProfile);
+    const sanitized = sanitizeForFirestore(newProfile);
+    setProfile(sanitized);
     if (user) {
       try {
-        await setDoc(doc(db, 'users', user.uid), newProfile, { merge: true });
+        await setDoc(doc(db, 'users', user.uid), sanitized, { merge: true });
       } catch (error) {
         console.error("Profile Update Error:", error);
       }
