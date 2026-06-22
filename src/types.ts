@@ -58,7 +58,7 @@ export interface UserProfile {
   isPremium?: boolean;
   email?: string;
   membershipMonths?: number;
-  membershipExpiresAt?: string;
+  membershipExpiresAt?: string | null;
   pagoMovilRequest?: {
     bank: string;
     phone: string;

@@ -383,7 +383,7 @@ function AppContent() {
           credits: isMaster ? 999999 : 10,
           isPremium: isMaster,
           membershipMonths: isMaster ? 9999 : 1,
-          membershipExpiresAt: isMaster ? "2050-12-31T00:00:00.000Z" : undefined,
+          membershipExpiresAt: isMaster ? "2050-12-31T00:00:00.000Z" : null,
           email: user.email || ""
         };
         setDoc(docRef, initialProfile);
@@ -402,7 +402,7 @@ function AppContent() {
         credits: isMaster ? 999999 : 10,
         isPremium: isMaster,
         membershipMonths: isMaster ? 9999 : 1,
-        membershipExpiresAt: isMaster ? "2050-12-31T00:00:00.000Z" : undefined,
+        membershipExpiresAt: isMaster ? "2050-12-31T00:00:00.000Z" : null,
         email: user.email || ""
       });
     });

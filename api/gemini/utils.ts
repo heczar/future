@@ -158,6 +158,11 @@ export function sanitizeGeminiContents(history: any[], newMessage: string, defau
     }
   }
 
+  // Gemini API requires the first message in the contents array to be from the 'user' role
+  while (merged.length > 0 && merged[0].role === 'model') {
+    merged.shift();
+  }
+
   if (merged.length === 0) {
     merged.push({
       role: 'user',
