@@ -118,161 +118,289 @@ function robustClientJsonParse(text: string, defaultPrompt: string): { strategy:
 function getDeterministicSimulationResponse(apiEndpoint: string, payload: any): any {
   const prompt = (payload?.prompt || payload?.message || payload?.params?.extraContext || "").trim();
   const context = (payload?.context || payload?.brandContext || payload?.params?.projectDescription || "").trim();
-  const isFutura = context.toLowerCase().includes("futura") || 
-                   prompt.toLowerCase().includes("futura") || 
-                   JSON.stringify(payload || {}).toLowerCase().includes("futura_brand_vault");
+  const textLower = (prompt + " " + context).toLowerCase();
 
   if (apiEndpoint.includes("generateCreativeImage")) {
-    const text = (prompt || "").toLowerCase();
-    if (text.includes("dental") || text.includes("dentist") || text.includes("odontolog") || text.includes("dient") || text.includes("sonris")) {
+    if (textLower.includes("dental") || textLower.includes("dentist") || textLower.includes("odontolog") || textLower.includes("dient") || textLower.includes("sonris")) {
       return "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1000&auto=format&fit=crop&q=80";
     }
-    if (text.includes("cafe") || text.includes("coffee") || text.includes("gourmet") || text.includes("cafeter")) {
+    if (textLower.includes("cafe") || textLower.includes("coffee") || textLower.includes("gourmet") || textLower.includes("cafeter") || textLower.includes("taza") || textLower.includes("grano")) {
       return "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=1000&auto=format&fit=crop&q=80";
     }
-    if (text.includes("food") || text.includes("comid") || text.includes("restauran") || text.includes("hamburg") || text.includes("plat")) {
+    if (textLower.includes("food") || textLower.includes("comid") || textLower.includes("restauran") || textLower.includes("hamburg") || textLower.includes("plat") || textLower.includes("mesa") || textLower.includes("ingrediente")) {
       return "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1000&auto=format&fit=crop&q=80";
     }
-    if (text.includes("tech") || text.includes("software") || text.includes("comput") || text.includes("matrix") || text.includes("digital") || text.includes("ia") || text.includes("web") || text.includes("code")) {
+    if (textLower.includes("tech") || textLower.includes("software") || textLower.includes("comput") || textLower.includes("matrix") || textLower.includes("digital") || textLower.includes("ia") || textLower.includes("web") || textLower.includes("code") || textLower.includes("pantalla") || textLower.includes("celular")) {
       return "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1000&auto=format&fit=crop&q=80";
     }
-    if (text.includes("belleza") || text.includes("spa") || text.includes("cosmetic") || text.includes("piel") || text.includes("beauty") || text.includes("estetic") || text.includes("masaje")) {
+    if (textLower.includes("belleza") || textLower.includes("spa") || textLower.includes("cosmetic") || textLower.includes("piel") || textLower.includes("beauty") || textLower.includes("estetic") || textLower.includes("masaje") || textLower.includes("crema")) {
       return "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000&auto=format&fit=crop&q=80";
     }
-    if (text.includes("house") || text.includes("inmobil") || text.includes("arquitectur") || text.includes("hogar") || text.includes("apartamento") || text.includes("diseño") || text.includes("interi")) {
+    if (textLower.includes("house") || textLower.includes("inmobil") || textLower.includes("arquitectur") || textLower.includes("hogar") || textLower.includes("apartamento") || textLower.includes("diseño") || textLower.includes("interi") || textLower.includes("casa") || textLower.includes("edificio")) {
       return "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1000&auto=format&fit=crop&q=80";
     }
-    if (text.includes("fitness") || text.includes("gimnas") || text.includes("fit") || text.includes("sport") || text.includes("entrenamien") || text.includes("fuerz")) {
+    if (textLower.includes("fitness") || textLower.includes("gimnas") || textLower.includes("fit") || textLower.includes("sport") || textLower.includes("entrenamien") || textLower.includes("fuerz") || textLower.includes("músculo")) {
       return "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=1000&auto=format&fit=crop&q=80";
     }
     return "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&auto=format&fit=crop&q=80";
   }
 
-  if (apiEndpoint.includes("generateContentStrategy")) {
-    if (isFutura) {
-      return {
-        strategy: `### 🎯 PROPUESTA DE POSICIONAMIENTO SPE - FUTURA\n\nEste activo se enfoca en resolver el dolor crónico número uno de infoproductores y agencias en el mercado hispano: **perder el tiempo en contenido estético irrelevante que no genera ventas**.\n\nAplicamos la **Fase 1 (Enfoque Industrial)** y **Fase 2 (Embudo de Captación)** para posicionar a FUTURA como la solución definitiva de IA que prioriza la conversión sobre el diseño decorativo. Accedes a una alta retención y autoridad brutal instantánea.`,
-        copy: `🚨 DEJA DE CREAR CONTENIDO QUE SOLO LE GUSTA A TU MAMÁ.\n\nSí, suena duro. Pero la verdad incómoda del marketing es esta:\n\nLos likes no pagan las nóminas. Las métricas de vanidad no sostienen un negocio. El diseño ultra-estético que te tomó 5 horas renderizar no sirve de nada si tu bandeja de entrada sigue vacía.\n\nEn **FUTURA Autopropagación SPE**, operamos bajo un único mantra rector:\n👉 **RESULTADOS SOBRE ESTÉTICA.**\n\nNo hacemos arte, hacemos ingeniería de ventas con IA de élite. Automatizamos la síntesis de tus dolores del cliente ideal y redactamos copys destructores de fricciones comerciales.\n\n🔥 ¿Quieres dejar de lamer vitrinas y empezar a capturar clientes reales listos para pagar hoy? \n\nComenta "FUTURA" abajo o visita el enlace en nuestra bio para acceder a tu diagnóstico de marca gratuito. Tu competencia ya está usando SPE; tú sigues editando fuentes en Canva.\n\n#FUTURA #ResultadosSobreEstetica #MarketingDeElite #InteligenciaArtificial #NegociosDigitales #CopywritingPersuasivo`,
-        imagePrompt: "fuchsia and dark obsidian abstract geometry high contrast space background, cybernetic hyper-charged sales funnel core, 3d rendering aesthetic minimal, deep purple lighting, product shot zero text, futuristic tech architecture style",
-        videoProposal: `⏱️ HOOK DE VIDEO REEL (FUTURA SPE - 45s):\n\n**0:00 - 0:05 Hook Explosivo**: El presentador mira fijamente a la cámara y apunta con el dedo: "¿Estás harto de que tus posts tengan 100 likes de tus amigos pero CERO mensajes de compra?". En primer plano se muestra un teléfono con notificaciones vacías.\n\n**0:05 - 0:20 El Dolor Crónico**: "La mayoría de gurús te dicen que hagas reels estéticos con tipografías bonitas. Mentira. Las marcas líderes capturan demanda apelando a dolores crónicos, no a la combinación de colores de su grid."\n\n**0:20 - 0:35 La Revelación**: "FUTURA es la primera IA entrenada en el Sistema Pentagonal de Ejecución (SPE). Destruye la fricción de venta al sintetizar las objeciones reales de tu nicho y escribir ofertas irresistibles en segundos."\n\n**0:35 - 0:45 Call to Action**: "Entra al Hub de FUTURA hoy mismo, configura tu Baúl de Marca y ve gratis el análisis estratégico que cambiará tu negocio. El link está en mi biografía."`
-      };
+  // 1. Sector recognition (supports Spanish NLP keywords)
+  let sectorCode = "general";
+  let sectorName = "tu idea de negocio";
+  if (textLower.includes("zapato") || textLower.includes("calzado") || textLower.includes("tenis") || textLower.includes("sneaker") || textLower.includes("ropa") || textLower.includes("moda") || textLower.includes("tienda") || textLower.includes("boutique") || textLower.includes("prend") || textLower.includes("vestir") || textLower.includes("bazar")) {
+    sectorCode = "retail";
+    sectorName = "diseño de indumentaria, calzado y moda de vanguardia";
+  } else if (textLower.includes("cafe") || textLower.includes("coffee") || textLower.includes("gourmet") || textLower.includes("comida") || textLower.includes("restauran") || textLower.includes("pasteler") || textLower.includes("panader") || textLower.includes("hamburg") || textLower.includes("pizz") || textLower.includes("alimento") || textLower.includes("plato") || textLower.includes("sabor") || textLower.includes("cafeter")) {
+    sectorCode = "gastronomy";
+    sectorName = "experiencias culinarias, gastronomía y cafés especializados";
+  } else if (textLower.includes("odont") || textLower.includes("dent") || textLower.includes("salu") || textLower.includes("medic") || textLower.includes("clinic") || textLower.includes("bienestar") || textLower.includes("yoga") || textLower.includes("fit") || textLower.includes("gym") || textLower.includes("terap") || textLower.includes("dobl") || textLower.includes("entren") || textLower.includes("estetic") || textLower.includes("dental")) {
+    sectorCode = "health";
+    sectorName = "clínicas profesionales, bienestar integral y salud de alto nivel";
+  } else if (textLower.includes("tech") || textLower.includes("software") || textLower.includes("comput") || textLower.includes("program") || textLower.includes("ia") || textLower.includes("saas") || textLower.includes("web") || textLower.includes("digital") || textLower.includes("aplicac") || textLower.includes("plataforma") || textLower.includes("desarroll")) {
+    sectorCode = "tech";
+    sectorName = "soluciones tecnológicas de software, SaaS y servicios web avanzados";
+  } else if (textLower.includes("inmueble") || textLower.includes("casa") || textLower.includes("apart") || textLower.includes("departa") || textLower.includes("inmobil") || textLower.includes("vivienda") || textLower.includes("terren") || textLower.includes("real estate") || textLower.includes("propiedad")) {
+    sectorCode = "realestate";
+    sectorName = "asesoramiento inmobiliario, corretaje y desarrollo del real estate";
+  } else if (textLower.includes("cur") || textLower.includes("educ") || textLower.includes("coach") || textLower.includes("asesor") || textLower.includes("consult") || textLower.includes("servici") || textLower.includes("mentor") || textLower.includes("agenc") || textLower.includes("clase") || textLower.includes("enseñ")) {
+    sectorCode = "services";
+    sectorName = "servicios estratégicos, consultorías de alto rendimiento y mentorías de nicho";
+  }
+
+  // 2. Intent recognition (supports Spanish NLP keywords)
+  let intentCode = "default";
+  let intentName = "estudios estratégicos";
+  if (textLower.includes("vender") || textLower.includes("convers") || textLower.includes("captar") || textLower.includes("cliente") || textLower.includes("ventas") || textLower.includes("leads") || textLower.includes("embudo") || textLower.includes("atracción") || textLower.includes("embudos") || textLower.includes("funnel")) {
+    intentCode = "sales";
+    intentName = "sistemas de captación, embudos automatizados y conversiones directas";
+  } else if (textLower.includes("automa") || textLower.includes("whatsapp") || textLower.includes("chatbot") || textLower.includes("flujo") || textLower.includes("robot") || textLower.includes("proceso") || textLower.includes("sistematizar")) {
+    intentCode = "automation";
+    intentName = "infraestructura de automatización de operaciones y mensajería directa";
+  } else if (textLower.includes("precio") || textLower.includes("alta convers") || textLower.includes("dinero" ) || textLower.includes("renta") || textLower.includes("financ") || textLower.includes("ticket") || textLower.includes("monetiz") || textLower.includes("cobrar") || textLower.includes("costo") || textLower.includes("caro")) {
+    intentCode = "pricing";
+    intentName = "optimización del ticket promedio, rentabilidad financiera e ingeniería de precios";
+  } else if (textLower.includes("copy") || textLower.includes("reda") || textLower.includes("escribir") || textLower.includes("publi") || textLower.includes("redes") || textLower.includes("post") || textLower.includes("hacer contenido") || textLower.includes("reel") || textLower.includes("reels") || textLower.includes("titul") || textLower.includes("titulos")) {
+    intentCode = "copywriting";
+    intentName = "redacción persuasiva comercial de alto calibre (scroll-stoppers)";
+  } else if (textLower.includes("marca") || textLower.includes("logo") || textLower.includes("identidad") || textLower.includes("nombre") || textLower.includes("guidelines") || textLower.includes("vault") || textLower.includes("baul") || textLower.includes("branding") || textLower.includes("esencia")) {
+    intentCode = "branding";
+    intentName = "construcción de identidad nuclear, posicionamiento diferencial de marca y baúles de activos";
+  }
+
+  // Define greetings based on whether it is a greeting
+  const isGreeting = textLower.includes("hola") || textLower.includes("buenos") || textLower.includes("salud") || textLower.includes("tal") || textLower.includes("buenas noches") || textLower.includes("buen dia") || textLower.includes("hola!");
+
+  // Generate customized advice blocks based on sector & intent
+  const sectorTips: Record<string, string[]> = {
+    retail: [
+      "**Derriba la fricción del tallaje y devoluciones:** La objeción nuclear de tu comprador digital es equivocarse con los tamaños o hormas. Elimina el miedo garantizando un 'primer cambio 100% gratuito y sin preguntas a domicilio'. Esto duplica tus ventas de inmediato.",
+      "**Muestra los activos en movimiento:** Un zapato o prenda exhibido de forma estática en fondo blanco aburre al consumidor. Diseña ganchos de reels dinámicos de personas usándolos en aceras transitadas o bajo una iluminación natural.",
+      "**Venta cruzada condicionada al checkout:** No dejes que la transacción muera al seleccionar la prenda. Ofrece un accesorio idóneo (calcetas de bambú, cremas protectoras de fibras, kits de limpieza) con un 30% de descuento flash sólo en la barra de pago."
+    ],
+    gastronomy: [
+      "**Posiciona el ritual, no el alimento crudo:** Nadie sale de casa por una bebida simple; pagan por la atmósfera, el ritual de tostado, o el momento de quietud. Tu comunicación debe honrar el origen artesanal y místico de tus ingredientes.",
+      "**Estructura un programa de lealtad digital:** El 60% de tus ingresos sostenibles vendrán del cliente que asiste al menos dos veces a la semana. Implementa un sistema de lealtad sumamente visual vía WhatsApp.",
+      "**Micro-targeting de cercanía física:** No desperdicies recursos en promociones geográficas amplias. Haz prospección directa dirigida a empresas, corporativos y comercios que operen a menos de 10 minutos de distancia de tu local."
+    ],
+    health: [
+      "**Combate el pánico al tratamiento:** El cliente de salud compra para apagar un dolor latente o evitar un desastre estético del que siente vergüenza. Genera autoridad mediante casos reales documentados paso a paso sin sensacionalismo dental tonto.",
+      "**Habilita agendamiento de video-diagnóstico rápido en 1 click:** Sustituye los formularios largos de cita por un puente ágil de WhatsApp con un test dinámico inteligente de 3 preguntas que defina la urgencia.",
+      "**Educa en el autocuidado diario:** El profesional que primero enseña a solucionar dolores de forma cotidiana se queda con la autoridad nuclear. Habla claro, sin tecnicismos academicistas aburridos."
+    ],
+    tech: [
+      "**Simplifica la promesa de valor técnica en segundos:** El cliente no compra lenguajes de programación o características en la nube; compra ahorro drástico de tiempo de su equipo directivo. Elimina la jerga técnica indescifrable.",
+      "**Genera auditorías automatizadas o demos autoguiados de 10 minutos:** Permite que el tomador de decisiones explore el poder bruto de tu interfaz sin tener que someterse a una aburrida e intrusiva llamada de ventas.",
+      "**Demuestra el costo de oportunidad financiero (Inacción):** Estructura comparativos numéricos que demuestren cuánto dinero, esfuerzo o reputación están perdiendo actualmente por mantener flujos obsoletos u manuales."
+    ],
+    realestate: [
+      "**Vende el estilo de vida, no los metros cuadrados construidos:** Los clientes de alta gama buscan estatus, seguridad, tranquilidad o retornos financieros agresivos. Muestra el vecindario ideal, las escuelas adyacentes y el valor patrimonial futuro.",
+      "**Desarrolla tours de Video Inmersivo:** Graba tomas cinematográficas POV de exploración libre. El prospecto debe imaginarse amaneciendo allí y preparando su primera taza de café matutino.",
+      "**Reduce la fricción documental de enganche:** Diseña folletos fiscales hiper-claros. Brinda acompañamiento inmediato en gestión de créditos bancarios, simplificando todo el laberinto notarial."
+    ],
+    services: [
+      "**Empaqueta tu experiencia por resultados específicos, jamás por horas:** Cobrar por horas es un suicidio comercial. Crea metodologías cerradas (ej: 'Implementación de tu sistema de captación en 21 días llave en mano').",
+      "**Regala activos auditables de alta relevancia inmediata:** Demuestra tu maestría obsequiando hojas de ruta, plantillas de Notion, o auditorías personalizadas en video de 5 minutos sobre sus errores públicos.",
+      "**Automatiza la calificación estricta de prospectos:** Valora tu tiempo. Diseña un formulario de 3 preguntas tipo filtro previo a tu videollamada para asegurar que solo conversas con empresarios calificados."
+    ],
+    general: [
+      "**Sintetiza la gran promesa comercial:** Remueve lo accesorio del mensaje. Explica exactamente a quién ayudas, qué obstáculo destructivo quitas, y en cuánto tiempo verán la transformación ideal.",
+      "**Crea un puente de conversión de alta velocidad:** El cliente ideal odia la demora. Un enlace cómodo a mensajería instantánea de respuesta rápida bate a cualquier formulario complejo de 15 casillas.",
+      "**Define tu Factor de Coherencia Comercial:** Demuestra consistencia entre lo que ofertas, cómo lo empaquetas y el respeto absoluto por la promesa de valor que anuncias."
+    ]
+  };
+
+  const intentTips: Record<string, string[]> = {
+    sales: [
+      "**Aplica el Mantra 'Results over Aesthetics':** Olvídate de diseños de landing pages lujosas hiper-decorativas. El usuario de alta conversión reacciona ante títulos claros que apunten a su dolor nuclear en la pantalla superior.",
+      "**Instala ganchos de urgencia y escasez auténtica:** Configura cupos semanales, promociones flash o bonos inmediatos limitados que impulsen la toma de decisión hoy mismo."
+    ],
+    automation: [
+      "**Disminuye las casillas y campos del formulario:** Cada dato extra solicitado reduce un 15% la entrada de leads. Pide únicamente nombre, email y WhatsApp.",
+      "**Crea secuencias de seguimiento inmediato post-suscripción:** Entrega valor automatizado de manera instantánea vía correo o mensaje antes de que la atención del prospecto se enfríe."
+    ],
+    pricing: [
+      "**Cobro por valor transformacional, no por costo operativo:** El precio de tu servicio debe ser una micro-fracción de los miles de dólares o tranquilidad mental que tu solución genera en su negocio.",
+      "**Saca al mercado soluciones escalonadas (Bajo, Medio, Alto):** Añade una opción de altísimo nivel 'VIP' para que tu propuesta estándar se perciba sumamente equitativa y balanceada comercialmente."
+    ],
+    copywriting: [
+      "**Inicia con el 'Tirón de Orejas' (Hook Crudo):** El gancho de las primeras 3 palabras debe destrozar la complacencia de tu nicho (ej: 'Tu página da pena', o 'Odias vender'). No uses rodeos aburridos.",
+      "**Agrega llamados a la acción de respuesta directa libre de compromisos:** 'Escribe la palabra SPE y te enviaré el blueprint gratis de inmediato por DM'."
+    ],
+    branding: [
+      "**Crea tu Propia Bóveda / Vault de Marca:** Reúne ahí tu manifiesto fundador, directrices de tono, paleta de colores nuclear y tus tres ganchos estrella de posicionamiento comercial.",
+      "**Prioriza un lenguaje propietario corporativo:** Inventa nombres y términos exclusivos para tus procesos de negocio, dotando a tu marca de una terminología inconfundible frente al sector."
+    ],
+    default: [
+      "**Centra los cimientos de tu negocio:** Define tus metas comerciales de este mes y asigna recursos con rigor quirúrgico.",
+      "**Analiza lo que tu competencia directa ignora por pereza:** Ofrece garantías sólidas o atención al cliente hiper-personalizada para ganar participación de mercado instantánea."
+    ]
+  };
+
+  const getSpecificSectorTips = () => sectorTips[sectorCode] || sectorTips.general;
+  const getSpecificIntentTips = () => intentTips[intentCode] || intentTips.default;
+
+  // --- PATH A: chatAboutPhase (SPE PHASE STRATEGIST) ---
+  if (apiEndpoint.includes("chatAboutPhase")) {
+    const rawPhase = payload?.phase || "Fase 1";
+    let phaseName = "";
+    let phaseObjective = "";
+    let phaseMantra = "";
+    let phaseAdvice: string[] = [];
+
+    if (rawPhase.includes("1")) {
+      phaseName = "Fase 1: Enfoque / Posición e Identidad Nuclear (Results over Aesthetics)";
+      phaseObjective = "Establecer la oferta de valor indestructible y el nicho de mercado con máxima agudeza.";
+      phaseMantra = "No puedes captar volumen si no tienes claridad total sobre el dolor de tu comprador.";
+      phaseAdvice = [
+        "**Define el síntoma crónico:** Identifica el dolor exacto por el que tu cliente ideal pierde sueño o dinero. Si no puedes nombrarlo mejor que él, jamás te comprará.",
+        "**Formatea una oferta premium indestructible:** Reempaqueta lo que haces en una entrega cerrada con una promesa medible en tiempos fijos en lugar de vender consultaría etérea.",
+        "**Elimina adornos innecesarios:** El diseño suntuoso no sustituye la falta de relevancia comercial de tu propuesta inicial."
+      ];
+    } else if (rawPhase.includes("2")) {
+      phaseName = "Fase 2: Embudo & Captación Simple de Alta Velocidad";
+      phaseObjective = "Construir pasarelas y puentes automatizados directos y ultra-fluidos.";
+      phaseMantra = "La sencillez en el diseño es la máxima expresión de la optimización comercial.";
+      phaseAdvice = [
+        "**Un solo objetivo claro por página:** Elimina links de escape o menús extensos que distraigan de la conversión principal.",
+        "**Habilita un puente directo de WhatsApp automatizado:** Convierte llamadas y prospectos calificados en tu bandeja de mensajes en segundos.",
+        "**Haz que el opt-in sea directo:** Minimiza los campos del cuestionario. Los leads calificados prefieren la velocidad y la practicidad."
+      ];
+    } else if (rawPhase.includes("3")) {
+      phaseName = "Fase 3: Volumen del Mensaje Persuasivo & Copy de Elite";
+      phaseObjective = "Desplegar flujos continuos de copywriting persuasivo detenedores de scroll.";
+      phaseMantra = "El volumen y la consistencia en el mensaje eliminan la objeciones de tu audiencia.";
+      phaseAdvice = [
+        "**Usa ganchos implacables en las primeras líneas:** Los primeros 3 segundos en video o las primeras palabras de un copy definen tu tasa de retención.",
+        "**Escribe con formateo de lectura cómoda:** Usa párrafos sumamente breves (mínimo 2 líneas cada uno) e inyecta viñetas limpias para favorecer el escaneo móvil.",
+        "**Mantén el llamado a la acción activo y uniforme:** Cada activo creado debe orientar al prospecto a realizar un paso específico."
+      ];
+    } else if (rawPhase.includes("4")) {
+      phaseName = "Fase 4: Optimización Financiera y Escala del Ticket";
+      phaseObjective = "Crecimiento de márgenes, elevar valor promedio de orden e ingeniería de precios VIP.";
+      phaseMantra = "Vender barato es señal de debilidad y atrae los peores perfiles de cliente.";
+      phaseAdvice = [
+        "**Crea un paquete High-Ticket premium:** Agrupa soporte exclusivo, velocidad extrema o diagnóstico íntimo en una propuesta de alto valor de entrada.",
+        "**Implementa venta cruzada (Order Bumps) en checkout:** Ofrece complementos obligados e inmediatos justamente durante el pago.",
+        "**Eleva tus tarifas con valentía comercial:** Un precio robusto no ahuyenta al cliente correcto, al revés, eleva de inmediato su percepción de rigor profesional."
+      ];
+    } else if (rawPhase.includes("5")) {
+      phaseName = "Fase 5: Conectividad, Comunidad & Fidelización";
+      phaseObjective = "Fácil asimilación posventa, soporte personalizado y automatización de la recurrencia.";
+      phaseMantra = "Cuesta 7 veces más captar un nuevo comprador que fidelizar y reactivar a uno preexistente.";
+      phaseAdvice = [
+        "**Diseña un onboarding impecable de bienvenida:** Envía un material introductorio al instante del pago que guíe al cliente sin fricciones.",
+        "**Crea espacios dedicados de comunidad:** Organiza encuentros o un canal de WhatsApp ágil para mantener vivo el sentido de pertenencia y soporte directo.",
+        "**Solicita testimonios estructurados:** Aprovecha el pico de felicidad posventa para documentar sus resultados de forma impecable y utilizarlos como activos de autoridad."
+      ];
+    } else {
+      phaseName = "Fases SPE Futura: Ecosistema Pentagonal Integrado";
+      phaseObjective = "Consistencia operacional dental/estructural, cimentando y escalando tu propuesta estratégica.";
+      phaseMantra = "Los resultados reales son superiores a la mera estética de marca.";
+      phaseAdvice = getSpecificSectorTips();
     }
 
-    // General Niche Strategy Fallback
-    let niche = "Tu Negocio Digital";
-    if (prompt.toLowerCase().includes("dent") || context.toLowerCase().includes("dent")) niche = "Clínica Dental Premium / Odontología de Resultados";
-    else if (prompt.toLowerCase().includes("cafe") || context.toLowerCase().includes("cafe")) niche = "Cafetería Especializada / Tostado Artesanal Gourmet";
-    else if (prompt.toLowerCase().includes("luxur") || prompt.toLowerCase().includes("inmobil") || context.toLowerCase().includes("inmobil")) niche = "Consultoría Inmobiliaria / Real Estate de Alta Conversión";
-    else if (prompt.toLowerCase().includes("gym") || prompt.toLowerCase().includes("fit") || context.toLowerCase().includes("fit")) niche = "Personal Trainer & Centro Fitness Premium";
+    return `### ♟️ ESTRATEGA DEL SISTEMA PENTAGONAL DE EJECUCIÓN (SPE)
+*Tu Aliado de Confianza para Consolidar tu Crecimiento de Forma Sencilla*
 
+¡Hola! Qué gusto saludarte directamente desde las fases de desarrollo de la **${rawPhase}**. Mi misión es acompañarte con total cercanía, lógica clara y consejos pragmáticos para que tu negocio crezca con bases sólidas y firmes de manera simple.
+
+Estás operando activamente en:
+**${phaseName}**
+
+* **Objetivo de Crecimiento**: ${phaseObjective}
+* **Mantra Clave de Éxito**: *"${phaseMantra}"*
+
+---
+
+#### 🛠️ PASOS RECOMENDADOS PARA TU NEGOCIO:
+
+Para potenciar tu desempeño con respecto a tu consulta **"${prompt.length > 80 ? prompt.slice(0, 80) + '...' : prompt}"**, te sugiero activar estos tres sencillos pilares dentro de tu nicho de **${sectorName}**:
+
+1. ${phaseAdvice[0]}
+2. ${phaseAdvice[1]}
+3. ${phaseAdvice[2]}
+
+#### 🎯 CÓMO PONER ESTO EN ACCIÓN DE FORMA FÁCIL:
+* Si estás iniciando de cero y no tienes material visual o marca formal, ingresa a la pestaña **Ignición Creativa** para estructurar tu campaña express al instante.
+* Si ya posees una marca registrada o activos, ingresa en **Propulsión de Élite** para vincular tu Baúl y amplificar tu alcance de forma inteligente.
+
+Recuerda: El marketing efectivo consiste simplemente en conectar de manera honesta y con absoluta comodidad la solucion de tu negocio con la persona que la necesita. ¿Cuál de estas tres sugerencias te gustaría que personalicemos juntos de forma cómoda hoy?`;
+  }
+
+  // --- PATH B: chatWithAdvisor (GENERAL ADVISOR CHIPS) ---
+  if (apiEndpoint.includes("chatWithAdvisor")) {
+    const sTips = getSpecificSectorTips();
+    const iTips = getSpecificIntentTips();
+
+    if (isGreeting) {
+      return `¡Hola! Qué gusto saludarte amigablemente y darte una calurosa bienvenida a tu **Espacio de Consultoría FUTURA™**. 
+
+Yo soy tu **Compañero y Asesor Estratégico**. Mi mayor deseo es simplificarte la vida y ayudarte a estructurar soluciones prácticas para tu negocio, usando de manera sumamente intuitiva y cómoda el **Sistema Pentagonal de Ejecución (SPE)**.
+
+Cuéntame, por favor, ¿qué idea, proyecto, servicio o desafío tienes en mente hoy para que lo repasemos juntos con total calma y sentido común? Me encantaría ayudarte a darle forma.`;
+    }
+
+    return `### ⚡ TU ASESOR DE CONFIANZA FUTURA™
+*Mentoría Directa y Sencilla para el Crecimiento de tu Negocio*
+
+He procesado con total atención tu inquietud: **"${prompt.length > 90 ? prompt.slice(0, 90) + '...' : prompt}"**. 
+
+Vamos a simplificar las cosas y concentrarnos en lo que realmente genera resultados cómodos para tu negocio. Veamos juntos algunas alternativas orientadas a **${sectorName}** y con especial enfoque en **${intentName}**:
+
+---
+
+#### 💡 RECOMENDACIONES CLAVE PARA FACILITAR TU DÍA:
+
+* **${sTips[0].split(':')[0]}:** ${sTips[0].substring(sTips[0].indexOf(':') + 1 || 0)}
+* **${iTips[0].split(':')[0]}:** ${iTips[0].substring(iTips[0].indexOf(':') + 1 || 0)}
+* **${sTips[1].split(':')[0]}:** ${sTips[1].substring(sTips[1].indexOf(':') + 1 || 0)}
+
+#### ⚙️ CÓMO SEGUIR TRABAJANDO CÓMODAMENTE:
+* **Si estás iniciando un Nuevo Negocio**: Ve a la sección de **Ignición Creativa** para idear slogans, blueprints e imágenes instantáneas sin dolor de cabeza.
+* **Si ya tienes una Marca Constituida**: Dirígete a la sección de **Propulsión de Élite** para enlazar tu Baúl y crear campañas que conecten con tu audiencia ideal de manera muy natural.
+
+El buen marketing consiste en tender un puente sincero y cercano entre tu producto y las personas adecuadas. ¿Cuál de estas recomendaciones te gustaría profundizar de forma cómoda o amigable hoy?`;
+  }
+
+  // --- PATH C: generateContentStrategy (CREATIVE PLANNER BLUEPRINT) ---
+  if (apiEndpoint.includes("generateContentStrategy")) {
     return {
-      strategy: `### 🚀 DIAGNÓSTICO EN TIEMPO REAL - ${niche.toUpperCase()}\n\nDiseñamos un activo quirúrgico orientado a la conversión directa. Con esta estructura, desactivamos la desconfianza del buyer persona atacando su frustración latente.\n\n* **Pilar Estratégico**: Autoridad Técnico + Desmitificar falsas soluciones de bajo costo.\n* **Fase SPE Activa**: Fase 1 (Posición) y Fase 3 (Volumen del Mensaje Persuasivo).`,
-      copy: `⚠️ LA VERDAD QUE TU COMPETENCIA NO QUIERE QUE DESCUBRAS...\n\nEn el sector de ${niche}, todo el mundo promete lo mismo: calidad superior, la mejor atención y precios económicos.\n\nPero tú sabes bien que lo barato sale caro. Y tu cliente ideal también.\n\nCuando buscas resultados verdaderos, la clave no es verse bien; es actuar con precisión milimétrica.\n\nEn nuestro ecosistema automatizado, eliminamos las dudas y creamos una experiencia insuperable:\n✅ Soluciones personalizadas al dolor de tu cliente.\n✅ Ejecución limpia respaldada por expertos.\n✅ Enfoque absoluto en tu tranquilidad y retorno de inversión.\n\nNo te conformes con lo unconventional. Elige al líder que prioriza los resultados reales.\n\n👉 Escríbenos un mensaje privado hoy y solicita una auditoría integral sin compromiso.\n\n#${niche.replace(/\s+/g, '')} #ResultadosReales #SPE #EstrategiaComercial #Liderazgo #ServiciosDeElite`,
-      imagePrompt: `minimalist luxury product mockup in cybernetic workspace, premium ${niche} visual element, deep obsidian black background accented with rich gold and turquoise lights, studio photography style, hyperrealistic clean textures, complete negative space, absolutely no text written`,
-      videoProposal: `🎥 PROPUESTA DE VIDEO CORTO (RETENCIÓN MÁXIMA - 30s):\n\n**0:00 - 0:05 Hook**: "¿Alguna vez te has preguntado por qué sigues gastando en alternativas baratas que nunca solucionan el problema de raíz?" (Señalando directamente a la cámara).\n\n**0:05 - 0:15 Contraste**: Muestra un reloj de arena cayendo rápido. "Cada minuto que dejas pasar con un servicio mediocre te aleja de tu paz mental y de tu rentabilidad."\n\n**0:15 - 0:25 El Valor**: "Con nuestra metodología de alta conversión en ${niche}, te garantizamos una transformación medible desde la primera semana de ejecución."\n\n**0:25 - 0:30 Cierre**: "Toma el control hoy. Haz clic en el botón de abajo y reserva tu espacio antes de que cerremos cupos asignados."`
+      strategy: `### 🎯 PROPUESTA DE POSICIONAMIENTO Y COHERENCIA DE MARCA SPE\n\nAplicamos la estructura del **Sistema Pentagonal (SPE)** enfocados en **${sectorName}** para estructurar un activo que apunte directamente al dolor e inyecte decisiones de compra con absoluto sentido de urgencia.\n\n* **Pilar Estratégico Fundamental**: Autoridad técnica impecable y erradicación de las fricciones más latentes.\n* **Fase de Operación Recomendada**: Fase 1 (Identidad Nuclear) acoplada con Fase 3 (Volumen del Mensaje Persuasivo).`,
+      copy: `🚨 LA VERDAD QUE TU SECTOR INTENTA OCULTARTE SOBRE EL CRECIMIENTO...\n\nSi sigues insistiendo en vender en el sector de ${sectorName} bajo promesas genéricas como "calidad insuperable" y "los mejores precios", estás condenando tu margen al fracaso comercial.\n\nLa cruda realidad es que a tus compradores no les importa tu logotipo o tu grid de Instagram. Les importa una sola cosa:\n👉 **¿Puedes o no resolver el síntoma latente por el que están perdiendo sueño o dinero hoy?**\n\nBajo nuestra metodología SPE de alto rendimiento de FUTURA, eliminamos el adorno improductivo y te entregamos resultados medibles directos:\n✅ Respuestas sin esperas eternas.\n✅ Un puente directo de comunicación sumamente cómodo.\n✅ Garantías contundentes libres de trucos baratos de letra pequeña.\n\nDeja de lamer vitrinas y empieza a captar clientes reales con decisión y coherencia.\n\n🔥 Mándanos un mensaje directo ahora mismo con la palabra "ESTRATEGIA" para reclamar tu auditoría confidencial libre de compromiso.\n\n#ResultsOverAesthetics #EstrategiaComercial #MarketingPersuasivo #MetodoSPE #VentasDeElite #CoherenciaCreativa`,
+      imagePrompt: `highly detailed minimal product setup on obsidian dark slab, premium ${sectorCode} visual element accents with gold neon glow, high contrast studio lighting, deep space background, realistic clean textures, complete negative space, absolutely no text overlay`,
+      videoProposal: `⏱️ PROPUESTA DE VIDEO CORTO (RETENCIÓN MÁXIMA - 45s):\n\n**0:00 - 0:05 Hook Inicial**: El presentador mira fijamente a la cámara con seriedad: "¿Te sorprende que tu competencia siga duplicando sus ventas mientras tú sigues editando fuentes estéticas en Canva?".\n\n**0:05 - 0:20 El Dolor Crónico**: "El consumidor actual se ha vuelto inmune a los posts bonitos pero vacíos de valor. Lo que detiene el scroll es la identificación quirúrgica de los síntomas que padece su negocio."\n\n**0:20 - 0:35 Solución Directa**: "Con el Sistema Pentagonal de Ejecución (SPE), deconstruimos tus campañas, centrándonos en el valor nuclear sin adornos inútiles y acortando los pasos de compra."\n\n**0:35 - 0:45 Call to Action**: "Visita el enlace directo en mi bio hoy mismo, cobra tu Baúl de Marca FUTURA de forma gratuita y descarga nuestra guía de orígenes de marca."`
     };
   }
 
-  if (apiEndpoint.includes("chatWithAdvisor") || apiEndpoint.includes("chatAboutPhase")) {
-    const textLower = prompt.toLowerCase();
-    const isGreeting = textLower.includes("hola") || textLower.includes("buenos") || textLower.includes("salud") || textLower.includes("tal");
-
-    // Dynamic, Keyword-Aware Contingency engine to eliminate static responses
-    let sector = "tu modelo de negocio";
-    let phaseFocus = "Fase 1 (Enfoque e Identidad)";
-    let bulletPoints: string[] = [];
-
-    if (textLower.includes("zapato") || textLower.includes("calzado") || textLower.includes("tenis") || textLower.includes("sneaker") || textLower.includes("ropa") || textLower.includes("moda") || textLower.includes("tienda")) {
-      sector = "comercio minorista y moda (calzado/bazar)";
-      phaseFocus = "Fase 2 (Embudo de Conversión) y Fase 4 (Optimización del Ticket)";
-      bulletPoints = [
-        "**Derriba la fricción del tallaje:** El mayor dolor de tu comprador es equivocarse de talla. Ofrece una promesa clara de 'primer cambio 100% gratis y sin preguntas'. Esto aumenta la conversión un 35% de inmediato.",
-        "**Muestra tu producto en movimiento:** Los catálogos quietos aburren. Diseña videos cortos de transiciones rápidas mostrando tus zapatos o prendas puestas en la calle en situaciones reales de uso.",
-        "**Venta cruzada inteligente al pagar:** En el checkout, ofrece complementos de valor natural como calcetas de bambú, impermeabilizantes protectores o plantillas ergonómicas con un descuento inmediato."
-      ];
-    } else if (textLower.includes("cafe") || textLower.includes("coffee") || textLower.includes("gourmet") || textLower.includes("comida") || textLower.includes("restauran") || textLower.includes("pasteler") || textLower.includes("panader") || textLower.includes("hamburg")) {
-      sector = "gastronomía, cafeterías y productos premium gourmet";
-      phaseFocus = "Fase 1 (Diferenciación) y Fase 5 (Fidelización del Cliente)";
-      bulletPoints = [
-        "**Crea un ritual insustituible:** No vendes café o comida ordinaria; vendes una pausa productiva o un escape delicioso. Posiciona tu narrativa alrededor del ritual de preparación o de la procedencia de tus ingredientes.",
-        "**Programa de recurrencia física/digital:** Diseña una tarjeta de lealtad limpia con WhatsApp ('El Club del Sabor'). El 50% de tus ingresos provendrán de clientes recurrentes que regresen al menos dos veces por semana.",
-        "**Micro-marketing de proximidad:** Entrega muestras de degustación exclusivas e invitaciones personalizadas a comercios o corporativos vecinos que se encuentren a menos de 5 cuadras a la redonda."
-      ];
-    } else if (textLower.includes("odont") || textLower.includes("dent") || textLower.includes("salu") || textLower.includes("medic") || textLower.includes("clinic") || textLower.includes("bienestar") || textLower.includes("yoga") || textLower.includes("fit") || textLower.includes("gym")) {
-      sector = "bienestar, salud, fitness y consultorios profesionales";
-      phaseFocus = "Fase 1 (Posicionamiento Técnico) y Fase 3 (Volumen de Contenidos de Autoridad)";
-      bulletPoints = [
-        "**Desmitifica el dolor y el miedo:** El cliente de salud o estética compra por miedo al dolor o a verse mal. Desmonta estas dudas mediante testimonios reales y cortometrajes educativos sencillos que demuestren un camino sin molestia.",
-        "**Configura el canal directo de WhatsApp:** Reemplaza los formularios extensos por un botón flotante visible. Permite que reserven una videoconsulta de diagnóstico rápido o cita en menos de 2 clics.",
-        "**Educa en vez de vender directamente:** Produce contenido resolviendo dudas comunes cotidianas de salud (ej: 'El error diario que destruye tus encías/posturas'). El que educa primero se queda con la autoridad."
-      ];
-    } else if (textLower.includes("tech") || textLower.includes("software") || textLower.includes("comput") || textLower.includes("program") || textLower.includes("ia") || textLower.includes("saas") || textLower.includes("web") || textLower.includes("digital")) {
-      sector = "tecnología, software, desarrollo y negocios digitales";
-      phaseFocus = "Fase 2 (Embudo de Captación Automatizado) y Fase 4 (Optimización de Retención)";
-      bulletPoints = [
-        "**Simplifica la promesa comercial:** Explica exactamente cómo tu sistema o software ahorra horas de trabajo en lugar de enredar al prospecto en jerga técnica indescifrable.",
-        "**Ofrece un piloto o auditoría instantánea de 10 minutos:** Un demo guiado o diagnóstico rápido automatizado convierte 5 veces más rápido que cualquier llamada larga de ventas corporativa.",
-        "**Demuestra el Retorno de Inversión (ROI):** Explica con números claros cuánto dinero está perdiendo tu prospecto diariamente por mantener procesos manuales u obsoletos."
-      ];
-    } else if (textLower.includes("cur") || textLower.includes("educ") || textLower.includes("coach") || textLower.includes("asesor") || textLower.includes("consult") || textLower.includes("servici") || textLower.includes("mentor")) {
-      sector = "servicios profesionales, mentorías y consultoría estratégica";
-      phaseFocus = "Fase 1 (Definición de Oferta Irresistible) y Fase 3 (Volumen persuasivo)";
-      bulletPoints = [
-        "**Empaqueta tu conocimiento en resultados concretos:** Evita vender 'horas de consultoría'. Vende una meta empaquetada (ej: 'Instalación de tus canales de automatización en 21 días con soporte continuo').",
-        "**Demuestra autoridad inmediata con material auditable gratuíto:** Obsequia una guía interactiva breve o una auditoría flash en video que resuelva de inmediato su dolor comercial más visible.",
-        "**Filtra a tus prospectos:** Diseña una sesión estratégica breve de cortesía pero condicionada a un breve cuestionario previo. Esto eleva drásticamente el valor percibido de tu tiempo y la calidad de tus leads."
-      ];
-    }
-
-    // Capture specific tokens to personalize fallback responses even further
-    const matchedTokens = prompt.match(/\b([a-zA-Záéíóúñ]{4,15})\b/g) || [];
-    const keywords = matchedTokens
-      .filter(w => !["hola", "como", "esta", "este", "para", "todo", "conigo", "hacer", "crear", "vender", "venderle", "necesito", "quien", "sobre", "tengo", "marca", "negocio", "estrategia", "clientes"].includes(w.toLowerCase()))
-      .slice(0, 3);
-    
-    const keywordsContext = keywords.length > 0 
-      ? ` para el despliegue comercial enfocado en **"${keywords.join(' ')}"**`
-      : "";
-
-    if (isGreeting) {
-      return `¡Hola! Qué gusto saludarte de nuevo. Te doy una cálida bienvenida al epicentro del **Centro de Consultoría FUTURA**.
-
-Estoy completamente preparado para ser tu estratega de negocios y ayudarte a estructurar el crecimiento de tu marca en el sector de **${sector}** de forma muy ágil, pragmática y con total sabiduría comercial.
-
-Cuéntame, ¿qué idea específica o desafío tienes en mente hoy para que elaboremos un plan cómodo, práctico y con lógica de sentido común? ¡Estoy aquí para impulsarte!
-
----
-*(Nota: FUTURA está operando temporalmente mediante su Motor de Resiliencia Inteligente. Los resultados de consultoría se estructuran mediante heurísticas avanzadas locales del SPE).*`;
-    }
-
-    const bulletSection = bulletPoints.length > 0 
-      ? `Para abordar esta consulta, activamos de inmediato la estrategia del **Sistema Pentagonal de Ejecución (SPE)** orientada a **${sector || "tu negocio"}**:\n\n${bulletPoints.map(b => `* ${b}`).join("\n\n")}`
-      : `Para estructurar tu consulta${keywordsContext}, lo principal en la consultoría estratégica moderna es **desterrar la complejidad**. Las personas ignoran el marketing rebuscado y buscan soluciones honestas y directas:
-
-* **Elimina la ambigüedad en 5 segundos:** Explica tu negocio como si se lo contaras a un niño de 8 años. ¿Cuál es ese dolor de cabeza exacto que resuelves y cómo mejora la vida de tu comprador?
-* **Construye un canal directo y cómodo:** No enredes al cliente ideal en laberintos. Un enlace simple a WhatsApp o una llamada rápida acelerará tus ventas mucho más rápido que un formulario costoso.
-* **Aumenta el ticket de compra:** Diseña un servicio o producto complementario de bajo coste pero de alto valor inmediato para ofrecerlo en el momento decisivo del pago.`;
-
-    return `Entiendo perfectamente tu inquietud sobre de **${prompt.length > 100 ? prompt.slice(0, 100) + '...' : prompt}**. Vamos a estructurarla con total realismo, criterio lógico y alejado de discursos robotizados corporativos.
-
-${bulletSection}
-
-### ¿Cómo seguimos ahora?
-Te aconsejo guardar estos pilares en tu **Baúl de Marca ("Vault")** dentro de la suite. Desde este punto, podremos optimizar e incluso redactar los borradores tácticos exactos del **Motor Creativo** para tus campañas del ecosistema. 
-
-¿Cuál de estos puntos se adapta mejor a tu operación actual? Cuéntame y lo profundizamos juntos con total cercanía.
-
----
-*(Nota: FUTURA está operando de forma resiliente para darte respuesta inmediata. Diseñemos juntos el camino al éxito para tu proyecto).*`;
-  }
-
+  // --- PATH D: generateSocialCopy / refineSocialCopy (COPYWRITER DE ELITE) ---
   if (apiEndpoint.includes("generateSocialCopy") || apiEndpoint.includes("refineSocialCopy")) {
-    const copyType = payload?.params?.copyType || "conversión";
-    const platform = payload?.params?.platform || "LinkedIn y Redes Sociales";
-    return `⚠️ REVELACIÓN CRÍTICA sobre tu nicho comercial (${platform}):\n\n¿Por qué sigues intentando convencer a todos con frases motivacionales vacías?\n\nLa realidad es fría: tus clientes ideales están perdiendo dinero o tiempo justo ahora. No quieren un post estético sobre tus valores.\n\nQuieren la solución exacta que detenga el desangre de su operación.\n\nEn esta campaña de ${copyType} premium, traemos la artillería pesada:\n👉 Identificamos el síntoma de inmediato.\n👉 Ofrecemos nuestro diagnóstico contrastado en tiempo récord.\n👉 Abrimos un canal directo donde solo ingresan marcas comprometidas con la acción.\n\nNo lamas vitrinas. Escribe "SPE" o envíanos un Mensaje Directo hoy mismo para agendar tu sesión técnica de 15 minutos.\n\n#ConversionFeroz #SPE #FuturaEngine #EstrategiaDigital`;
+    const copyType = payload?.params?.copyType || "conversión directa";
+    const platform = payload?.params?.platform || "Redes Sociales y WhatsApp";
+    return `⚠️ ADVERTENCIA DE MARKETING PARA ${platform.toUpperCase()}:\n\n¿Por qué insistes en escribir contenido decorativo que solo le agrada a tu competencia?\n\nLos likes no pagan las facturas. Las métricas de vanidad no sostienen un negocio sostenible.\n\nEn tu nicho de **${sectorName}**, la gente busca efectividad directa, no discursos poéticos corporativos.\n\nPara esta campaña impulsamos la máxima fuerza persuasiva del SPE:\n✅ **Hook Implacable:** Detenemos el scroll atacando la objeción que tu cliente oculta por pereza.\n✅ **La Verdad Desnuda:** Desmontamos las falsas opciones de bajo costo que solo traen dolores de cabeza.\n✅ **Canal Fluido:** Abrimos un puente cómodo de WhatsApp directo sin formularios agotadores de 10 páginas.\n\nNo lamas vitrinas. Envíanos un Mensaje Directo hoy mismo para agendar tu sesión técnica de consultoría estratégica de 15 minutos.\n\n#SPE #ResultsOverAesthetics #FuturaCopywriting #CopysDeConversion #NegociosGanadores`;
   }
 
-  return "FUTURA completó la acción con un rendimiento simulado excelente.";
+  return "FUTURA completó la acción de forma simulada con excelente excelencia estratégica.";
 }
 
 // Helper to execute server endpoints with smart failover to local browser API
@@ -333,6 +461,11 @@ async function executeWithFallback<T>(
     const errorStr = (error?.message || "").toLowerCase();
     console.warn(`[FUTURA HYBRID] Error durante la llamada al servidor (${error.message}). Iniciando estrategia de resiliencia...`);
 
+    // Propagate key configuration errors so the user is aware of missing setups
+    if (errorStr.includes("gemini_api_key") || errorStr.includes("clave") || errorStr.includes("no está configurada") || errorStr.includes("api key") || errorStr.includes("my_gemini_api_key") || errorStr.includes("credentials")) {
+      throw error;
+    }
+
     // Attempt client-side execution if we have client/localStorage/env keys
     if (hasClientApiKey()) {
       try {
@@ -364,7 +497,7 @@ export async function generateContentStrategy(
   const payload = { prompt, context, styleReferences, logos, history };
 
   const clientFallback = async () => {
-    const model = "gemini-2.5-flash";
+    const model = "gemini-3.5-flash";
     const systemInstruction = `
       Eres el ASESOR ESTRATÉGICO Y CONVERTIDOR COMERCIAL de FUTURA. 
       Tu misión es ser el "vendedor estrella" de la marca. Recibes a los usuarios en la sección "Conversa con Futura".
@@ -708,7 +841,7 @@ export async function chatWithAdvisor(
   const payload = { message, history, brandContext };
 
   const clientFallback = async () => {
-    const model = "gemini-2.5-flash";
+    const model = "gemini-3.5-flash";
     const systemInstruction = `
       Eres el ASESOR ESTRATÉGICO Y COMPAÑERO DE NEGOCIOS DE LA APLICACIÓN FUTURA (FUTURA App Advisor de la suite de Future Marketing Consult).
       Estás en el CENTRO DE CONSULTORÍA de la plataforma. Tu propósito principal es responder con total coherencia, sentido común y criterio lógico a cualquier persona, sea un profesional experimentado o alguien común dando sus primeros pasos. Hablas de forma súper clara, amable, empática y con una excelente facilidad de asimilación.
@@ -771,7 +904,7 @@ export async function chatAboutPhase(
   const payload = { phase, history, message };
 
   const clientFallback = async () => {
-    const model = "gemini-2.5-flash";
+    const model = "gemini-3.5-flash";
     const systemInstruction = `
       Eres el ASESOR ESTRATÉGICO de la fase: ${phase} del Sistema Pentagonal de Ejecución (SPE) de FUTURA.
       
@@ -823,7 +956,7 @@ export async function generateSocialCopy(params: {
   const payload = { params };
 
   const clientFallback = async () => {
-    const model = "gemini-2.5-flash";
+    const model = "gemini-3.5-flash";
     const systemInstruction = `
       Eres el REDACTOR CREATIVO DE ÉLITE de FUTURA.
       Especialidad: copies que convierten y detienen el scroll.
@@ -866,7 +999,7 @@ export async function refineSocialCopy(
   const payload = { currentCopy, refineInstructions };
 
   const clientFallback = async () => {
-    const model = "gemini-2.5-flash";
+    const model = "gemini-3.5-flash";
     const systemInstruction = "Eres un editor experto de copywriting. Refina el copy provisto según las instrucciones del usuario.";
 
     const prompt = `

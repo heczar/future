@@ -53,6 +53,7 @@ import {
   Lock,
   Layers,
   Check,
+  Rocket,
   RefreshCw,
   EyeOff,
   UserCheck,
@@ -510,160 +511,135 @@ function AppContent() {
 
   const renderDashboardView = () => {
     return (
-      <>
-            <section className="mb-16 text-left">
-              <div className="glass-panel p-6 md:p-8 rounded-3xl border border-white/5 bg-surface-950/30 mb-8 space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-brand-primary animate-pulse" />
-                  <span className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-widest block font-bold">OPERACIÓN OPTIMIZADA</span>
-                </div>
-                <h3 className="text-xl md:text-3xl font-display font-bold text-white tracking-tight leading-tight">¿Cómo operar FUTURA de forma rápida y sin complicaciones?</h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-5xl">
-                  FUTURA funciona para ti, sin importar tu punto de partida. 
-                  <strong className="text-brand-primary font-bold"> Si aún no tienes una marca clara o una idea de negocio sólida:</strong> ingresa al panel de <b className="text-white">FUTURA Hub</b> para estructurar tu <b className="text-white">Blueprint Estratégico</b>, cosechar slogans de alto impacto y trazar pilares comerciales clave en segundos. 
-                  <strong className="text-emerald-400 font-bold"> Si ya cuentas con una marca en el mercado:</strong> simplemente cargas tus datos y enlaces de valor en el <b className="text-white">Baúl de Marca</b> para entrenar tu ecosistema, consultas al consultor sobre tus tácticas de venta SPE y usas el <b className="text-white">Motor Creativo</b> para generar automáticamente imágenes persuasivas de conversión y copies de alto impacto listos para tus redes sociales.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Paso 1 */}
-                <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-brand-primary/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[230px] transition-all group hover:bg-surface-950/60">
-                  <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors">01</div>
-                  <div className="space-y-3">
-                    <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
-                      <Sparkles className="w-5 h-5 animate-pulse" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="px-1.5 py-0.5 bg-brand-primary/20 text-brand-primary border border-brand-primary/20 rounded text-[7px] font-mono font-black uppercase">BLUEPRINT Y CONSULTAS</span>
-                        <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 1: FUTURA Hub</h4>
-                      </div>
-                      <p className="text-xs text-slate-400 leading-relaxed mt-1.5">Sintetiza tu ADN o consulta estrategias tácticas de venta SPE con el estratega definitivo para dar vida a tu oferta sin fricción.</p>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => setActiveTab('futura')}
-                    className="mt-5 w-full py-2.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-xl border border-brand-primary/30 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-brand-primary/5 hover:scale-[1.01]"
-                  >
-                    INGRESAR A FUTURA HUB <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {/* Paso 2 */}
-                <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-purple-500/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[230px] transition-all group hover:bg-surface-950/60">
-                  <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-purple-500/5 transition-colors">02</div>
-                  <div className="space-y-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-                      <Layers className="w-5 h-5 animate-pulse" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 border border-purple-500/20 rounded text-[7px] font-mono font-black uppercase">CONECTIVIDAD</span>
-                        <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 2: Baúl de Marca</h4>
-                      </div>
-                      <p className="text-xs text-slate-400 leading-relaxed mt-1.5">Asocia tu estrategia al Baúl, almacena picheos comerciales de ventas de forma segura y ten tu material siempre conectado.</p>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => setActiveTab('vault')}
-                    className="mt-5 w-full py-2.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-xl border border-purple-500/30 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-purple-500/5 hover:scale-[1.01]"
-                  >
-                    ABRIR BAÚL DE MARCA <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {/* Paso 3 */}
-                <div className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-emerald-500/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[230px] transition-all group hover:bg-surface-950/60">
-                  <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-emerald-500/5 transition-colors">03</div>
-                  <div className="space-y-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                      <Zap className="w-5 h-5 animate-pulse" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded text-[7px] font-mono font-black uppercase">ESCALABILIDAD</span>
-                        <h4 className="font-bold text-white text-sm uppercase tracking-wide">Paso 3: Motor Creativo</h4>
-                      </div>
-                      <p className="text-xs text-slate-400 leading-relaxed mt-1.5">Lanza la fábrica de conversión, crea ideas visuales y copys publicitarios profesionales de tus productos en lote.</p>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => setActiveTab('engine')}
-                    className="mt-5 w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/5 hover:scale-[1.01]"
-                  >
-                    LANZAR MOTOR <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </section>
-
-            {/* SECCIÓN PANTALLA ANTERIOR */}
-            <section className="mb-20 space-y-16">
-              <div className="spe-section">
-                <div className="flex items-center gap-2 mb-8 text-left">
-                  <Sparkles className="w-5 h-5 text-brand-primary" />
-                  <h2 className="text-xl font-bold font-display text-white">Sistema Pentagonal de Ejecución (SPE)</h2>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-                  {spePhases.map((phase, i) => (
-                    <div 
-                      key={phase.name}
-                      onClick={() => {
-                        setSelectedPhase(phase);
-                      }}
-                      className="glass-panel p-6 rounded-3xl hover:bg-white/5 cursor-pointer border border-white/5 hover:border-brand-primary/30 transition-all group text-left"
-                    >
-                      <div className={cn("w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 transition-transform group-hover:scale-110", phase.color)}>
-                        <phase.icon className="w-6 h-6" />
-                      </div>
-                      <h3 className="font-bold text-lg mb-2 text-white">{phase.name}</h3>
-                      <p className="text-sm text-slate-500 leading-relaxed">{phase.desc}</p>
-                      <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-1 text-[10px] font-bold text-brand-primary opacity-90 transition-opacity">
-                        CONSULTAR FASE <ChevronRight className="w-3 h-3" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-12 overflow-hidden bg-white/5 border-y border-white/5 py-4">
-                  <motion.div 
-                    animate={{ x: [0, -1000] }}
-                    transition={{ 
-                      repeat: Infinity, 
-                      duration: 30, 
-                      ease: "linear" 
-                    }}
-                    className="flex whitespace-nowrap gap-12 items-center"
-                  >
-                    {[
-                      "Transformamos tu visión en resultados tangibles.",
-                      "Estrategia empresarial para marcas con ADN de futuro.",
-                      "Resultados sobre Estética: El motor que vende mientras duermes.",
-                      "Protocolo SPE: El cimiento de las empresas que dominan su nicho.",
-                      "Crecimiento vertical, impacto real y asesoría experta 24/7.",
-                      "Transformamos tu visión en resultados tangibles.",
-                      "Estrategia empresarial para marcas con ADN de futuro.",
-                      "Resultados sobre Estética: El motor que vende mientras duermes.",
-                      "Protocolo SPE: El cimiento de las empresas que dominan su nicho.",
-                      "Crecimiento vertical, impacto real y asesoría experta 24/7."
-                    ].map((phrase, i) => (
-                      <div key={i} className="flex items-center gap-4">
-                        <div className="w-2 h-2 rounded-full bg-brand-primary" />
-                        <span className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{phrase}</span>
-                      </div>
-                    ))}
-                  </motion.div>
-                </div>
-              </div>
-
+      <div className="space-y-16 text-left">
+        {/* PROTOCOLO SPE EN EL INICIO */}
+        <section className="spe-section">
+          <div className="flex items-center gap-2.5 mb-8">
+            <Sparkles className="w-5 h-5 text-brand-primary" />
+            <h2 className="text-xl md:text-2xl font-bold font-display text-white">Sistema Pentagonal de Ejecución (SPE)</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 font-sans">
+            {spePhases.map((phase, i) => (
               <div 
-                ref={hubRef}
-                className={cn(
-                  "glass-panel rounded-[2rem] sm:rounded-[3rem] border-brand-primary/20 bg-gradient-to-br from-brand-primary/5 via-surface-950/40 to-transparent relative overflow-hidden shadow-3xl transition-all duration-300",
-                  hubMessages.length > 0 ? "p-4 sm:p-8" : "p-6 sm:p-10 md:p-16"
-                )}
+                key={phase.name}
+                onClick={() => {
+                  setSelectedPhase(phase);
+                }}
+                className="glass-panel p-6 rounded-3xl hover:bg-white/5 cursor-pointer border border-white/5 hover:border-brand-primary/30 transition-all group text-left"
               >
+                <div className={cn("w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 transition-transform group-hover:scale-110", phase.color)}>
+                  <phase.icon className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-lg mb-1 text-white">{phase.name}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{phase.desc}</p>
+                <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-1 text-[10px] font-bold text-brand-primary opacity-90 transition-opacity">
+                  CONSULTAR FASE <ChevronRight className="w-3" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-12 overflow-hidden bg-white/5 border-y border-white/5 py-4">
+            <motion.div 
+              animate={{ x: [0, -1000] }}
+              transition={{ 
+                repeat: Infinity, 
+                duration: 30, 
+                ease: "linear" 
+              }}
+              className="flex whitespace-nowrap gap-12 items-center"
+            >
+              {[
+                "Marketing honesto y sin complicaciones para el usuario.",
+                "Estrategia simple, crecimiento seguro.",
+                "La comodidad del cliente es nuestra prioridad operativa.",
+                "Protocolo SPE: El cimiento que conecta tu solución con el cliente ideal.",
+                "Lanzamiento express con diseño de alta conversión sin dolor de cabeza.",
+                "Marketing honesto y sin complicaciones para el usuario.",
+                "Estrategia simple, crecimiento seguro.",
+                "La comodidad del cliente es nuestra prioridad operativa.",
+                "Protocolo SPE: El cimiento que conecta tu solución con el cliente ideal.",
+                "Lanzamiento express con diseño de alta conversión sin dolor de cabeza."
+              ].map((phrase, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <div className="w-2 h-2 rounded-full bg-brand-primary" />
+                  <span className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">{phrase}</span>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* EXPLICACIÓN PRINCIPAL DE LA NUEVA MODALIDAD */}
+        <section className="mb-16">
+          <div className="glass-panel p-6 md:p-8 rounded-3xl border border-white/5 bg-surface-950/30 mb-8 space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-brand-primary animate-pulse" />
+              <span className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-widest block font-bold">TU NUEVA OPERATIVA DE TRABAJO</span>
+            </div>
+            <h3 className="text-xl md:text-3xl font-display font-bold text-white tracking-tight leading-tight">¿Cómo operar FUTURA con comodidad absoluta?</h3>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-5xl">
+              Hemos simplificado tu ruta empresarial en dos perfiles de lanzamiento muy prácticos e intuitivos. 
+              No importa de dónde partas, tienes soporte completo y directo sin complicaciones técnicas:
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 font-sans mb-12">
+            {/* Camino 1: Nuevos Negocios (Ignición Creativa) */}
+            <div className="glass-panel p-8 rounded-3xl border border-white/5 hover:border-amber-500/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[290px] transition-all group hover:bg-surface-950/60 text-left">
+              <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-amber-500/5 transition-colors">IGNICIÓN</div>
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                  <Rocket className="w-6 h-6 animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-lg tracking-wide uppercase">1. Ignición Creativa (Nuevos Negocios)</h4>
+                  <p className="text-xs text-slate-300 leading-relaxed mt-2">
+                    Si estás comenzando de cero, no tienes marca formal ni material de diseño. Responde dos preguntas súper básicas sobre tu nicho y oferta, y FUTURA creará al instante tus slogans, copys persuasivos y un activo visual premium listo para lanzar.
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setActiveTab('ignicion')}
+                className="mt-6 w-full py-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 hover:scale-[1.01]"
+              >
+                CREAR DESDE CERO AHORA <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Camino 2: Negocios Constituidos (Propulsión de Élite) */}
+            <div className="glass-panel p-8 rounded-3xl border border-white/5 hover:border-brand-primary/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[290px] transition-all group hover:bg-surface-950/60 text-left">
+              <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors">PROPULSIÓN</div>
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
+                  <Layers className="w-6 h-6 animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-lg tracking-wide uppercase">2. Propulsión de Élite (Marcas Constituidas)</h4>
+                  <p className="text-xs text-slate-300 leading-relaxed mt-2">
+                    Si ya tienes una empresa establecida con un tono y guías definidos en tu Baúl de Marca, conecta tu identidad directamente para extraer tu ADN corporativo y desplegar de forma coherente campañas persuasivas y creativos visuales.
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setActiveTab('propulsion')}
+                className="mt-6 w-full py-3 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-xl border border-brand-primary/30 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 hover:scale-[1.01]"
+              >
+                PROXIMAR BAÚL Y PROPULSAR <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-16">
+          <div 
+            ref={hubRef}
+            className={cn(
+              "glass-panel rounded-[2rem] sm:rounded-[3rem] border-brand-primary/20 bg-gradient-to-br from-brand-primary/5 via-surface-950/40 to-transparent relative overflow-hidden shadow-3xl transition-all duration-300",
+              hubMessages.length > 0 ? "p-4 sm:p-8" : "p-6 sm:p-10 md:p-16"
+            )}
+          >
                 <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
                   <Bot className="w-48 h-48 text-brand-primary" />
                 </div>
@@ -1013,7 +989,7 @@ function AppContent() {
                 </div>
               </section>
             </section>
-          </>
+          </div>
         );
   };
 
@@ -1160,9 +1136,19 @@ function AppContent() {
             <Gallery />
           </div>
 
-          {/* CONTENT READY */}
+          {/* IGNICIÓN CREATIVA (NUEVOS NEGOCIOS) */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'ignicion' ? "block opacity-100" : "hidden opacity-0")}>
+            <ContentReady initialProfile="ignicion" profile={profile} />
+          </div>
+
+          {/* PROPULSIÓN DE ÉLITE (NEGOCIOS CONSTITUIDOS) */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'propulsion' ? "block opacity-100" : "hidden opacity-0")}>
+            <ContentReady initialProfile="propulsion" profile={profile} />
+          </div>
+
+          {/* CONTENT READY FALLBACK */}
           <div className={cn("w-full transition-all duration-150", activeTab === 'content' ? "block opacity-100" : "hidden opacity-0")}>
-            <ContentReady />
+            <ContentReady profile={profile} />
           </div>
 
           {/* MEMBERSHIP PLANS */}

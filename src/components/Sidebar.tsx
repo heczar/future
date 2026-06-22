@@ -32,31 +32,23 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
 
   const menuGroups = [
     {
-      title: "Núcleo Estratégico",
+      title: "Núcleo de Asesoría",
       items: [
-        { id: 'dashboard', label: 'Panel Principal', icon: BarChart3 },
-        { id: 'epicenter', label: 'Epicentro Control', icon: Layout },
+        { id: 'dashboard', label: 'Inicio y Filosofía', icon: BarChart3 },
+        { id: 'futura', label: 'Consultor FUTURA', icon: MessageSquare },
       ]
     },
     {
-      title: "Fábrica Creativa",
+      title: "Operaciones de Marca",
       items: [
-        { id: 'futura', label: 'FUTURA HUB', icon: MessageSquare },
-        { id: 'engine', label: 'Motor Creativo', icon: Zap },
-        { id: 'vault', label: 'Baúl de Marca', icon: Layers },
-        { id: 'gallery', label: 'Galería de Activos', icon: History },
+        { id: 'ignicion', label: 'Ignición Creativa', icon: Rocket },
+        { id: 'propulsion', label: 'Propulsión de Élite', icon: Layers },
       ]
     },
     {
-      title: "Planificación y Datos",
+      title: "Planificación y Cifrado",
       items: [
-        { id: 'content', label: 'Contenido Listo', icon: Calendar },
         { id: 'security', label: 'Seguridad y Cifrado', icon: Shield },
-      ]
-    },
-    {
-      title: "Lanzamiento y Venta",
-      items: [
         { id: 'pro', label: 'Membresías', icon: Crown },
       ]
     },

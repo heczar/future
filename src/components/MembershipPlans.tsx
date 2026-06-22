@@ -19,7 +19,11 @@ import {
   User,
   Hash,
   DollarSign,
-  ExternalLink
+  ExternalLink,
+  Activity,
+  ShieldAlert,
+  Sliders,
+  Zap
 } from 'lucide-react';
 import { useAuth } from './AuthWrapper';
 
@@ -133,6 +137,106 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
         <p className="text-slate-400 max-w-2xl mx-auto text-xs sm:text-sm font-sans leading-relaxed">
           Adquiere tu licencia Elite Pro para análisis estratégico ilimitados, generación de activos sin límites y descargas prioritarias.
         </p>
+      </div>
+
+      {/* DASHBOARD DE CARGA DE CONSUMO EN TIEMPO REAL */}
+      <div id="compute-load-dashboard" className="bg-surface-950 border border-white/10 p-6 rounded-3xl text-left relative overflow-hidden shadow-2xl backdrop-blur-md">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-brand-primary/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-white/10 pb-4 relative z-10">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></span>
+              <span className="text-[10px] font-mono font-bold text-brand-primary uppercase tracking-widest">SISTEMA APIS DE COCO</span>
+            </div>
+            <h3 className="text-lg font-display font-black text-white uppercase tracking-tight mt-1 flex items-center gap-1.5">
+              <Sliders className="w-5 h-5 text-brand-primary" /> Consola de Carga de Cómputo
+            </h3>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Monitoreo analítico del consumo de tokens y llamadas de IA para tu rango: <strong className="text-white uppercase">{profile?.isPremium ? 'Membresía Elite PRO' : 'Membresía Sencilla'}</strong>
+            </p>
+          </div>
+          <div className="px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 text-[10px] font-mono whitespace-nowrap">
+            Límite Diario: <strong className="text-brand-primary">{profile?.isPremium ? 'Ilimitado con SRE' : '5 Consultas / Día'}</strong>
+          </div>
+        </div>
+
+        {/* Triple Progress Indicator Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+          {/* DAILY QUERIES */}
+          <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl space-y-3">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-slate-400 flex items-center gap-1.5"><Activity className="w-4 h-4 text-brand-primary" /> Consultas Diarias de IA</span>
+              <span className="font-mono font-bold text-white">
+                {profile?.apiConsumption?.dailyConsultsUsed ?? (profile?.isPremium ? 7 : 1)} / {profile?.apiConsumption?.dailyConsultsLimit ?? (profile?.isPremium ? 250 : 5)}
+              </span>
+            </div>
+            <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-500 rounded-full ${
+                  Math.min(100, Math.round(((profile?.apiConsumption?.dailyConsultsUsed ?? (profile?.isPremium ? 7 : 1)) / (profile?.apiConsumption?.dailyConsultsLimit ?? (profile?.isPremium ? 250 : 5))) * 100)) > 80 
+                    ? 'bg-amber-500' 
+                    : 'bg-brand-primary'
+                }`}
+                style={{ width: `${Math.min(100, Math.round(((profile?.apiConsumption?.dailyConsultsUsed ?? (profile?.isPremium ? 7 : 1)) / (profile?.apiConsumption?.dailyConsultsLimit ?? (profile?.isPremium ? 250 : 5))) * 100))}%` }}
+              ></div>
+            </div>
+            <p className="text-[10px] text-slate-500">
+              {profile?.isPremium 
+                ? 'Consultas con prioridad ultra-alta a servidores dedicados.' 
+                : 'La cuota de consultas diaria se reinicia a las 00:00 UTC.'}
+            </p>
+          </div>
+
+          {/* MONTHLY TOKENS */}
+          <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl space-y-3">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-slate-400 flex items-center gap-1.5"><Zap className="w-4 h-4 text-amber-500" /> Carga Mensual de Cómputo</span>
+              <span className="font-mono font-bold text-white">
+                {Math.round((profile?.apiConsumption?.monthlyTokensUsed ?? (profile?.isPremium ? 85400 : 1500)) / 1000)}k / {Math.round((profile?.apiConsumption?.monthlyTokensLimit ?? (profile?.isPremium ? 15000000 : 25000)) / 1000)}k tkn
+              </span>
+            </div>
+            <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-500 rounded-full ${
+                  Math.min(100, Math.round(((profile?.apiConsumption?.monthlyTokensUsed ?? (profile?.isPremium ? 85400 : 1500)) / (profile?.apiConsumption?.monthlyTokensLimit ?? (profile?.isPremium ? 15000000 : 25000))) * 100)) > 80 
+                    ? 'bg-red-500' 
+                    : 'bg-amber-400'
+                }`}
+                style={{ width: `${Math.min(100, Math.round(((profile?.apiConsumption?.monthlyTokensUsed ?? (profile?.isPremium ? 85400 : 1500)) / (profile?.apiConsumption?.monthlyTokensLimit ?? (profile?.isPremium ? 15000000 : 25000))) * 100))}%` }}
+              ></div>
+            </div>
+            <p className="text-[10px] text-slate-500">
+              {profile?.isPremium 
+                ? 'Acceso a contextos expandidos de manuales estratégicos y PDFs.' 
+                : 'Membresía Sencilla limitada a 25k tokens para control de costos.'}
+            </p>
+          </div>
+
+          {/* MONTHLY IMAGES */}
+          <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl space-y-3">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-slate-400 flex items-center gap-1.5"><ShieldAlert className="w-4 h-4 text-emerald-500" /> Renders de Diseño</span>
+              <span className="font-mono font-bold text-white">
+                {profile?.apiConsumption?.monthlyImagesUsed ?? (profile?.isPremium ? 12 : 1)} / {profile?.apiConsumption?.monthlyImagesLimit ?? (profile?.isPremium ? 500 : 3)} img
+              </span>
+            </div>
+            <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-500 rounded-full ${
+                  Math.min(100, Math.round(((profile?.apiConsumption?.monthlyImagesUsed ?? (profile?.isPremium ? 12 : 1)) / (profile?.apiConsumption?.monthlyImagesLimit ?? (profile?.isPremium ? 500 : 3))) * 100)) > 80 
+                    ? 'bg-amber-500' 
+                    : 'bg-emerald-400'
+                }`}
+                style={{ width: `${Math.min(100, Math.round(((profile?.apiConsumption?.monthlyImagesUsed ?? (profile?.isPremium ? 12 : 1)) / (profile?.apiConsumption?.monthlyImagesLimit ?? (profile?.isPremium ? 500 : 3))) * 100))}%` }}
+              ></div>
+            </div>
+            <p className="text-[10px] text-slate-500">
+              {profile?.isPremium 
+                ? 'Imágenes ultra-realistas Brutalist Obsidian ilimitadas.' 
+                : 'Imágenes limitadas. La simulación requiere licencia real.'}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
