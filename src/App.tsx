@@ -102,11 +102,19 @@ function AppContent() {
   const [showVaultInfo, setShowVaultInfo] = useState(false);
   const [showSecurityInfo, setShowSecurityInfo] = useState(false);
   const [dashboardPrompt, setDashboardPrompt] = useState('');
+  const [hubMessages, setHubMessages] = useState<{role: 'user' | 'model', text: string}[]>([]);
+  const [isHubLoading, setIsHubLoading] = useState(false);
   const [learnedProtocols, setLearnedProtocols] = useState<string[]>([]);
   const [neuralEvolution, setNeuralEvolution] = useState(72.4);
   const [vaultStep, setVaultStep] = useState(0);
   const [securityStep, setSecurityStep] = useState(0);
+  const [showScrollDown, setShowScrollDown] = useState(false);
   const mainRef = React.useRef<HTMLDivElement>(null);
+  const hubRef = React.useRef<HTMLDivElement>(null);
+  const chatEndRef = React.useRef<HTMLDivElement>(null);
+  const messagesContainerRef = React.useRef<HTMLDivElement>(null);
+  const lastMessageRef = React.useRef<HTMLDivElement>(null);
+  const prevMessagesLengthRef = React.useRef(0);
   
   const [profile, setProfile] = useState<UserProfile>({
     name: "Invitado",
@@ -139,8 +147,100 @@ function AppContent() {
     };
     scrollToTop();
     const t = setTimeout(scrollToTop, 150);
-    return () => clearTimeout(t);
   }, [activeTab, showLanding]);
+
+  // Auto-scroll Consultoría
+  const scrollChatToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    const trigger = () => {
+      const container = messagesContainerRef.current;
+      if (container) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior
+        });
+      }
+    };
+    trigger();
+    setTimeout(trigger, 50);
+    setTimeout(trigger, 150);
+    setTimeout(trigger, 300);
+    setTimeout(trigger, 500);
+  };
+
+  const isHubNearBottom = React.useRef(true);
+
+  React.useEffect(() => {
+    if (hubMessages.length === 0) {
+      prevMessagesLengthRef.current = 0;
+      return;
+    }
+
+    const prevLength = prevMessagesLengthRef.current;
+    prevMessagesLengthRef.current = hubMessages.length;
+
+    const lastMsg = hubMessages[hubMessages.length - 1];
+
+    // Check if a new message was added
+    if (hubMessages.length > prevLength) {
+      if (lastMsg?.role === 'user') {
+        isHubNearBottom.current = true;
+        scrollChatToBottom('smooth');
+      } else if (isHubNearBottom.current) {
+        scrollChatToBottom('smooth');
+      }
+    } else if (isHubLoading && isHubNearBottom.current) {
+      // Loader became active, show it at the bottom if already at the bottom
+      scrollChatToBottom('smooth');
+    }
+  }, [hubMessages, isHubLoading]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    setShowScrollDown(scrollHeight - scrollTop - clientHeight > 100);
+    
+    const threshold = 150;
+    isHubNearBottom.current = scrollHeight - scrollTop - clientHeight <= threshold;
+  };
+
+  const scrollToBottom = () => {
+    scrollChatToBottom('smooth');
+  };
+
+  const handleHubConsult = async (initialText?: string) => {
+    const userMsg = (initialText || dashboardPrompt).trim();
+    if (!userMsg || isHubLoading) return;
+    
+    const newMessages: {role: 'user' | 'model', text: string}[] = [...hubMessages, { role: 'user', text: userMsg }];
+    setHubMessages(newMessages);
+    setDashboardPrompt('');
+    setIsHubLoading(true);
+
+    // Extract active project brand context to inform the Advisor based on selected brand
+    const activeProject = projectsList && projectsList.length > 0 
+      ? (projectsList.find(p => p.id === activeConsultBrandId) || projectsList[0])
+      : null;
+    const brandContextStr = activeProject 
+      ? `MARCA ACTIVA CONECTADA: ${activeProject.name}. DESCRIPCIÓN DETALLADA DE MARCA: ${activeProject.description}. LOGOTIPOS CARGADOS EN SU BAÚL: ${activeProject.logos?.length || 0} archivos. MATERIAL DE ENTRENAMIENTO/ESTILO: ${activeProject.trainingMaterial?.length || 0} archivos.`
+      : "No hay marca seleccionada aún o no se han cargado activos en la Bóveda.";
+
+    try {
+      const responseText = await chatWithAdvisor(userMsg, hubMessages, brandContextStr);
+      
+      setHubMessages(prev => [...prev, { 
+        role: 'model', 
+        text: responseText 
+      }]);
+      setIsHubLoading(false);
+    } catch (error) {
+      console.error("Hub Consult Error:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setHubMessages(prev => [...prev, { 
+        role: 'model', 
+        text: `⚠️ He experimentado una interrupción en mi flujo estratégico. Detalle del error: **${errorMessage}**. Por favor, reintenta tu consulta.` 
+      }]);
+      setIsHubLoading(false);
+    }
+  };
 
 
   const [projectsList, setProjectsList] = React.useState<ProjectContext[]>([]);
@@ -469,28 +569,176 @@ function AppContent() {
         </section>
 
         <section className="mb-16">
-          <div className="glass-panel rounded-[2rem] sm:rounded-[3rem] border-brand-primary/20 bg-gradient-to-br from-brand-primary/5 via-surface-950/40 to-transparent p-8 md:p-12 relative overflow-hidden shadow-3xl text-center space-y-6">
-            <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-              <Bot className="w-48 h-48 text-brand-primary" />
-            </div>
-            <div className="max-w-2xl mx-auto space-y-4">
-              <div className="w-16 h-16 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary border border-brand-primary/20 shadow-2xl shadow-brand-primary/20 mx-auto">
-                <MessageSquare className="w-8 h-8 animate-pulse" />
+          <div 
+            ref={hubRef}
+            className={cn(
+              "glass-panel rounded-[2rem] sm:rounded-[3rem] border-brand-primary/20 bg-gradient-to-br from-brand-primary/5 via-surface-950/40 to-transparent relative overflow-hidden shadow-3xl transition-all duration-300",
+              hubMessages.length > 0 ? "p-4 sm:p-8" : "p-6 sm:p-10 md:p-16"
+            )}
+          >
+                <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+                  <Bot className="w-48 h-48 text-brand-primary" />
+                </div>
+                
+                <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6">
+                  {hubMessages.length === 0 ? (
+                    <div className="flex flex-col items-center gap-4 text-center">
+                      <div className="w-16 h-16 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary border border-brand-primary/20 shadow-2xl shadow-brand-primary/20">
+                        <Sparkles className="w-8 h-8 animate-pulse" />
+                      </div>
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.4em] block">PROTOCOLOS DE INTELIGENCIA CORPORATIVA</span>
+                        <h2 className="text-4xl md:text-5xl font-display font-bold text-white tracking-tighter leading-tight">
+                          CENTRO DE <span className="text-brand-primary">CONSULTORÍA</span>
+                        </h2>
+                      </div>
+                      <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+                        Nuestra IA está lista para procesar tus inquietudes estratégicas. Eleva tu marca al estándar <span className="text-white font-bold italic">profesional</span>.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-white/5 text-left">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary border border-brand-primary/20 shadow-lg shrink-0">
+                          <Sparkles className="w-5 h-5 animate-pulse" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h2 className="text-lg md:text-xl font-display font-bold text-white tracking-tight">Centro de Consultoría</h2>
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full text-[7px] font-black text-green-500 uppercase tracking-widest leading-none">
+                              <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
+                              Activo
+                            </div>
+                          </div>
+                          <p className="text-[9px] text-slate-500 font-mono tracking-wider uppercase">FUTURA ADVISOR EN LÍNEA</p>
+                        </div>
+                      </div>
+                      
+                      {learnedProtocols.length > 0 && (
+                        <div className="hidden sm:flex items-center gap-2 bg-white/5 border border-white/5 px-3 py-1.5 rounded-lg text-[9px] text-slate-400 font-mono text-left">
+                          <span className="text-brand-primary font-black">ADN SINCRO:</span>
+                          <span className="text-slate-500">{learnedProtocols[learnedProtocols.length - 1].substring(0, 20)}...</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <AnimatePresence>
+                    {hubMessages.length === 0 && learnedProtocols.length > 0 && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex flex-wrap justify-center gap-2"
+                      >
+                        {learnedProtocols.slice(-2).map((p, idx) => (
+                          <div key={idx} className="px-4 py-2 bg-brand-primary/10 border border-brand-primary/20 rounded-full flex items-center gap-2">
+                             <div className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
+                             <span className="text-[9px] font-black text-brand-primary uppercase tracking-[0.2em] leading-none">Sincronización: {p.substring(0, 15)}...</span>
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <AnimatePresence>
+                    {hubMessages.length > 0 && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.99 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="w-full max-w-4xl mx-auto space-y-4 relative text-left"
+                      >
+                        <div 
+                          ref={messagesContainerRef}
+                          onScroll={handleScroll}
+                          className="max-h-[440px] overflow-y-auto pr-2 custom-scrollbar space-y-4 text-left py-2 scroll-smooth flex flex-col"
+                        >
+                          {hubMessages.map((msg, i) => {
+                            const isLast = i === hubMessages.length - 1;
+                            const isUser = msg.role === 'user';
+                            return (
+                              <motion.div 
+                                key={i}
+                                ref={isLast ? lastMessageRef : null}
+                                initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                className={cn(
+                                  "p-4 md:p-5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-lg transition-all relative max-w-[85%] sm:max-w-[75%] border",
+                                  isUser 
+                                    ? "self-end ml-auto bg-white/5 text-slate-100 border-white/10 rounded-tr-none hover:bg-white/10" 
+                                    : "self-start mr-auto bg-brand-primary/10 text-slate-200 border-brand-primary/20 rounded-tl-none font-light"
+                                )}
+                              >
+                                {isUser ? (
+                                  <div className="flex items-center gap-1.5 mb-2 opacity-60">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">TU CONSULTA</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1.5 mb-2 text-brand-primary">
+                                    <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest">ESTRATEGIA FUTURA</span>
+                                  </div>
+                                )}
+                                <div className="markdown-body text-slate-300 text-xs sm:text-sm">
+                                  <Markdown>{msg.text}</Markdown>
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                          {isHubLoading && (
+                            <div className="self-start mr-auto max-w-[85%] sm:max-w-[75%] p-4 bg-brand-primary/5 border border-brand-primary/10 rounded-2xl rounded-tl-none flex items-center gap-4 shadow-xl">
+                              <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
+                              <div className="flex flex-col gap-0.5 text-left">
+                                <span className="text-[10px] text-brand-primary uppercase tracking-[0.2em] font-black animate-pulse">Escribiendo...</span>
+                                <span className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Analizando visión en tiempo de ejecución</span>
+                              </div>
+                            </div>
+                          )}
+                          <div ref={chatEndRef} />
+                        </div>
+                        
+                        <AnimatePresence>
+                          {showScrollDown && (
+                            <motion.button
+                              initial={{ opacity: 0, y: 10, x: "-50%" }}
+                              animate={{ opacity: 1, y: 0, x: "-50%" }}
+                              exit={{ opacity: 0, y: 10, x: "-50%" }}
+                              onClick={scrollToBottom}
+                              className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-brand-primary text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-2xl hover:scale-105 active:scale-95 transition-all z-30 whitespace-nowrap border border-white/10 cursor-pointer"
+                            >
+                              <ChevronDown className="w-4 h-4" />
+                              NUEVOS MENSAJES
+                            </motion.button>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {user ? (
+                    <DashboardInput 
+                      value={dashboardPrompt}
+                      onSubmit={(text) => handleHubConsult(text)}
+                      isLoading={isHubLoading}
+                    />
+                  ) : (
+                    <div className="pt-6">
+                      <AccountAuthPortal />
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-center gap-8 text-[11px] font-black text-slate-600 uppercase tracking-[0.4em] pt-6">
+                    <div className="flex items-center gap-2">
+                       <Layout className="w-4 h-4 text-brand-primary/60" />
+                       Market Intelligence
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <ShieldCheck className="w-4 h-4 text-brand-primary/60" />
+                       Client Capture
+                    </div>
+                  </div>
+                </div>
               </div>
-              <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.4em] block">NÚCLEO DE ASESORÍA DE ELITE</span>
-              <h3 className="text-3xl md:text-4xl font-display font-bold text-white tracking-tight leading-tight">Accede al Consultor Estratégico FUTURA</h3>
-              <p className="text-slate-400 text-sm leading-relaxed max-w-xl mx-auto">
-                Inicia una sesión de asesoría táctica interactiva, genera tu brand blueprint y diseña tu identidad visual unificada bajo criterios de alta conversión.
-              </p>
-              <button 
-                onClick={() => setActiveTab('futura')}
-                className="mt-4 px-8 py-4 bg-brand-primary hover:bg-brand-primary/95 text-white rounded-2xl text-[11px] font-mono font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 mx-auto hover:scale-105"
-              >
-                <span>💬 INICIAR CONSULTORÍA AHORA</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
         </section>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
@@ -854,7 +1102,7 @@ function AppContent() {
               isSimplifiedMode={isSimplifiedMode}
               onTriggerConsult={(text) => {
                 setDashboardPrompt(text);
-                setActiveTab('futura');
+                handleHubConsult(text);
               }}
             />
           </div>
@@ -931,8 +1179,11 @@ function AppContent() {
                  <button 
                    onClick={() => {
                      setSelectedPhase(null);
-                     setDashboardPrompt(selectedPhase.prompt);
-                     setActiveTab('futura');
+                     setActiveTab('');
+                     setTimeout(() => {
+                       hubRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                       handleHubConsult(selectedPhase.prompt);
+                     }, 100);
                    }}
                    className="w-full py-3 bg-brand-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-brand-primary/15 flex items-center justify-center gap-2 cursor-pointer"
                  >
