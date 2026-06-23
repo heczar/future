@@ -418,67 +418,69 @@ Mantener a un cliente existente es hasta 7 veces más rentable que adquirir uno 
 
 export function getGenerateContentStrategyFallback(prompt: string, context?: string): any {
   const currentPrompt = prompt || "Idea Estratégica";
-  const cleanKeyword = currentPrompt.length > 5 ? currentPrompt.slice(0, 35) : "Marca Innovadora";
+  const cleanKeyword = currentPrompt.length > 5 ? currentPrompt.slice(0, 35) : "Programa Productivo";
   
   return {
-    strategy: `Recomendación Estratégica de FUTURA para "${cleanKeyword}": Estructura tu comunicación en un canal directo de conversión rápida. Te sugerimos eliminar el ruido estético excesivo y enfocarte en el beneficio principal que reduce las fricciones e inquietudes esenciales en la mente del comprador. Ofrece una promesa nítida y un camino inmediato y cómodo sin laberintos de registros.`,
-    copy: `### 🎯 ¡EL CAMBIO QUE ESPERABAS ESTÁ AQUÍ!
+    strategy: `Recomendación Estratégica de FUTURA para "${cleanKeyword}": Estructura tu contenido usando el formato de carrusel de tips y agendas semanales. Utiliza una composición de rejilla limpia, con colores institucionales (morado/slate) y tipografía Roboto en negrita. Mantén una comunicación de servicio público cercana que elimine fricciones y guíe paso a paso al participante.`,
+    copy: `### 📅 ¡CICLO DE FORMACIÓN Y EMPRENDIMIENTO SEMANAR!
+    
+¡Atención Emprendedores! Ya está listo nuestro cronograma de talleres prácticos para impulsar el desarrollo económico local.
 
-¿Cansado de procesos complejos que no te dan resultados tangibles? Es momento de descubrir una metodología diseñada exclusivamente para darte claridad y ritmo inmediato.
+Aprende con nosotros en esta agenda diseñada para ti:
+📌 **Taller de Oratoria y Pitch**: Martes 9:00 AM.
+📌 **Registro de Marca (SAPI)**: Miércoles 2:00 PM.
+📌 **Diseño de Redes con Canva**: Jueves 10:00 AM.
 
-En **FUTURA** aplicamos la filosofía de **Resultados sobre Estética**:
-✅ Soluciones prácticas de sentido común comercial
-✅ Automatización de procesos para ahorrarte horas de trabajo
-✅ Un plan claro diseñado para tu nicho sin secretos corporativos
+Desliza para ver todos los detalles de los ponentes 👉
 
-👇 **HAZ CLIC EN EL ENLACE DE NUESTRA BIO PARA AGENDAR TU EVALUACIÓN GRATUITA HOY MISMO**
+👇 **HAZ CLIC EN EL ENLACE PARA REGISTRAR TU PARTICIPACIÓN TOTALMENTE GRATUITA**
 
-#FuturaMarketing #CrecimientoReal #EstrategiaComercial #ResultadosReales #SolucionesDeElite`,
-    imagePrompt: `Ultra-high-fidelity minimalist editorial product presentation, glowing dark premium studio setting, solid high-contrast lighting with hints of golden bronze colors, balanced asymmetric negative space, perfect volumetric fog depth --ar 1:1 --v 6.0`,
-    videoProposal: `**Concepto de Video Corto (Reel/TikTok): "El Gran Freno de tu Negocio" (Duración: 45s)**
+#AnzoateguiEmprende #EmprenderJuntos #FormacionProductiva #InnovacionLocal #MetodoSPE`,
+    imagePrompt: `A clean slide presentation layout, business mockup set on a dark slate gray background (#1E293B) with solid borders. Fine vector line grids, elegant card-style info blocks with deep purple accents (#4F46E5), bold sans-serif lettering layout, realistic studio presentation lighting, minimal negative space, 8k resolution.`,
+    videoProposal: `**Concepto de Video Corto (Reel/TikTok): "Agenda Semanal de Emprendimiento" (Duración: 45s)**
 
-• **0:00 - 0:05 (Hook Magnético):** Muestra al presentador haciendo un gesto de detenerse con un letrero que dice "Detén el autoboicot" o señalando directo a la cámara de forma audaz.
-• **0:05 - 0:20 (Agitación del Problema):** "El 90% de los emprendedores cree que necesita un diseño extremadamente caro para vender, pero la verdad de sentido común es otra... la claridad del mensaje manda sobre la decoración."
-• **0:20 - 0:38 (La Solución Simple):** "Para cambiar esto hoy, define tu oferta de entrada en un lenguaje que hasta un niño entienda, y pon un botón directo sin formularios pesados."
-• **0:38 - 0:45 (Llamada a la Acción):** "Comenta la palabra 'IGNICIÓN' aquí abajo y te enviaré nuestra checklist local del SPE completa de inmediato de forma gratuita."`
+• **0:00 - 0:05 (Hook Magnético):** Muestra una transición dinámica de títulos superpuestos: "¿Listo para dar el gran salto esta semana?".
+• **0:05 - 0:25 (Desglose de Formación):** Presenta de forma rápida los tres temas de la agenda: "Este martes te enseñamos a vender tu idea; el miércoles registras tu marca y el jueves creas tus plantillas".
+• **0:25 - 0:38 (Diferenciador Institucional):** "Clases prácticas dictadas por expertos locales para que no pierdas tiempo ni dinero en procesos complejos".
+• **0:38 - 0:45 (CTA Directo):** "Escribe la palabra 'FORMACIÓN' en los comentarios y te enviaremos el enlace de inscripción directa a tu WhatsApp."`
   };
 }
 
 export function getGenerateSocialCopyFallback(params: any): any {
   const platformName = (params?.platform || "Instagram").toUpperCase();
-  const audienceDetails = params?.extraContext || "posicionamiento de marca y diferenciación";
+  const audienceDetails = params?.extraContext || "innovación y desarrollo productivo";
   const isEnglish = params?.language === 'en';
   
   if (isEnglish) {
     return {
-      response: `### 🚀 SCALE YOUR ENGAGEMENT & REVENUE ON ${platformName}!
+      response: `### 🚀 EXPAND YOUR LOCAL REACH ON ${platformName}!
 
-Are you still struggling to stand out from the noise? Let's fix that today by introducing true strategic clarity into your daily business.
+Are you ready to build a high-impact strategy for ${audienceDetails.toLowerCase()}? Let's implement a clean, structured schedule for your audience.
 
-We focus purely on **Results over Aesthetics**:
-• **No corporate fluff**: Just high-impact, direct, and persuasive copy.
-• **Frictionless Action**: Clear calls-to-action made for comfortable conversions.
-• **Tailored to you**: Designed specifically for ${audienceDetails.toLowerCase()}.
+Here is what we focus on:
+✅ **Structured Weekly Agendas**: Keeping your community informed of every program.
+✅ **Interactive Carousels**: Educational tips that drive genuine interaction.
+✅ **Clean Institutional Tone**: Professional yet engaging brand presence.
 
-👉 **TAP the link in our bio to book your free strategy session now!**
+👉 **TAP the link in our bio to register for our upcoming workshop!**
 
-#GrowthStrategy #MarketingPower #HighPerformance #ResultsOriented #EliteCopywriting`
+#LocalGrowth #StrategicMarketing #CleanDesign #FormacionProductiva #ResultsFirst`
     };
   }
 
   return {
-    response: `### 🔥 ¡HAZ QUE TU MARCA REVIENTE EL MARCADOR EN ${platformName}!
+    response: `### 🚀 ¡IMPULSA Y DESPEGA TU PROYECTO EN ${platformName}!
 
-¿Sigues perdiendo clientes potenciales con mensajes aburridos y genéricos? Es hora de cambiar el juego de una vez por todas introduciendo claridad y sentido común comercial a tus publicaciones.
+¿Quieres llevar tu idea de negocio al siguiente nivel? Es momento de estructurar tu plan de contenido con total orden y sentido común comercial para el sector de *${audienceDetails.toLowerCase()}*.
 
-En **FUTURA** diseñamos estrategias pensadas puramente para la conversión:
-💡 **Ganchos Impecables**: Diseñados para capturar la atención en menos de un segundo.
-💡 **Contenido de Valor Real**: Explicaciones sumamente sencillas adaptadas a tu nicho de *${audienceDetails.toLowerCase()}*.
-💡 **Llamados a la Acción Irresistibles**: Sin laberintos de clics, eliminando toda barrera para tu cliente ideal.
+Ecosistema de Crecimiento:
+💡 **Formación Activa**: Cronogramas interactivos de ponencias y talleres prácticos.
+💡 **Visuales de Calidad**: Inspirados en layouts de diapositiva limpia y paleta institucional morado/slate.
+💡 **Acceso Directo**: Sin barreras, enlaces cómodos de WhatsApp para atención inmediata.
 
-👉 **HAZ CLIC en el botón de abajo y accede de inmediato a un diagnóstico de marca completamente gratuito con nuestro equipo.**
+👉 **HAZ CLIC en el botón de abajo para descargar la guía oficial de registro de emprendedores y formalizar tu marca.**
 
-#AccionDigital #EstrategiaGanadora #PersuasionBrutal #ComercioElite #ResultadosTangibles`
+#AnzoateguiEmprende #EmprenderJuntos #FormacionProductiva #ProgresoLocal #MetodoSPE`
   };
 }
 

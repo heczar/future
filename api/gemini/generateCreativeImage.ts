@@ -31,12 +31,12 @@ export default async function handler(req: any, res: any) {
   try {
     const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo");
     
-    // Create an incredibly descriptive high-quality prompt wrapper
+    // Create an incredibly descriptive high-quality prompt wrapper matching the user's design style
     let enhancedPrompt = "";
     if (isLogo) {
-      enhancedPrompt = `A high-quality, professional corporate brand logo isotype, flat vector design graphic, minimalist style. ${prompt}. Clean background, modern typography, symmetrical geometry, SVG sleek aesthetic, sharp edges, suitable for luxury and high-converting modern brands. NO blurry textures, NO generic placeholders.`;
+      enhancedPrompt = `A high-quality, professional corporate brand logo isotype, flat vector design graphic, minimalist style. ${prompt}. Clean background, modern sans-serif typography, symmetrical geometry, SVG sleek aesthetic, sharp edges, incorporating overlapping vibrant transparent colored circular shapes (red, yellow, green, blue, purple) on a deep navy or dark slate backdrop. NO blurry textures, NO generic placeholders.`;
     } else {
-      enhancedPrompt = `A high-resolution, premium editorial photograph of a business brand mockup context. ${prompt}. Cinematic lighting, 3D photorealistic studio design mockup, detailed, sharp focus, 8k resolution. Solid composition resembling premium marketing assets, realistic texture.`;
+      enhancedPrompt = `A high-resolution, premium editorial photograph of a business brand mockup. ${prompt}. Layout matching clean structured slides and info-card grids with solid borders. Set on a deep slate gray (#1E293B) or solid dark navy blue (#0F172A) studio background, minimal negative space, clean studio lighting, 3D photorealistic design mockup, detailed, sharp focus, 8k resolution.`;
     }
 
     // Prohibit unrequested texts or gibberish that image generators often output
@@ -143,10 +143,10 @@ export function generateAdvancedDynamicSVG(
     return cleanName.trim().slice(0, 2).toUpperCase();
   })();
 
-  const hex1 = colors?.[0]?.hex || "#FFD700";
-  const hex2 = colors?.[1]?.hex || "#C58927";
-  const hex3 = colors?.[2]?.hex || "#090d16";
-  const hex4 = colors?.[3]?.hex || "#1e293b";
+  const hex1 = colors?.[0]?.hex || "#4F46E5";
+  const hex2 = colors?.[1]?.hex || "#F59E0B";
+  const hex3 = colors?.[2]?.hex || "#0F172A";
+  const hex4 = colors?.[3]?.hex || "#1E293B";
 
   const lowerNiche = (niche || "").toLowerCase();
   const lowerPrompt = textPrompt.toLowerCase();
@@ -601,21 +601,25 @@ export function generateAdvancedDynamicSVG(
       <circle cx="200" cy="240" r="4" fill="${hex1}" />
     `;
   } else {
-    // Default: Simétrico y Geométrico de Lujo (Premium Gold/Obsidian)
+    // Default: Círculos cromáticos superpuestos y transparentes (Estilo de portafolio del usuario - BDT / Emprendimiento)
     graphicContent = `
-      <!-- Interlocking luxurious golden spheres -->
-      <circle cx="200" cy="175" r="95" fill="none" stroke="rgba(255,255,255,0.02)" stroke-width="1" />
-      
-      <circle cx="200" cy="120" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
-      <circle cx="200" cy="230" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
-      <circle cx="145" cy="175" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
-      <circle cx="255" cy="175" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
-      
-      <!-- Inner core diamond -->
-      <polygon points="200,135 235,175 200,215 165,175" fill="url(#${strokeGradId})" opacity="0.85" />
-      <polygon points="200,145 224,175 200,205 176,175" fill="#FFFFFF" />
-      
-      <circle cx="200" cy="175" r="6" fill="#04060b" />
+      <!-- User's signature overlapping transparent color wheels -->
+      <g opacity="0.85" stroke-width="1.5" stroke="#FFFFFF" stroke-opacity="0.1">
+        <!-- Blue sphere -->
+        <circle cx="170" cy="155" r="45" fill="#3B82F6" fill-opacity="0.45" />
+        <!-- Red sphere -->
+        <circle cx="230" cy="155" r="45" fill="#EF4444" fill-opacity="0.45" />
+        <!-- Yellow sphere -->
+        <circle cx="200" cy="205" r="45" fill="#F59E0B" fill-opacity="0.45" />
+        <!-- Green sphere -->
+        <circle cx="165" cy="200" r="30" fill="#10B981" fill-opacity="0.45" />
+        <!-- Purple sphere -->
+        <circle cx="235" cy="200" r="30" fill="#8B5CF6" fill-opacity="0.45" />
+      </g>
+      <!-- Center overlay icon -->
+      <circle cx="200" cy="175" r="50" fill="none" stroke="url(#${strokeGradId})" stroke-width="4.5" />
+      <polygon points="200,145 225,185 175,185" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" />
+      <circle cx="200" cy="175" r="8" fill="#FFFFFF" />
     `;
   }
 
