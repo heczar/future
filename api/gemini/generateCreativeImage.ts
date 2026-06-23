@@ -26,46 +26,33 @@ export default async function handler(req: any, res: any) {
     mockupType,
     customMockupDesc
   } = req.body || {};
-  let model = "gemini-2.5-flash-image";
+  let model = "imagen-3.0-generate-002";
 
   try {
-    const parts: any[] = [];
-
-    if (Array.isArray(styleReferences) && styleReferences.length > 0) {
-      styleReferences.slice(0, 3).forEach((img: string) => {
-        const partsArr = img.split(';base64,');
-        if (partsArr.length === 2) {
-          const mimeMatch = partsArr[0].match(/data:(.*?)$/);
-          const mimeTypePart = mimeMatch ? mimeMatch[1] : "image/jpeg";
-          const data = partsArr[1];
-          parts.push({
-            inlineData: {
-              mimeType: mimeTypePart,
-              data: data
-            }
-          });
-        }
-      });
+    const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo");
+    
+    // Create an incredibly descriptive high-quality prompt wrapper
+    let enhancedPrompt = "";
+    if (isLogo) {
+      enhancedPrompt = `A high-quality, professional corporate brand logo isotype, flat vector design graphic, minimalist style. ${prompt}. Clean background, modern typography, symmetrical geometry, SVG sleek aesthetic, sharp edges, suitable for luxury and high-converting modern brands. NO blurry textures, NO generic placeholders.`;
+    } else {
+      enhancedPrompt = `A high-resolution, premium editorial photograph of a business brand mockup context. ${prompt}. Cinematic lighting, 3D photorealistic studio design mockup, detailed, sharp focus, 8k resolution. Solid composition resembling premium marketing assets, realistic texture.`;
     }
 
-    const enhancedPrompt = `${prompt}. 
-    STYLE MIMICRY MANDATE: Analyze the layout perspective, composition, 3D arrangement, background mood, and negative space of the style reference images. You must strictly match this layout and color palette in the generated image, making it look like a seamless twin design but reflecting the requested content.
-    STRONGLY PROHIBITED: Do not include or write any letters, brand labels, titles, signs, readable texts, or logos on the image backdrop. Always provide a clean visual space for manual brand placement.`;
-
-    parts.push({ text: enhancedPrompt });
+    // Prohibit unrequested texts or gibberish that image generators often output
+    enhancedPrompt += " Ensure extremely high rendering quality with professional studio presentation. Strictly NO written text, misspelled generic words, garbled logos or letters unless requested.";
 
     let response = null;
     let quotaDetected = false;
 
     try {
       response = await callWithRetry(async () => {
-        return await getAiClient(customKey).models.generateContent({
+        return await getAiClient(customKey).models.generateImages({
           model,
-          contents: { parts },
+          prompt: enhancedPrompt,
           config: {
-            imageConfig: {
-              aspectRatio: (aspectRatio || "1:1") as any,
-            },
+            numberOfImages: 1,
+            aspectRatio: (aspectRatio || "1:1") as any,
           },
         });
       }, 2, 1000);
@@ -73,45 +60,36 @@ export default async function handler(req: any, res: any) {
       const errStr = (modelErr?.message || "").toLowerCase();
       if (errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit")) {
         quotaDetected = true;
-        console.log("[FUTURA] Image model quota limit exceeded (429/RESOURCE_EXHAUSTED). Activating local design fallback.");
+        console.log("[FUTURA] Image model quota limit exceeded. Activating local vector design engine.");
       } else {
         const cleanErr = (modelErr?.message || String(modelErr)).slice(0, 100);
-        console.warn("[FUTURA] Primary image model failed. Trying alternative model with retries...", cleanErr);
+        console.warn("[FUTURA] Primary Imagen model failed. Retrying one more time...", cleanErr);
         try {
-          // Fallback model with retry
           response = await callWithRetry(async () => {
-            return await getAiClient(customKey).models.generateContent({
-              model: "gemini-3.1-flash-image",
-              contents: { parts },
+            return await getAiClient(customKey).models.generateImages({
+              model: "imagen-3.0-generate-002",
+              prompt: enhancedPrompt,
               config: {
-                imageConfig: {
-                  aspectRatio: (aspectRatio || "1:1") as any,
-                  imageSize: "1K"
-                },
+                numberOfImages: 1,
+                aspectRatio: (aspectRatio || "1:1") as any,
               },
             });
-          }, 2, 1000);
+          }, 1, 1000);
         } catch (altErr: any) {
           const altErrStr = (altErr?.message || "").toLowerCase();
           if (altErrStr.includes("quota") || altErrStr.includes("429") || altErrStr.includes("exhausted") || altErrStr.includes("limit")) {
             quotaDetected = true;
-            console.log("[FUTURA] Alternate image model quota limit exceeded. Activating local design fallback.");
+            console.log("[FUTURA] Alternate Imagen attempt failed due to quota limit.");
           } else {
-            const cleanAlt = (altErr?.message || String(altErr)).slice(0, 100);
-            console.warn("[FUTURA] Alternate image model failed too:", cleanAlt);
+            console.warn("[FUTURA] Alternate image generation failed:", altErr?.message || altErr);
           }
         }
       }
     }
 
     let imageUrl: string | null = null;
-    if (response && response.candidates?.[0]?.content?.parts) {
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-          break;
-        }
-      }
+    if (response && response.generatedImages?.[0]?.imageBytes) {
+      imageUrl = `data:image/jpeg;base64,${response.generatedImages[0].imageBytes}`;
     }
 
     // Default elegant fallback if zero bytes found or quota was hit

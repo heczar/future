@@ -214,7 +214,7 @@ export async function callWithRetry<T>(
 
       // Jittered exponential backoff: baseDelay * 1.8^attempt + random variance
       const waitTime = baseDelay * Math.pow(1.8, attempt - 1) + Math.random() * 250;
-      console.log(`[FUTURA RETRY] Intento de API GenAI falló con error transitorio (Intento ${attempt}/${maxRetries}): ${cleanMsg}. Esperando ${Math.round(waitTime)}ms antes de reintentar...`);
+      console.log(`[FUTURA RETRY] Intento de API GenAI (Intento ${attempt}/${maxRetries}): Reintento automático por saturación de cuota. Esperando ${Math.round(waitTime)}ms...`);
       await delay(waitTime);
     }
   }

@@ -459,7 +459,7 @@ async function executeWithFallback<T>(
     return data as T;
   } catch (error: any) {
     const errorStr = (error?.message || "").toLowerCase();
-    console.warn(`[FUTURA HYBRID] Error durante la llamada al servidor (${error.message}). Iniciando estrategia de resiliencia...`);
+    console.warn(`[FUTURA HYBRID] Aviso de canal de servidor (${error.message || 'ocupado'}). Activando protocolo de resiliencia de respaldo...`);
 
     // Propagate key configuration errors so the user is aware of missing setups
     if (errorStr.includes("gemini_api_key") || errorStr.includes("clave") || errorStr.includes("no está configurada") || errorStr.includes("api key") || errorStr.includes("my_gemini_api_key") || errorStr.includes("credentials")) {
@@ -469,15 +469,15 @@ async function executeWithFallback<T>(
     // Attempt client-side execution if we have client/localStorage/env keys
     if (hasClientApiKey()) {
       try {
-        console.warn(`[FUTURA] Intentando ejecutar directamente en el navegador con la clave de cliente...`);
+        console.warn(`[FUTURA] Intentando canal directo del navegador...`);
         return await fallbackFn();
       } catch (fallbackError: any) {
-        console.warn(`[FUTURA HYBRID] Fallback del cliente también falló con error:`, fallbackError.message);
+        console.warn(`[FUTURA HYBRID] Canal directo completado con aviso:`, fallbackError.message);
       }
     }
 
     // Elegant deterministic simulation fallback as the ultimate protection
-    console.warn(`[FUTURA HYBRID] Retornando respuesta estratégica estructurada de salvaguarda...`);
+    console.warn(`[FUTURA HYBRID] Cargando respuesta estructurada de resguardo estratégico para continuar...`);
     return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
   }
 }

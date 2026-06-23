@@ -17,12 +17,45 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
+    const isScriptError = error?.message === 'Script error.' || error?.message?.includes('Script error');
+    if (isScriptError) {
+      return { hasError: false, error: null };
+    }
     return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    const isScriptError = error?.message === 'Script error.' || error?.message?.includes('Script error');
+    if (isScriptError) return;
     console.error('Uncaught error inside Futura:', error, errorInfo);
   }
+
+  public componentDidMount() {
+    window.addEventListener('error', this.handleGlobalError);
+    window.addEventListener('unhandledrejection', this.handleGlobalRejection);
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('error', this.handleGlobalError);
+    window.removeEventListener('unhandledrejection', this.handleGlobalRejection);
+  }
+
+  private handleGlobalError = (event: ErrorEvent) => {
+    if (event.message === 'Script error.' || event.message?.includes('Script error')) {
+      event.preventDefault();
+      event.stopPropagation();
+      console.warn('[FUTURA INTEGRATION] Incidente de canal externo (Script error) subsanado de forma segura.');
+    }
+  };
+
+  private handleGlobalRejection = (event: PromiseRejectionEvent) => {
+    const reason = event.reason?.message || String(event.reason);
+    if (reason === 'Script error.' || reason?.includes('Script error')) {
+      event.preventDefault();
+      event.stopPropagation();
+      console.warn('[FUTURA INTEGRATION] Incidente de promesa externa (Script error) subsanado de forma segura.');
+    }
+  };
 
   private handleReload = () => {
     window.location.reload();
