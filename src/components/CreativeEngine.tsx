@@ -20,25 +20,8 @@ interface CreativeEngineProps {
   onPromptConsumed?: () => void;
 }
 
-const virtualFuturaBrand: ProjectContext = {
-  id: 'futura_brand_vault',
-  name: 'FUTURA (Auto-Marketing SPE)',
-  description: 'Consultora Estratégica y Suite de IA Avanzada de Future Marketing Consult enfocada en el lema "Resultados sobre Estética". Es un robot pensante y generador de activos de alta conversión bajo la metodología SPE para dominar el mercado hispanohablante de infoproductores y agencias de marketing, capturando clientes listos para pagar.',
-  logos: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'],
-  trainingMaterial: [
-    'Mantra central: Resultados sobre Estética.',
-    'Metodología base: Sistema Pentagonal de Ejecución (SPE).',
-    'Gancho clave: Deja de crear contenido que solo le gusta a tu mamá y empieza a capturar clientes reales.',
-    'Paleta de diseño recomendada: Fucsia eléctrico, Violeta y Slate profundo con gran espacio negativo.',
-    'Enfoque promocional: Destrucción de fricciones de compra mediante la consultoría y la IA de nivel ultra-élite.'
-  ],
-  methodology: 'SPE',
-  brandGuidelines: {
-    primaryColor: '#BF5AF2',
-    secondaryColor: '#0A0A0C',
-    tone: 'Persuasivo brutal de alta conversión, de élite educadora y analítico pragmático'
-  }
-};
+// virtualFuturaBrand is now centralized in src/lib/constants.ts
+import { virtualFuturaBrand } from '../lib/constants';
 
 export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToVault, initialPrompt, onPromptConsumed }: CreativeEngineProps) {
   const [displayMode, setDisplayMode] = useState<'launcher' | 'briefing' | 'engine'>('launcher');

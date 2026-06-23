@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import DashboardInput from './components/dashboard/DashboardInput';
 import Markdown from 'react-markdown';
 import { chatWithAdvisor } from './services/geminiService';
 import Sidebar from './components/Sidebar';
@@ -72,57 +73,7 @@ import { AccountProvider } from './components/AccountProvider';
 import { db } from './lib/firebase';
 import { doc, setDoc, onSnapshot, collection, query, where, addDoc, deleteDoc } from 'firebase/firestore';
 
-interface DashboardInputProps {
-  value: string;
-  onSubmit: (text: string) => void;
-  isLoading: boolean;
-}
-
-function DashboardInput({ value, onSubmit, isLoading }: DashboardInputProps) {
-  const [localVal, setLocalVal] = React.useState(value);
-
-  React.useEffect(() => {
-    setLocalVal(value);
-  }, [value]);
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && localVal.trim()) {
-      onSubmit(localVal);
-      setLocalVal('');
-    }
-  };
-
-  return (
-    <div className="relative group max-w-3xl mx-auto pt-2">
-      <div className="absolute -inset-1 bg-gradient-to-r from-brand-primary to-purple-600 rounded-2xl blur-xl opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-      <div className="relative flex flex-col sm:flex-row items-center gap-3 bg-surface-950 border border-white/10 p-2 rounded-2xl shadow-3xl group-focus-within:border-brand-primary/40 transition-all">
-        <input 
-          type="text"
-          value={localVal}
-          onChange={(e) => setLocalVal(e.target.value)}
-          placeholder="Consulta sobre tu estrategia corporativa..."
-          className="flex-1 bg-transparent border-none text-white px-4 py-3 focus:ring-0 text-sm placeholder:text-slate-700 outline-none w-full"
-          onKeyDown={handleKeyDown}
-        />
-        <div className="flex w-full sm:w-auto gap-3 p-1 sm:p-0">
-          <button 
-            onClick={() => {
-              if (localVal.trim()) {
-                onSubmit(localVal);
-                setLocalVal('');
-              }
-            }}
-            disabled={isLoading || !localVal.trim()}
-            className="flex-1 sm:w-auto px-6 py-3 bg-brand-primary disabled:opacity-40 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-2xl shadow-brand-primary/30 w-full cursor-pointer"
-          >
-            CONSULTAR
-            <Send className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+// DashboardInput extracted to src/components/dashboard/DashboardInput.tsx
 
 export default function App() {
   return (
@@ -134,25 +85,8 @@ export default function App() {
   );
 }
 
-const virtualFuturaBrand: ProjectContext = {
-  id: 'futura_brand_vault',
-  name: 'FUTURA (Auto-Marketing SPE)',
-  description: 'Consultora Estratégica y Suite de IA Avanzada de Future Marketing Consult enfocada en el lema "Resultados sobre Estética". Es un robot pensante y generador de activos de alta conversión bajo la metodología SPE para dominar el mercado hispanohablante de infoproductores y agencias de marketing, capturando clientes listos para pagar.',
-  logos: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'],
-  trainingMaterial: [
-    'Mantra central: Resultados sobre Estética.',
-    'Metodología base: Sistema Pentagonal de Ejecución (SPE).',
-    'Gancho clave: Deja de crear contenido que solo le gusta a tu mamá y empieza a capturar clientes reales.',
-    'Paleta de diseño recomendada: Fucsia eléctrico, Violeta y Slate profundo con gran espacio negativo.',
-    'Enfoque promocional: Destrucción de fricciones de compra mediante la consultoría y la IA de nivel ultra-élite.'
-  ],
-  methodology: 'SPE',
-  brandGuidelines: {
-    primaryColor: '#BF5AF2',
-    secondaryColor: '#0A0A0C',
-    tone: 'Persuasivo brutal de alta conversión, de élite educadora y analítico pragmático'
-  }
-};
+// virtualFuturaBrand is now centralized in src/lib/constants.ts
+import { virtualFuturaBrand } from './lib/constants';
 
 function AppContent() {
   const { user, signIn } = useAuth();

@@ -9,21 +9,34 @@ service cloud.firestore {
 
     // 2. GLOBAL HELPERS
     function isSignedIn() { return request.auth != null; }
+
+    // Dynamic admin check via /admins/{uid} collection.
+    // To add an admin: create a document at /admins/<user_uid> with field { active: true }
+    // This replaces the hardcoded email approach and scales to multiple admins.
     function isAdmin() {
-      return isSignedIn() && (request.auth.token.email == 'heczaroficial@gmail.com' || request.auth.token.email == 'HeczarOficial@gmail.com');
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
+
     function isOwner(userId) { return (isSignedIn() && request.auth.uid == userId) || isAdmin(); }
     function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
     function incoming() { return request.resource.data; }
     function existing() { return resource.data; }
 
-    // 3. USER PROFILES
+    // 3. ADMINS COLLECTION
+    // Only admins can manage admin documents (bootstrapped manually from Firebase Console)
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if false; // Only manageable from Firebase Console for security
+    }
+
+    // 4. USER PROFILES
     match /users/{userId} {
-      allow get, list: if isSignedIn();
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
       allow write: if isOwner(userId);
     }
 
-    // 4. PROJECTS
+    // 5. PROJECTS
     match /projects/{projectId} {
       allow get: if isOwner(existing().ownerId);
       allow list: if (isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin();
@@ -40,7 +53,7 @@ service cloud.firestore {
       }
     }
 
-    // 5. ASSETS (Legacy - for backward compatibility if needed)
+    // 6. ASSETS (Legacy - for backward compatibility)
     match /assets/{assetId} {
       allow get: if isSignedIn() && (get(/databases/$(database)/documents/projects/$(existing().projectId)).data.ownerId == request.auth.uid || isAdmin());
       allow list: if isSignedIn() && (get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.ownerId == request.auth.uid || isAdmin());
@@ -56,7 +69,7 @@ service cloud.firestore {
       }
     }
 
-    // 6. SAVED ASSETS (Gallery)
+    // 7. SAVED ASSETS (Gallery)
     match /saved_assets/{assetId} {
       allow get: if isOwner(existing().ownerId);
       allow list: if (isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin();
@@ -73,20 +86,27 @@ service cloud.firestore {
       }
     }
 
-    // 7. PUBLICATIONS (Calendar / Content Ready)
+    // 8. PUBLICATIONS (Calendar / Content Ready)
     match /publications/{pubId} {
       allow get, delete: if isOwner(existing().ownerId);
       allow list: if (isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin();
-      allow create: if isOwner(incoming().ownerId);
+      allow create: if isOwner(incoming().ownerId) && isValidPublication(incoming());
       allow update: if isOwner(existing().ownerId) && incoming().ownerId == existing().ownerId;
+
+      function isValidPublication(data) {
+        return data.ownerId is string &&
+               (data.title == null || (data.title is string && data.title.size() <= 200)) &&
+               (data.content == null || (data.content is string && data.content.size() <= 50000));
+      }
     }
 
-    // 8. ADVISORIES (Asesorías y Anuncios de Configuración de la Administración)
+    // 9. ADVISORIES (Admin Announcements)
     match /advisories/{advisoryId} {
-      allow read, write: if isSignedIn();
+      allow read: if isSignedIn();
+      allow write: if isAdmin(); // Only admins can create/update advisories
     }
 
-    // 9. FUTURA COMERCIAL DOCUMENTS
+    // 10. FUTURA COMERCIAL DOCUMENTS
     match /futura_comercial_docs/{docId} {
       allow read: if isOwner(resource.data.ownerId);
       allow create: if isOwner(incoming().ownerId);
