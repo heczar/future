@@ -414,9 +414,9 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                   Hemos recibido tu reporte de pago manual. Un miembro de la mesa de soporte verificará el número de transacción.
                 </p>
                 <div className="mt-3 pt-2.5 border-t border-white/5 text-[10px] font-mono space-y-1">
-                  <p className="text-slate-400 font-sans">Método: <strong className="text-white">{profile.pagoMovilRequest.bank}</strong></p>
-                  <p className="text-slate-400 font-sans">Referencia: <strong className="text-brand-primary font-bold select-all">#{profile.pagoMovilRequest.reference}</strong></p>
-                  <p className="text-slate-400 font-sans">ID / Celular / Mail: <span className="text-white select-all">{profile.pagoMovilRequest.id}</span></p>
+                  <p className="text-slate-400 font-sans">Método: <strong className="text-white">{profile?.pagoMovilRequest?.bank}</strong></p>
+                  <p className="text-slate-400 font-sans">Referencia: <strong className="text-brand-primary font-bold select-all">#{profile?.pagoMovilRequest?.reference}</strong></p>
+                  <p className="text-slate-400 font-sans">ID / Celular / Mail: <span className="text-white select-all">{profile?.pagoMovilRequest?.id}</span></p>
                 </div>
               </div>
               <div className="space-y-2.5">

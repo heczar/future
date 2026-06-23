@@ -683,7 +683,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
     if (!activePrompt) return;
     
     // Check credits
-    if (!profile.isPremium && (profile.credits || 0) <= 0) {
+    if (!profile?.isPremium && (profile?.credits || 0) <= 0) {
       setShowUpgrade(true);
       return;
     }
@@ -747,10 +747,10 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
       setDisplayMode('engine');
 
       // Consumir crédito si no es premium
-      if (!profile.isPremium) {
+      if (!profile?.isPremium) {
         onUpdateProfile({
           ...profile,
-          credits: Math.max(0, (profile.credits || 0) - 1)
+          credits: Math.max(0, (profile?.credits || 0) - 1)
         });
       }
 
@@ -1677,7 +1677,7 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-brand-primary" />
               <span className="text-sm font-bold text-white">
-                {profile.isPremium ? 'ILIMITADA' : `${profile.credits || 0} CARGAS`}
+                {profile?.isPremium ? 'ILIMITADA' : `${profile?.credits || 0} CARGAS`}
               </span>
             </div>
           </div>

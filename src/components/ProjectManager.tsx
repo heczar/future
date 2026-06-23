@@ -58,18 +58,18 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
   const [driveContext, setDriveContext] = useState<{ name: string; content: string }[]>([]);
   
   // Form state for User Profile
-  const [profileName, setProfileName] = useState(profile.name);
-  const [profileBio, setProfileBio] = useState(profile.bio);
-  const [profilePhilosophy, setProfilePhilosophy] = useState(profile.philosophy);
+  const [profileName, setProfileName] = useState(profile?.name || '');
+  const [profileBio, setProfileBio] = useState(profile?.bio || '');
+  const [profilePhilosophy, setProfilePhilosophy] = useState(profile?.philosophy || '');
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    setProfileName(profile.name);
-    setProfileBio(profile.bio);
-    setProfilePhilosophy(profile.philosophy);
+    setProfileName(profile?.name || '');
+    setProfileBio(profile?.bio || '');
+    setProfilePhilosophy(profile?.philosophy || '');
   }, [profile]);
 
   useEffect(() => {

@@ -89,7 +89,7 @@ export default function MasterControlEpicenter({
   const selectedBrand = currentBrands[activeBrandIndex] || currentBrands[0];
 
   // Subscription formats: Demo vs Pro Mode state
-  const isProMode = profile.isPremium;
+  const isProMode = !!profile?.isPremium;
   const [showLimitReachedModal, setShowLimitReachedModal] = useState(false);
   const [generationsCount, setGenerationsCount] = useState(() => {
     return Number(localStorage.getItem('futura_demo_generations') || '0');
@@ -302,7 +302,7 @@ export default function MasterControlEpicenter({
 
   // Toggle dynamic subscription Pro status
   const handleToggleSubscription = () => {
-    const newVal = !profile.isPremium;
+    const newVal = !profile?.isPremium;
     const updated = { ...profile, isPremium: newVal };
     onUpdateProfile(updated);
     

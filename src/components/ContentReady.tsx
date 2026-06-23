@@ -808,7 +808,7 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
               "space-y-6 transition-all duration-300",
               isConfigPanelCollapsed ? "hidden lg:hidden" : (
                 selectedProfile === 'ignicion' 
-                  ? "lg:col-span-4" 
+                  ? (generatedBrandData ? "lg:col-span-4" : "lg:col-span-12 max-w-4xl mx-auto w-full")
                   : "lg:col-span-5"
               )
             )}>

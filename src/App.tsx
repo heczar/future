@@ -512,65 +512,6 @@ function AppContent() {
   const renderDashboardView = () => {
     return (
       <div className="space-y-16 text-left">
-        {/* PROTOCOLO SPE EN EL INICIO */}
-        <section className="spe-section">
-          <div className="flex items-center gap-2.5 mb-8">
-            <Sparkles className="w-5 h-5 text-brand-primary" />
-            <h2 className="text-xl md:text-2xl font-bold font-display text-white">Sistema Pentagonal de Ejecución (SPE)</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 font-sans">
-            {spePhases.map((phase, i) => (
-              <div 
-                key={phase.name}
-                onClick={() => {
-                  setSelectedPhase(phase);
-                }}
-                className="glass-panel p-6 rounded-3xl hover:bg-white/5 cursor-pointer border border-white/5 hover:border-brand-primary/30 transition-all group text-left"
-              >
-                <div className={cn("w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 transition-transform group-hover:scale-110", phase.color)}>
-                  <phase.icon className="w-6 h-6" />
-                </div>
-                <h3 className="font-bold text-lg mb-1 text-white">{phase.name}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{phase.desc}</p>
-                <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-1 text-[10px] font-bold text-brand-primary opacity-90 transition-opacity">
-                  CONSULTAR FASE <ChevronRight className="w-3" />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-12 overflow-hidden bg-white/5 border-y border-white/5 py-4">
-            <motion.div 
-              animate={{ x: [0, -1000] }}
-              transition={{ 
-                repeat: Infinity, 
-                duration: 30, 
-                ease: "linear" 
-              }}
-              className="flex whitespace-nowrap gap-12 items-center"
-            >
-              {[
-                "Marketing honesto y sin complicaciones para el usuario.",
-                "Estrategia simple, crecimiento seguro.",
-                "La comodidad del cliente es nuestra prioridad operativa.",
-                "Protocolo SPE: El cimiento que conecta tu solución con el cliente ideal.",
-                "Lanzamiento express con diseño de alta conversión sin dolor de cabeza.",
-                "Marketing honesto y sin complicaciones para el usuario.",
-                "Estrategia simple, crecimiento seguro.",
-                "La comodidad del cliente es nuestra prioridad operativa.",
-                "Protocolo SPE: El cimiento que conecta tu solución con el cliente ideal.",
-                "Lanzamiento express con diseño de alta conversión sin dolor de cabeza."
-              ].map((phrase, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className="w-2 h-2 rounded-full bg-brand-primary" />
-                  <span className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">{phrase}</span>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
         {/* EXPLICACIÓN PRINCIPAL DE LA NUEVA MODALIDAD */}
         <section className="mb-16">
           <div className="glass-panel p-6 md:p-8 rounded-3xl border border-white/5 bg-surface-950/30 mb-8 space-y-4">
@@ -629,6 +570,65 @@ function AppContent() {
                 PROXIMAR BAÚL Y PROPULSAR <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
+          </div>
+        </section>
+
+        {/* PROTOCOLO SPE EN EL INICIO */}
+        <section className="spe-section">
+          <div className="flex items-center gap-2.5 mb-8">
+            <Sparkles className="w-5 h-5 text-brand-primary" />
+            <h2 className="text-xl md:text-2xl font-bold font-display text-white">Sistema Pentagonal de Ejecución (SPE)</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 font-sans">
+            {spePhases.map((phase, i) => (
+              <div 
+                key={phase.name}
+                onClick={() => {
+                  setSelectedPhase(phase);
+                }}
+                className="glass-panel p-6 rounded-3xl hover:bg-white/5 cursor-pointer border border-white/5 hover:border-brand-primary/30 transition-all group text-left"
+              >
+                <div className={cn("w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 transition-transform group-hover:scale-110", phase.color)}>
+                  <phase.icon className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-lg mb-1 text-white">{phase.name}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{phase.desc}</p>
+                <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-1 text-[10px] font-bold text-brand-primary opacity-90 transition-opacity">
+                  CONSULTAR FASE <ChevronRight className="w-3" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-12 overflow-hidden bg-white/5 border-y border-white/5 py-4">
+            <motion.div 
+              animate={{ x: [0, -1000] }}
+              transition={{ 
+                repeat: Infinity, 
+                duration: 30, 
+                ease: "linear" 
+              }}
+              className="flex whitespace-nowrap gap-12 items-center"
+            >
+              {[
+                "Marketing honesto y sin complicaciones para el usuario.",
+                "Estrategia simple, crecimiento seguro.",
+                "La comodidad del cliente es nuestra prioridad operativa.",
+                "Protocolo SPE: El cimiento que conecta tu solución con el cliente ideal.",
+                "Lanzamiento express con diseño de alta conversión sin dolor de cabeza.",
+                "Marketing honesto y sin complicaciones para el usuario.",
+                "Estrategia simple, crecimiento seguro.",
+                "La comodidad del cliente es nuestra prioridad operativa.",
+                "Protocolo SPE: El cimiento que conecta tu solución con el cliente ideal.",
+                "Lanzamiento express con diseño de alta conversión sin dolor de cabeza."
+              ].map((phrase, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <div className="w-2 h-2 rounded-full bg-brand-primary" />
+                  <span className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">{phrase}</span>
+                </div>
+              ))}
+            </motion.div>
           </div>
         </section>
 
@@ -803,8 +803,9 @@ function AppContent() {
                   </div>
                 </div>
               </div>
+        </section>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
                 {/* DNA VAULT Section */}
                 <section className="space-y-6">
                   <div className="flex items-center justify-between px-2 text-left">
@@ -988,7 +989,6 @@ function AppContent() {
                   </div>
                 </div>
               </section>
-            </section>
           </div>
         );
   };
@@ -1044,7 +1044,7 @@ function AppContent() {
                     <div className="h-0.5 w-full bg-gradient-to-r from-brand-primary to-transparent mb-1" />
                     <h2 className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] leading-none">Marketing Consult</h2>
                   </div>
-                  {profile.isPremium && (
+                  {profile?.isPremium && (
                     <div className="hidden md:flex items-center gap-1.5 bg-brand-primary/20 border border-brand-primary/30 px-3 py-1 rounded-full">
                       <Sparkles className="w-3 h-3 text-brand-primary" />
                       <span className="text-[10px] font-black text-brand-primary uppercase tracking-widest">PREMIUM</span>
