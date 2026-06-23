@@ -215,10 +215,57 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
       }
     }
 
+    let sectorDirectives = "";
+    const nicheLower = (ignitionNiche + " " + (ignitionOffer || "")).toLowerCase();
+    
+    if (nicheLower.includes("comida") || nicheLower.includes("restauran") || nicheLower.includes("hamburgue") || nicheLower.includes("sushi") || nicheLower.includes("cafe") || nicheLower.includes("coffee") || nicheLower.includes("gastronom") || nicheLower.includes("pasteler") || nicheLower.includes("taco") || nicheLower.includes("piz")) {
+      sectorDirectives = `
+      DIRECTRICES SECTORIALES CRÍTICAS - GASTRONOMÍA, ALIMENTOS & COMIDA:
+      - Los nombres propuestos deben evocar irresistibilidad, sazón, fogón, ingredientes, frescura o la experiencia culinaria premium que representas. Evita a toda costa nombres corporativos aburridos o genéricos.
+      - Los slogans deben actuar como un imán para el apetito, apelando al deseo instantáneo del paladar o la conveniencia suprema de su entrega, conectando directamente con el nicho de comida. Nada de slogans vagos como "Solución para el mercado". Usa frases que hagan salivar o prometan una experiencia de sabor brutal.
+      - La Misión, Visión, Valores y Narrativa deben oler a cocina auténtica, fuego, dedicación y sabor inolvidable, todo alineado con la efectividad de la Fase 1 del SPE (Resultados sobre Estética aplicados al negocio de comida).
+      `;
+    } else if (nicheLower.includes("abogado") || nicheLower.includes("bufete") || nicheLower.includes("legal") || nicheLower.includes("juridic") || nicheLower.includes("letrado") || nicheLower.includes("derecho") || nicheLower.includes("pleito") || nicheLower.includes("notari") || nicheLower.includes("fiscal") || nicheLower.includes("defens")) {
+      sectorDirectives = `
+      DIRECTRICES SECTORIALES CRÍTICAS - ÁREA LEGAL, ASESORÍA Y BUFETES DE ABOGADOS:
+      - Los nombres propuestos deben evocar un pilar inquebrantable de seguridad, blindaje jurídico, alta estrategia, jurisprudencia letal y confianza irrompible. Es un entorno de altísima seriedad y peso académico.
+      - Los slogans deben enfocarse en erradicar por completo la ansiedad legal del representado, garantizando defensa agresiva, protección corporativa o resolución definitiva de herencias/pleitos. No uses descripciones lánguidas. Apunta a la victoria jurídica y la honestidad radical.
+      - La Misión, Visión, Valores y Narrativa deben destilar protección rigurosa, ética innegociable, tecnicismo estratégico depurado pero con un lenguaje y solución cómodos para el cliente bajo el marco del SPE.
+      `;
+    } else if (nicheLower.includes("dental") || nicheLower.includes("clinic") || nicheLower.includes("dentis") || nicheLower.includes("odontolog") || nicheLower.includes("medic") || nicheLower.includes("salud") || nicheLower.includes("doctor") || nicheLower.includes("psicolog") || nicheLower.includes("terapia") || nicheLower.includes("oftalmo")) {
+      sectorDirectives = `
+      DIRECTRICES SECTORIALES CRÍTICAS - CLÍNICAS, DENTISTAS & SECTOR SALUD:
+      - Los nombres propuestos deben reflejar higiene, precisión milimétrica, alta tecnología médica o bienestar duradero. Deben inspirar pulcritud y confianza absoluta para dejar la salud en sus manos.
+      - Los slogans deben desvanecer el temor clásico de ir al doctor o al odontólogo, prometiendo sonrisas brillantes, salud impecable y cero dolor mediante técnicas premium o diagnóstico digital.
+      - La Misión, Visión, Valores y Narrativa deben proyectar excelencia clínica, vanguardismo en el cuidado preventivo y empatía humana suprema sin rodeos pretenciosos, listos para la conversión.
+      `;
+    } else if (nicheLower.includes("saas") || nicheLower.includes("app") || nicheLower.includes("software") || nicheLower.includes("tech") || nicheLower.includes("ia") || nicheLower.includes("comput") || nicheLower.includes("digital") || nicheLower.includes("automatiza") || nicheLower.includes("plataforma") || nicheLower.includes("it ")) {
+      sectorDirectives = `
+      DIRECTRICES SECTORIALES CRÍTICAS - INGENIERÍA TECNOLÓGICA, APPS & SAAS:
+      - Los nombres propuestos deben sonar disruptivos, veloces, integrados, de software moderno, ligeros e inteligentes.
+      - Los slogans deben referirse a erradicar horas de trabajo manual, automatizar flujos rotos de dinero o simplificar operaciones complejas en la nube con un solo clic. Deben oler a conversión ultra-rápida.
+      - La Misión, Visión, Valores y Narrativa deben posicionarte como el líder definitivo en optimización algorítmica y orquestación digital moderna sin fricción, fiel exponente de la automatización SPE.
+      `;
+    } else if (nicheLower.includes("gym") || nicheLower.includes("fitness") || nicheLower.includes("salud fisica") || nicheLower.includes("entrena") || nicheLower.includes("crossfit") || nicheLower.includes("yoga") || nicheLower.includes("bienestar") || nicheLower.includes("nutricion") || nicheLower.includes("cuerpo") || nicheLower.includes("suplement")) {
+      sectorDirectives = `
+      DIRECTRICES SECTORIALES CRÍTICAS - BIENESTAR, DEPORTE & ENTRENAMIENTO FITNESS:
+      - Los nombres propuestos deben denotar fuerza inquebrantable, energía vibrante, superación de límites, disciplina o equilibrio sublime de cuerpo y mente.
+      - Los slogans deben destruir la pereza habitual de tu target, prometiendo transformación física sustentable bajo base científica de entrenamiento y con un llamado de conversión directa.
+      - La Misión, Visión, Valores y Narrativa deben motivar al esfuerzo físico, la vitalidad de la longevidad activa y la conquista diaria del potencial atlético sin adornos inútiles.
+      `;
+    } else {
+      sectorDirectives = `
+      DIRECTRICES SECTORIALES GENERALES - SERVICIOS PROFESIONALES Y COMERCIO:
+      - Los nombres deben estar íntimamente ligados a la naturaleza de tu nicho (${ignitionNiche}), comunicando estatus, efectividad y alta conversión estratégica.
+      - Los slogans deben apuntar directo a resolver la frustración oculta en la oferta de ${ignitionOffer || "solución general"} para el público ${ignitionAudience || "objetivo"}, eliminando objeciones con una fuerza simétrica.
+      - La Misión, Visión, Valores y Narrativa deben construirse a medida respetando el dogma "Resultados sobre Estética" que rige tu modelo.
+      `;
+    }
+
     const brandGenerationPrompt = `
       Cubre una estructuración e identidad de marca de élite completa desde cero bajo la metodología de alto impacto comercial SPE.
       
-      VARIABLES DE IDENTIDAD Y ESTILO ENTRADAS POR EL USUARIO:
+      VARIABLES DE IDENTIDAD Y ESTILO ENTRADAS POR EL USUARIO (LA NECESIDAD EXIGIDA):
       - Nicho del Negocio: ${ignitionNiche}
       - Oferta principal / Producto: ${ignitionOffer || "Servicios premium integrados"}
       - Público Objetivo / Target: ${ignitionAudience || "Público General de Alto Valor"}
@@ -227,13 +274,15 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
       - Tipo de Escenario de Mockup / Valla Publicitaria Deseado: ${ignitionMockupType}
       ${ignitionCustomMockupDesc ? `- Indicaciones directas del Mockup / Escenario Personalizado: ${ignitionCustomMockupDesc}` : ""}
 
+      ${sectorDirectives}
+
       Entrega una propuesta impecable. Genera un formato con encabezados exactos en corchetes como se muestra a continuación, utilizando un español asertivo y de negocios:
 
       ### [NOMBRES PROPUESTOS]
-      Genera exactamente 3 nombres estratégicos, atractivos y memorables, listados con números del 1 al 3, cada uno con una breve explicación de 1 frase del significado de su nombre.
+      CRÍTICO: Los nombres deben ser creados a medida e ir totalmente en paralelo a la necesidad y el nicho que se le exige al negocio (${ignitionNiche}) y su oferta (${ignitionOffer}). No proporciones nombres genéricos. Genera exactamente 3 nombres estratégicos, de altísima conversión, listados con números del 1 al 3. Cada nombre debe justificarse detallando cómo responde en paralelo a la necesidad del cliente y elimina su dolor de cabeza comercial principal.
 
       ### [SLOGANS PERSUASIVOS]
-      Genera exactamente 3 slogans rompedores y ultra-persuasivos (con números del 1 al 3) orientados a erradicar objeciones.
+      CRÍTICO: Los slogans deben ir totalmente en paralelo y alineamiento simétrico a la necesidad exigida por el nicho de negocio (${ignitionNiche}) y la oferta (${ignitionOffer}). Deben actuar como verdaderas palancas de conversión de alta velocidad que apunten al dolor nuclear de la audiencia objetivo (${ignitionAudience}). Genera exactamente 3 slogans rompedores y ultra-persuasivos (con números del 1 al 3) orientados a erradicar objeciones específicas asociadas al punto de vista / filosofía indicado por el usuario.
 
       ### [MISIÓN CORPORATIVA SPE]
       Genera una declaración de misión corporativa implacable de 2-3 líneas centrada en demoler los dolores del mercado.
@@ -320,10 +369,19 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
 
       // If parser failed, fallback cleanups
       if (nameOptions.length === 0) {
-        nameOptions = ["1. " + (ignitionNiche.split(' ')[0] || "Futur") + " Elevate: La deconstrucción geométrica del nicho.", "2. Nexus Prime: El punto de converción máximo.", "3. " + (ignitionNiche.split(' ')[0] || "Aero") + " Labs: Laboratorio de ingeniería mercantil."];
+        const baseNiche = ignitionNiche.split(' ')[0] || "Futur";
+        nameOptions = [
+          `1. ${baseNiche} Elevate: Solución estratégica en perfecta sintonía con tu oferta de ${ignitionOffer || "servicios premium"}.`,
+          `2. Apex ${baseNiche}: El núcleo de alto rendimiento diseñado a la medida para ${ignitionAudience || "nuestro público objetivo"}.`,
+          `3. ${baseNiche} Sync: Sincronización mercantil inmediata para el nicho de ${ignitionNiche}.`
+        ];
       }
       if (sloganOptions.length === 0) {
-        sloganOptions = ["1. Resultados sobre Estética.", "2. Tu visión, ejecutada sin fricciones.", "3. La solución real para tu nicho."];
+        sloganOptions = [
+          `1. Tu oferta de ${ignitionOffer || "solución de alta gama"} hecha realidad para ${ignitionNiche}.`,
+          `2. Solución y conversión sin rodeos para el público de ${ignitionAudience || "alto rendimiento"}.`,
+          `3. Conectando tu marca en paralelo a las necesidades reales de tu audiencia.`
+        ];
       }
       if (colorPalette.length === 0) {
         colorPalette = [
