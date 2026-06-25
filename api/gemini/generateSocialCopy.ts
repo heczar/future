@@ -16,7 +16,7 @@ export default async function handler(req: any, res: any) {
   }
 
   const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
-  const { params } = req.body || {};
+  const { params, designSystem } = req.body || {};
   const openDesignSkills: string[] = req.body?.openDesignSkills || ['copywriting', 'ad-creative'];
   const skillsInjection = buildSkillsInjection(openDesignSkills);
   if (!params) {
@@ -46,6 +46,9 @@ export default async function handler(req: any, res: any) {
     - Results over Aesthetics: Muy pragmático, enfocado a resultados rápidos y llamado a la acción directo.
     - Educador de Élite / Institucional: Profesional, cercano, promueve el crecimiento y desarrollo local, transmite credibilidad y autoridad.
     - Brutalist Persuasion: Directo al cuello de botella del emprendedor, eliminando adornos inútiles y ofreciendo la capacitación o tu producto como solución real.
+    ${designSystem ? `DISEÑO ACTIVO DE LA SUITE (Open Design):
+    Estás operando bajo el sistema de diseño: "${designSystem}".
+    Adapta tus propuestas de esquemas de colores, tipografías y estética de logotipo sugeridas para alinearse rigurosamente a la paleta e indicaciones de este sistema de diseño, manteniéndolo coherente en cada respuesta estratégica.` : ''}
     ${skillsInjection}
   `;
 

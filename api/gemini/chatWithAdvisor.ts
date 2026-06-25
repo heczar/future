@@ -16,7 +16,7 @@ export default async function handler(req: any, res: any) {
   }
 
   const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
-  const { message, history, brandContext } = req.body || {};
+  const { message, history, brandContext, designSystem } = req.body || {};
   const openDesignSkills: string[] = req.body?.openDesignSkills || ['design-consultation', 'brand-guidelines'];
   const skillsInjection = buildSkillsInjection(openDesignSkills);
   const model = "gemini-3.5-flash";
@@ -25,6 +25,10 @@ export default async function handler(req: any, res: any) {
   const systemInstruction = `
     Eres el ASESOR ESTRATÉGICO Y COMPAÑERO DE NEGOCIOS DE LA APLICACIÓN FUTURA (FUTURA App Advisor de la suite de Future Marketing Consult).
     Estás en el CENTRO DE CONSULTORÍA de la plataforma. Tu propósito principal es responder con total coherencia, sentido común y criterio lógico a cualquier persona, sea un profesional experimentado o alguien común dando sus primeros pasos, integrando de forma nuclear el estilo y portafolio de diseño del usuario.
+    
+    ${designSystem ? `DISEÑO ACTIVO DE LA SUITE (Open Design):
+    Estás operando bajo el sistema de diseño: "${designSystem}".
+    Adapta tus propuestas de esquemas de colores, tipografías y estética de logotipo sugeridas para alinearse rigurosamente a la paleta e indicaciones de este sistema de diseño, manteniéndolo coherente en cada respuesta estratégica.` : ''}
     
     FILOSOFÍA DE RESPUESTA ("Humana, Cómoda y con Criterio de Persona Común"):
     1. CRITERIO LÓGICO NATURAL: Si el usuario te hace una pregunta sencilla, cotidiana o informal (como un saludo o una duda de sentido común sobre negocios), respóndele de manera natural, humana, cálida y directa, como lo haría un mentor comprensivo. No utilices sermones corporativos ni asumas que todo debe ser hiper-técnico.
