@@ -20,8 +20,6 @@ import {
   Check,
   ArrowRight
 } from 'lucide-react';
-import { auth, db } from '../lib/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
 import { chatWithAdvisor, generateCreativeImage } from '../services/geminiService';
 import { ProjectContext } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -34,8 +32,8 @@ import { getDesignSystems } from '../services/openDesignService';
 
 interface FuturaHubProps {
   profile: any;
-  projectsList: ProjectContext[];
-  onUpdateProfile: (p: any) => void;
+  projectsList?: ProjectContext[];
+  onUpdateProfile?: (p: any) => void;
   setActiveTab: (tab: string) => void;
   setDashboardPrompt: (prompt: string) => void;
   initialPrompt?: string;
@@ -62,17 +60,17 @@ export default function FuturaHub({
   const [selectedDesignSystem, setSelectedDesignSystem] = useState<string>('FUTURA Institucional');
 
 
-  // --- BRAND SELECTOR STATE ---
-  const [selectedBrandId, setSelectedBrandId] = useState('');
+  // --- UNIFIED PARALLEL WORK CONCEPT STATE ---
+  const [activeIdea, setActiveIdea] = useState(() => {
+    return localStorage.getItem('futura_hub_active_idea') || 
+      'FUTURA (Auto-Marketing SPE) - Consultora de nivel ultra-élite y Suite de IA optimizada bajo la metodología exclusiva SPE. Prioriza "Resultados sobre Estética" y destruye la autocomplacencia creativa de las agencias tradicionales para capturar clientes reales en el mercado hispano.';
+  });
 
-  // Auto-fill selected brand if any exists
-  useEffect(() => {
-    if (projectsList.length > 0 && !selectedBrandId) {
-      setSelectedBrandId(projectsList[0].id);
-    }
-  }, [projectsList, selectedBrandId]);
-
-  const activeBrand = projectsList.find(p => p.id === selectedBrandId);
+  // Sync activeIdea to localStorage
+  const updateActiveIdea = (newVal: string) => {
+    setActiveIdea(newVal);
+    localStorage.setItem('futura_hub_active_idea', newVal);
+  };
 
   // --- CONSULTATION & CHAT STATE ---
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'model'; text: string }[]>(() => {
@@ -86,9 +84,6 @@ export default function FuturaHub({
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-
-  // Business Idea for Diagnostic
-  const [businessIdea, setBusinessIdea] = useState('');
 
   // Automated Brand Analysis State (SPE Diagnostic)
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -121,25 +116,13 @@ export default function FuturaHub({
   }, [initialPrompt]);
 
   // --- BRAND BLUEPRINT CO-CREATION STATE ---
-  const [blueprintIdea, setBlueprintIdea] = useState('');
   const [blueprintSelectedType, setBlueprintSelectedType] = useState<'all' | 'adn' | 'target' | 'tagline' | 'pillars' | 'logo_generation'>('all');
   const [blueprintIsGenerating, setBlueprintIsGenerating] = useState(false);
   const [blueprintResult, setBlueprintResult] = useState('');
   const [blueprintSections, setBlueprintSections] = useState<Record<string, string> | null>(null);
   const [blueprintActiveResultTab, setBlueprintActiveResultTab] = useState<string>('all');
   const [blueprintLogoUrl, setBlueprintLogoUrl] = useState<string | null>(null);
-  const [blueprintIsSavingLogo, setBlueprintIsSavingLogo] = useState(false);
-  const [blueprintLogoSaveStatus, setBlueprintLogoSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [blueprintSaveStatus, setBlueprintSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [blueprintIsSavingToBrand, setBlueprintIsSavingToBrand] = useState(false);
   const [copiedCustom, setCopiedCustom] = useState(false);
-
-  // Auto-populate blueprint idea from selected brand if empty
-  useEffect(() => {
-    if (activeBrand && !blueprintIdea) {
-      setBlueprintIdea(activeBrand.description || '');
-    }
-  }, [activeBrand, selectedBrandId]);
 
   // Handle direct advice chat
   const handleSendMessage = async (e?: React.FormEvent, customText?: string) => {
@@ -147,17 +130,16 @@ export default function FuturaHub({
     const prompt = (customText || chatInput).trim();
     if (!prompt || isChatLoading) return;
 
-    // Instantly blank out all input source boxes
+    // Instantly blank out input box
     setChatInput('');
-    setBusinessIdea('');
 
     const newMsgs = [...chatMessages, { role: 'user' as const, text: prompt }];
     setChatMessages(newMsgs);
     setIsChatLoading(true);
 
-    const brandCtx = activeBrand 
-      ? `MARCA CONECTADA: ${activeBrand.name}. ADN: ${activeBrand.description}`
-      : "No hay marca seleccionada activa.";
+    const brandCtx = activeIdea.trim() 
+      ? `CONCEPTO O IDEA DE NEGOCIO ACTIVA (Desarrollo en Paralelo): ${activeIdea}`
+      : "No hay concepto o idea activa cargada en el hub.";
 
     try {
       const resp = await chatWithAdvisor(
@@ -181,12 +163,12 @@ export default function FuturaHub({
 
   // Perform quick brand analysis
   const handlePerformBrandAnalysis = async () => {
-    if (!businessIdea.trim() || isAnalyzing) return;
+    if (!activeIdea.trim() || isAnalyzing) return;
     setIsAnalyzing(true);
     setBrandAnalysis(null);
 
     const clientPrompt = `[SISTEMA: DIAGNÓSTICO RÁPIDO DE POSICIONAMIENTO Y COHERENCIA DE MARCA SPE]
-Analiza la siguiente idea de negocio/campaña proporcionada por el usuario: "${businessIdea}".
+Analiza la siguiente idea de negocio/campaña proporcionada por el usuario: "${activeIdea}".
 Determina la solidez estratégica y viabilidad comercial del concepto bajo la metodología de marketing de alto calibre SPE (Sistema Pentagonal de Ejecución).
 
 Debes de retornar tu respuesta EXACTAMENTE en formato JSON plano (no incluyas markdown de bloque de código javascript/json, es decir, no pongas triple comilla o tags. Solo el texto JSON procesable directamente por JSON.parse) con los siguientes campos de primer nivel: "globalScore" y "pillars" (un arreglo de 4 pilares: "Diferenciación de Oferta", "Precisión del Cliente Ideal", "Poder Clave de Conversión", "Viabilidad en el Motor Creativo").
@@ -232,7 +214,7 @@ Ejemplo de formato esperado:
       }
     } catch (err) {
       console.error("[ANÁLISIS DE MARCA] Error generando o procesando análisis real, emulando resultado robusto:", err);
-      const score = Math.min(65 + Math.floor(Math.random() * 20) + (businessIdea.length > 80 ? 12 : 0), 97);
+      const score = Math.min(65 + Math.floor(Math.random() * 20) + (activeIdea.length > 80 ? 12 : 0), 97);
       setBrandAnalysis({
         globalScore: score,
         pillars: [
@@ -273,14 +255,12 @@ Ejemplo de formato esperado:
 
   // --- BRAND BLUEPRINT CORE HANDLERS ---
   const handleGenerateBlueprint = async () => {
-    if (!blueprintIdea.trim() || blueprintIsGenerating) return;
+    if (!activeIdea.trim() || blueprintIsGenerating) return;
     
     setBlueprintIsGenerating(true);
     setBlueprintResult('');
     setBlueprintSections(null);
     setBlueprintLogoUrl(null);
-    setBlueprintLogoSaveStatus('idle');
-    setBlueprintSaveStatus('idle');
     setBlueprintActiveResultTab('all');
 
     const type = blueprintSelectedType;
@@ -288,7 +268,7 @@ Ejemplo de formato esperado:
     
     if (type === 'all') {
       customPrompt = `[SISTEMA: GENERACIÓN UNIFICADA DE BLUEPRINT ESTRATÉGICO]
-Eres FUTURA, la mente maestra estratégica de la suite de mercadeo élite de Future Marketing Consult. Genera el Blueprint de Marca y la Estrategia Fundacional Core para la idea de negocio/proyecto del usuario: "${blueprintIdea}".
+Eres FUTURA, la mente maestra estratégica de la suite de mercadeo élite de Future Marketing Consult. Genera el Blueprint de Marca y la Estrategia Fundacional Core para la idea de negocio/proyecto del usuario: "${activeIdea}".
 Sigue estrictamente la filosofía y metodología del SPE (Sistema de Posicionamiento Estratégico), priorizando la persuasión real y los resultados pragmáticos sobre estética superficial.
 
 Debes entregar un plan de marca unificado, pragmático e hiper-completo (nuestro "Blueprint Estratégico").
@@ -364,7 +344,7 @@ Divide exactamente tu respuesta con las siguientes secciones exactas y usa EXPLI
 [3 colores clave con sus códigos hexadecimales]
 
 ### ⚡ PROMPT DE GENERACIÓN DE IMAGEN RECOMENDADO PARA EL LOGO
-IMAGE_PROMPT: Minimalist flat vector logo icon for ${blueprintIdea}, extremely simple geometric symbol, high-contrast, professional 8k graphic design, white brand design, isolated on black background --no letters words text
+IMAGE_PROMPT: Minimalist flat vector logo icon for ${activeIdea}, extremely simple geometric symbol, high-contrast, professional 8k graphic design, white brand design, isolated on black background --no letters words text
 
 FIN DE LAS SECCIONES. Genera todo con un estándar de consultoría de clase mundial.`;
     } else if (type === 'adn') {
@@ -379,7 +359,7 @@ Estructura tu respuesta exactamente con estas secciones detalladas de manera pro
 ### 🎭 TONO DE COMUNICACIÓN (Cómo debe hablarle al mundo)
 
 DESCRIPCIÓN DE LA IDEA O NEGOCIO:
-"${blueprintIdea}"`;
+"${activeIdea}"`;
     } else if (type === 'target') {
       customPrompt = `[SISTEMA: GENERACIÓN DE BLUEPRINT - ESTUDIO DE AUDIENCIA CORE]
 Eres FUTURA, el estratega definitivo. Desarrolla un perfil exhaustivo del Cliente Ideal ("Avatar de Marca") para la propuesta empresarial detallada abajo.
@@ -391,7 +371,7 @@ Sigue la filosofía del SPE. Estructura el perfil usando la siguiente plantilla 
 ### 🧱 ALTERNATIVAS & OBJECIONES (Por qué dudaría de tu producto o servicio)
 
 DESCRIPCIÓN DE LA IDEA O NEGOCIO:
-"${blueprintIdea}"`;
+"${activeIdea}"`;
     } else if (type === 'pillars') {
       customPrompt = `[SISTEMA: GENERACIÓN DE BLUEPRINT - PILARES DE PUBLICACIÓN Y TEMAS]
 Eres FUTURA. Define los ejes editoriales estratégicos para que esta marca pueda alimentar su motor creativo sin quedarse sin ideas.
@@ -403,7 +383,7 @@ Sigue las directrices SPE y entrega una guía de publicación estructurada en Ma
 ### 📅 SUGERENCIAS DE TÍTULOS Y REELS (5 ideas listas para usar en el Motor Creativo)
 
 DESCRIPCIÓN DE LA IDEA O NEGOCIO:
-"${blueprintIdea}"`;
+"${activeIdea}"`;
     } else if (type === 'tagline') {
       customPrompt = `[SISTEMA: GENERACIÓN DE BLUEPRINT - PROPUESTA DE VALOR Y NARRATIVA]
 Eres FUTURA. Crea la narrativa comercial núcleo para este proyecto.
@@ -414,10 +394,10 @@ Aplica la mentalidad de resultados y entrega este manifiesto estratégico en Mar
 ### 📣 PITCH DE ELEVADOR (30 segundos para convencer a un socio o cliente)
 
 DESCRIPCIÓN DE LA IDEA O NEGOCIO:
-"${blueprintIdea}"`;
+"${activeIdea}"`;
     } else if (type === 'logo_generation') {
       customPrompt = `[SISTEMA: DISEÑADOR ÉLITE DE IDENTIDAD CORPORATIVA - LOGO CORE]
-Eres FUTURA Logo Designer de la suite Future Marketing Consult. Crea el concepto del logotipo y la identidad visual para: "${blueprintIdea}".
+Eres FUTURA Logo Designer de la suite Future Marketing Consult. Crea el concepto del logotipo y la identidad visual para: "${activeIdea}".
 Extrae e integra con precisión cualquier estilo, color, estética o concepto visual específico que el usuario haya indicado en su descripción. Si no especificó estilo, opta por un diseño brutalista/moderno e hiper-minimalista de alta fidelidad.
 
 Escribe una respuesta inspiradora en Markdown estructurada exactamente con estas secciones:
@@ -426,7 +406,7 @@ Escribe una respuesta inspiradora en Markdown estructurada exactamente con estas
 ### 🎨 PALETA DE COLORES RECTORES SUGERIDA (3 colores principales con sus códigos hexadecimales acordes al estilo de marca)
 ### ⚡ PROMPT DE GENERACIÓN DE IMAGEN RECOMENDADO (Diseña un prompt de branding altamente conciso y avanzado para renderizar este logotipo como un isotipo vectorizado aislado sobre fondo oscuro)
 
-IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple geometric symbol, high-contrast, professional 8k graphic design --no letters words text`;
+IMAGE_PROMPT: Minimalist vector logo icon for ${activeIdea}, extremely simple geometric symbol, high-contrast, professional 8k graphic design --no letters words text`;
     }
 
     try {
@@ -489,7 +469,7 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
       }
 
       if (type === 'logo_generation' || type === 'all') {
-        let finalImagePrompt = `Minimalist flat vector logo icon for ${blueprintIdea}, extremely simple geometric symbol, white brand design, modern layout, high contrast, studio lighting, isolated on solid black background, professional visual branding --no letters words text`;
+        let finalImagePrompt = `Minimalist flat vector logo icon for ${activeIdea}, extremely simple geometric symbol, white brand design, modern layout, high contrast, studio lighting, isolated on solid black background, professional visual branding --no letters words text`;
         
         const lines = resp.split('\n');
         const promptLine = lines.find(line => line.includes("IMAGE_PROMPT:"));
@@ -502,8 +482,8 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
           "1:1",
           ["Modern Vector"],
           {
-            brandName: activeBrand?.name || "Futura",
-            niche: blueprintIdea,
+            brandName: "Futura",
+            niche: activeIdea,
             logoStyle: "Simétrico y Geométrico de Lujo (Premium Gold/Obsidian)"
           },
           selectedImageSkills,
@@ -521,55 +501,10 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
     }
   };
 
-  const handleSaveLogoToBrandFromHub = async () => {
-    if (!blueprintLogoUrl || !activeBrand || !activeBrand.id) return;
-    setBlueprintIsSavingLogo(true);
-    setBlueprintLogoSaveStatus('idle');
-    try {
-      const updatedLogos = [...(activeBrand.logos || []), blueprintLogoUrl];
-      await updateDoc(doc(db, 'projects', activeBrand.id), {
-        logos: updatedLogos
-      });
-      setBlueprintLogoSaveStatus('success');
-      onUpdateProfile({
-        ...profile,
-        // Trigger profile update to sync database
-      });
-    } catch (err) {
-      console.error(err);
-      setBlueprintLogoSaveStatus('error');
-    } finally {
-      setBlueprintIsSavingLogo(false);
-    }
-  };
-
-  const handleSaveBlueprintToBrandFromHub = async () => {
-    if (!blueprintResult || !activeBrand || !activeBrand.id) return;
-    setBlueprintIsSavingToBrand(true);
-    setBlueprintSaveStatus('idle');
-    try {
-      const formattedDesc = `${activeBrand.description || ''}\n\n=== BLUEPRINT GENERADO POR FUTURA ===\n${blueprintResult}`;
-      await updateDoc(doc(db, 'projects', activeBrand.id), {
-        description: formattedDesc,
-        methodology: 'SPE'
-      });
-      setBlueprintSaveStatus('success');
-      onUpdateProfile({
-        ...profile,
-        // Trigger profile update to sync database
-      });
-    } catch (err) {
-      console.error(err);
-      setBlueprintSaveStatus('error');
-    } finally {
-      setBlueprintIsSavingToBrand(false);
-    }
-  };
-
   return (
     <div className="space-y-8 max-w-[1240px] mx-auto pb-32 text-left">
       
-      {/* Unified Header with Brand SelectorDropdown */}
+      {/* Unified Header with Parallel Strategic Mode Badge */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-white/5 pb-6">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-primary/10 border border-brand-primary/20 rounded-full text-[10px] font-black font-mono text-brand-primary uppercase tracking-widest">
@@ -584,25 +519,15 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
           </p>
         </div>
 
-        {/* Brand selector dropdown inside Header */}
-        {projectsList.length > 0 && (
-          <div className="flex items-center gap-3 bg-black/40 border border-white/5 px-4 py-2.5 rounded-2xl shrink-0 self-start sm:self-center transition-all hover:border-brand-primary/20">
-            <div className="flex flex-col text-left">
-              <span className="text-[8px] font-mono font-black text-slate-500 uppercase tracking-widest leading-none mb-1">BÓVEDA SELECCIONADA</span>
-              <select
-                value={selectedBrandId}
-                onChange={(e) => setSelectedBrandId(e.target.value)}
-                className="bg-transparent border-none text-xs font-bold text-white outline-none focus:ring-0 cursor-pointer pr-4"
-              >
-                {projectsList.map((brand) => (
-                  <option key={brand.id} value={brand.id} className="bg-zinc-950 text-white">
-                    💼 {brand.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <div className="flex items-center gap-3 bg-black/40 border border-white/5 px-4 py-2.5 rounded-2xl shrink-0 self-start sm:self-center transition-all hover:border-brand-primary/20">
+          <div className="flex flex-col text-left">
+            <span className="text-[8px] font-mono font-black text-slate-500 uppercase tracking-widest leading-none mb-1">MODO DE TRABAJO</span>
+            <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-brand-primary animate-pulse" />
+              Estrategia en Paralelo
+            </span>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Selector de Modo de Trabajo de FUTURA HUB */}
@@ -639,40 +564,29 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
         {/* Left Column: Brand Sync + Active Tactical Tool */}
         <div className="lg:col-span-6 space-y-6">
           
-          {/* Sincronización Bóveda de Marca (Siempre visible en columna de herramientas) */}
+          {/* Concepto de Trabajo en Paralelo (Siempre visible en columna de herramientas) */}
           <div className="glass-panel p-5 rounded-2xl border-white/5 bg-surface-950/20">
             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-3 flex items-center gap-2">
-              <FolderPlus className="w-3.5 h-3.5 text-brand-primary" /> Sincronización Bóveda de Marca
+              <Sparkles className="w-3.5 h-3.5 text-brand-primary" /> Concepto Activo de Trabajo
             </h3>
-            {activeBrand ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center p-1 border border-white/10 shadow-lg">
-                    {activeBrand.logos?.[0] ? (
-                      <img src={activeBrand.logos[0]} alt="Logo" className="w-full h-full object-contain" />
-                    ) : (
-                      <ImageIcon className="w-5 h-5 text-slate-400" />
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-black text-white uppercase tracking-wider truncate max-w-[170px]">
-                      {activeBrand.name}
-                    </h4>
-                    <p className="text-[8px] text-brand-primary font-black uppercase tracking-widest">
-                      Sincronizado • {activeBrand.methodology || 'SPE'}
-                    </p>
-                  </div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-brand-primary/10 rounded-lg flex items-center justify-center p-1 border border-brand-primary/20 shadow-lg">
+                  <Brain className="w-6 h-6 text-brand-primary animate-pulse" />
                 </div>
-                <p className="text-[10px] text-slate-400 line-clamp-2 leading-relaxed bg-black/30 p-2.5 rounded-xl border border-white/5">
-                  {activeBrand.description || 'Sin descripción guardada aún.'}
-                </p>
+                <div>
+                  <h4 className="text-xs font-black text-white uppercase tracking-wider truncate max-w-[170px]">
+                    {activeIdea ? activeIdea.split(' - ')[0].substring(0, 24) : 'Idea en Paralelo'}
+                  </h4>
+                  <p className="text-[8px] text-brand-primary font-black uppercase tracking-widest">
+                    Modo Libre • SPE
+                  </p>
+                </div>
               </div>
-            ) : (
-              <div className="text-center py-4">
-                <p className="text-[10px] text-slate-500 italic uppercase">Sin Marca Activa Seleccionada</p>
-                <p className="text-[8px] text-slate-700 mt-1 uppercase">Sube una marca en tu Baúl para sincronizar activos</p>
-              </div>
-            )}
+              <p className="text-[10px] text-slate-400 line-clamp-3 leading-relaxed bg-black/30 p-2.5 rounded-xl border border-white/5 italic">
+                {activeIdea || 'Describe tu concepto en la consola de abajo para iniciar la estructuración...'}
+              </p>
+            </div>
           </div>
 
           {/* Active Tool Sub-Tab */}
@@ -710,7 +624,7 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                           key={idx}
                           type="button"
                           onClick={() => {
-                            setBusinessIdea(item.text);
+                            updateActiveIdea(item.text);
                             setChatInput(`Analicemos la estrategia para: ${item.text}`);
                           }}
                           className="px-2 py-1 bg-white/5 hover:bg-brand-primary/10 border border-white/5 hover:border-brand-primary/20 text-[9px] font-bold text-slate-300 hover:text-white rounded-lg transition-all cursor-pointer"
@@ -724,9 +638,9 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                   {/* Textarea */}
                   <div className="space-y-2">
                     <textarea
-                      value={businessIdea}
+                      value={activeIdea}
                       onChange={(e) => {
-                        setBusinessIdea(e.target.value);
+                        updateActiveIdea(e.target.value);
                         if (!chatInput) {
                           setChatInput(e.target.value);
                         }
@@ -765,7 +679,7 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                     <button
                       type="button"
                       onClick={handlePerformBrandAnalysis}
-                      disabled={!businessIdea.trim() || isAnalyzing}
+                      disabled={!activeIdea.trim() || isAnalyzing}
                       className="py-3 px-4 bg-[#0e0e0e] hover:bg-[#151515] border border-white/10 hover:border-brand-primary/30 text-white font-mono font-black text-[9px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       {isAnalyzing ? (
@@ -779,9 +693,9 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                     <button
                       type="button"
                       onClick={() => {
-                        handleSendMessage(undefined, businessIdea);
+                        handleSendMessage(undefined, activeIdea);
                       }}
-                      disabled={!businessIdea.trim() || isChatLoading}
+                      disabled={!activeIdea.trim() || isChatLoading}
                       className="py-3 px-4 bg-brand-primary hover:bg-brand-primary/85 text-white font-mono font-black text-[9px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-lg"
                     >
                       {isChatLoading ? (
@@ -862,14 +776,14 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                     <div className="flex flex-wrap gap-1.5">
                       <button
                         type="button"
-                        onClick={() => setBlueprintIdea("FUTURA (Auto-Marketing SPE) - Consultora de nivel ultra-élite y Suite de IA optimizada bajo la metodología exclusiva SPE. Prioriza 'Resultados sobre Estética' y destruye la autocomplacencia creativa.")}
+                        onClick={() => updateActiveIdea("FUTURA (Auto-Marketing SPE) - Consultora de nivel ultra-élite y Suite de IA optimizada bajo la metodología exclusiva SPE. Prioriza 'Resultados sobre Estética' y destruye la autocomplacencia creativa.")}
                         className="px-2 py-1 bg-white/5 hover:bg-brand-primary/10 border border-white/5 text-[9px] font-bold text-slate-300 rounded-lg transition-all cursor-pointer"
                       >
                         🔥 FUTURA SPE
                       </button>
                       <button
                         type="button"
-                        onClick={() => setBlueprintIdea("Café Santo Origen - Marca premium de café orgánico gourmet tostado artesanalmente directo de fincas andinas, para profesionales que buscan energía limpia de alto calibre.")}
+                        onClick={() => updateActiveIdea("Café Santo Origen - Marca premium de café orgánico gourmet tostado artesanalmente directo de fincas andinas, para profesionales que buscan energía limpia de alto calibre.")}
                         className="px-2 py-1 bg-white/5 hover:bg-brand-primary/10 border border-white/5 text-[9px] font-bold text-slate-300 rounded-lg transition-all cursor-pointer"
                       >
                         ☕ Café Gourmet
@@ -880,8 +794,8 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                   {/* Main idea textarea */}
                   <div className="space-y-2">
                     <textarea
-                      value={blueprintIdea}
-                      onChange={(e) => setBlueprintIdea(e.target.value)}
+                      value={activeIdea}
+                      onChange={(e) => updateActiveIdea(e.target.value)}
                       placeholder="Describe detalladamente los atributos de la marca o campaña..."
                       rows={5}
                       className="w-full bg-black border border-white/10 focus:border-brand-primary/50 text-xs text-white rounded-xl p-3.5 outline-none resize-none leading-relaxed"
@@ -955,7 +869,7 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                   <button
                     type="button"
                     onClick={handleGenerateBlueprint}
-                    disabled={!blueprintIdea.trim() || blueprintIsGenerating}
+                    disabled={!activeIdea.trim() || blueprintIsGenerating}
                     className="w-full py-3.5 bg-gradient-to-r from-brand-primary to-purple-600 hover:opacity-95 text-white font-mono font-black text-[10px] uppercase tracking-widest rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40"
                   >
                     {blueprintIsGenerating ? (
@@ -1024,25 +938,8 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                         >
                           {copiedCustom ? 'COPIADO ✓' : 'COPIAR TEXTO'}
                         </button>
-
-                        {activeBrand && (
-                          <button
-                            onClick={handleSaveBlueprintToBrandFromHub}
-                            disabled={blueprintIsSavingToBrand}
-                            className="px-2.5 py-1.5 bg-brand-primary hover:bg-brand-primary/80 disabled:opacity-40 text-white font-mono font-black text-[9px] uppercase tracking-wider rounded-lg transition-all cursor-pointer"
-                          >
-                            {blueprintIsSavingToBrand ? 'Sincronizando...' : '💾 GUARDAR EN BÓVEDA'}
-                          </button>
-                        )}
                       </div>
                     </div>
-
-                    {/* Status update banner notification */}
-                    {blueprintSaveStatus === 'success' && (
-                      <div className="bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-xl text-[9px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <span>✓ Blueprint guardado correctamente en la descripción de la marca "{activeBrand?.name}"</span>
-                      </div>
-                    )}
 
                     {/* Custom Markdown renderer container */}
                     <div className="prose prose-invert prose-xs max-h-[400px] overflow-y-auto pr-1 text-slate-300 leading-relaxed text-xs border border-white/5 p-4 rounded-2xl bg-black/40">
@@ -1110,23 +1007,7 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                               >
                                 Descargar PNG
                               </a>
-
-                              {activeBrand && (
-                                <button
-                                  onClick={handleSaveLogoToBrandFromHub}
-                                  disabled={blueprintIsSavingLogo}
-                                  className="px-2 py-1 bg-brand-primary hover:bg-brand-primary/80 disabled:opacity-40 text-[8px] text-white font-black rounded tracking-wider uppercase transition-all cursor-pointer"
-                                >
-                                  {blueprintIsSavingLogo ? 'Vinculando...' : '💾 GUARDAR EN BÓVEDA'}
-                                </button>
-                              )}
                             </div>
-
-                            {blueprintLogoSaveStatus === 'success' && (
-                              <p className="text-[8px] text-emerald-400 font-bold uppercase tracking-wider">
-                                ✓ Isotipo añadido a activos de marca
-                              </p>
-                            )}
                           </div>
                         </div>
                       </div>
