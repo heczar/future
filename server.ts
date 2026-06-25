@@ -123,7 +123,7 @@ async function startServer() {
 }
 
 // Only start the listening port when run directly (not under Vercel Serverless Functions)
-if (!process.env.VERCEL || process.env.NODE_ENV !== "production") {
+if (!process.env.VERCEL) {
   startServer();
 }
 
