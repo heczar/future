@@ -27,6 +27,10 @@ import { ProjectContext } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import ReactMarkdown from 'react-markdown';
+import OpenDesignSkillPicker from './OpenDesignSkillPicker';
+import PromptTemplateGallery from './PromptTemplateGallery';
+import { getDesignSystems } from '../services/openDesignService';
+
 
 interface FuturaHubProps {
   profile: any;
@@ -50,6 +54,13 @@ export default function FuturaHub({
   
   // Tactical Tools Tab Selector: 'diagnostics' vs 'blueprint' (Brand Blueprint & Logo Generator)
   const [activeToolTab, setActiveToolTab] = useState<'diagnostics' | 'blueprint'>('diagnostics');
+
+  // Open Design Integration States
+  const [selectedStrategySkills, setSelectedStrategySkills] = useState<string[]>(['brainstorming', 'creative-director', 'design-brief']);
+  const [selectedCopySkills, setSelectedCopySkills] = useState<string[]>(['copywriting', 'ad-creative']);
+  const [selectedImageSkills, setSelectedImageSkills] = useState<string[]>(['enhance-prompt', 'color-expert', 'canvas-design']);
+  const [selectedDesignSystem, setSelectedDesignSystem] = useState<string>('FUTURA Institucional');
+
 
   // --- BRAND SELECTOR STATE ---
   const [selectedBrandId, setSelectedBrandId] = useState('');
@@ -149,7 +160,13 @@ export default function FuturaHub({
       : "No hay marca seleccionada activa.";
 
     try {
-      const resp = await chatWithAdvisor(prompt, chatMessages, brandCtx);
+      const resp = await chatWithAdvisor(
+        prompt, 
+        chatMessages, 
+        brandCtx,
+        selectedStrategySkills,
+        selectedDesignSystem
+      );
       setChatMessages(prev => [...prev, { role: 'model', text: resp }]);
     } catch (err: any) {
       console.error(err);
@@ -188,7 +205,13 @@ Ejemplo de formato esperado:
 }`;
 
     try {
-      const resp = await chatWithAdvisor(clientPrompt, [], "Nueva Marca");
+      const resp = await chatWithAdvisor(
+        clientPrompt, 
+        [], 
+        "Nueva Marca",
+        selectedStrategySkills,
+        selectedDesignSystem
+      );
       let cleanedResp = resp.trim();
       if (cleanedResp.startsWith("```json")) {
         cleanedResp = cleanedResp.replace(/^```json/, "");
@@ -407,7 +430,13 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
     }
 
     try {
-      const resp = await chatWithAdvisor(customPrompt, [], "Nueva Marca");
+      const resp = await chatWithAdvisor(
+        customPrompt, 
+        [], 
+        "Nueva Marca",
+        selectedStrategySkills,
+        selectedDesignSystem
+      );
       setBlueprintResult(resp);
 
       if (type === 'all' || type === 'logo_generation') {
@@ -468,7 +497,18 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
           finalImagePrompt = promptLine.replace("IMAGE_PROMPT:", "").trim();
         }
 
-        const imgUrl = await generateCreativeImage(finalImagePrompt, "1:1");
+        const imgUrl = await generateCreativeImage(
+          finalImagePrompt, 
+          "1:1",
+          ["Modern Vector"],
+          {
+            brandName: activeBrand?.name || "Futura",
+            niche: blueprintIdea,
+            logoStyle: "Simétrico y Geométrico de Lujo (Premium Gold/Obsidian)"
+          },
+          selectedImageSkills,
+          selectedDesignSystem
+        );
         if (imgUrl) {
           setBlueprintLogoUrl(imgUrl);
         }
@@ -697,6 +737,29 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                     />
                   </div>
 
+                  {/* Open Design Styling & Skill Integration */}
+                  <div className="space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5 text-left">
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">Sistema de Diseño</label>
+                      <select 
+                        value={selectedDesignSystem}
+                        onChange={(e) => setSelectedDesignSystem(e.target.value)}
+                        className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-primary/45 transition cursor-pointer"
+                      >
+                        <option value="Mi Estilo (userDesignGuidelines)">Mi Estilo (Default)</option>
+                        {getDesignSystems().map(ds => (
+                          <option key={ds.name} value={ds.name}>{ds.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <OpenDesignSkillPicker 
+                      engineType="strategy" 
+                      selectedSkills={selectedStrategySkills} 
+                      onSkillsChange={setSelectedStrategySkills} 
+                    />
+                  </div>
+
                   {/* Action Buttons */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-white/5 pt-4">
                     <button
@@ -822,6 +885,35 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                       placeholder="Describe detalladamente los atributos de la marca o campaña..."
                       rows={5}
                       className="w-full bg-black border border-white/10 focus:border-brand-primary/50 text-xs text-white rounded-xl p-3.5 outline-none resize-none leading-relaxed"
+                    />
+                  </div>
+
+                  {/* Open Design Styling & Skill Integration */}
+                  <div className="space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5 text-left">
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">Sistema de Diseño</label>
+                      <select 
+                        value={selectedDesignSystem}
+                        onChange={(e) => setSelectedDesignSystem(e.target.value)}
+                        className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-primary/45 transition cursor-pointer"
+                      >
+                        <option value="Mi Estilo (userDesignGuidelines)">Mi Estilo (Default)</option>
+                        {getDesignSystems().map(ds => (
+                          <option key={ds.name} value={ds.name}>{ds.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <OpenDesignSkillPicker 
+                      engineType="strategy" 
+                      selectedSkills={selectedStrategySkills} 
+                      onSkillsChange={setSelectedStrategySkills} 
+                    />
+
+                    <OpenDesignSkillPicker 
+                      engineType="image" 
+                      selectedSkills={selectedImageSkills} 
+                      onSkillsChange={setSelectedImageSkills} 
                     />
                   </div>
 
@@ -1103,6 +1195,15 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                   <span className="text-[10px] text-brand-primary uppercase tracking-[0.25em] font-black font-sans">Escribiendo...</span>
                 </div>
               )}
+            </div>
+
+            {/* Open Design Chat Settings */}
+            <div className="pt-2 border-t border-white/5 text-left">
+              <OpenDesignSkillPicker 
+                engineType="strategy" 
+                selectedSkills={selectedStrategySkills} 
+                onSkillsChange={setSelectedStrategySkills} 
+              />
             </div>
 
             {/* Input Form */}

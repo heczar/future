@@ -25,7 +25,8 @@ export default async function handler(req: any, res: any) {
     colors,
     logoStyle,
     mockupType,
-    customMockupDesc
+    customMockupDesc,
+    designSystem
   } = req.body || {};
   const openDesignSkills: string[] = req.body?.openDesignSkills || ['enhance-prompt', 'color-expert', 'canvas-design'];
   const skillsInjection = buildSkillsInjection(openDesignSkills);
@@ -34,14 +35,40 @@ export default async function handler(req: any, res: any) {
   try {
     const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo");
     
-    // Create an incredibly descriptive high-quality prompt wrapper matching the user's design style
-    // Inject Open Design skills context into prompt enhancement
+    // Parse color specifications if available
+    let colorDescription = "";
+    if (Array.isArray(colors) && colors.length > 0) {
+      const colorValues = colors.map((c: any) => {
+        if (typeof c === 'string') return c;
+        if (typeof c === 'object' && c.hex) return c.name ? `${c.name} (${c.hex})` : c.hex;
+        return '';
+      }).filter(Boolean);
+      if (colorValues.length > 0) {
+        colorDescription = `using the color palette: ${colorValues.join(', ')}`;
+      }
+    }
+
+    if (!colorDescription) {
+      // User design guidelines fallback if nothing specified
+      colorDescription = "using a clean and professional color scheme matching the brand concept";
+    }
+
+    // Parse design system style description if active
+    let styleDescription = "";
+    if (designSystem) {
+      styleDescription = `following the guidelines of the design system: ${designSystem}`;
+    }
+
+    // Context from Open Design skills
     const odContext = skillsInjection ? `[OPEN DESIGN SKILLS CONTEXT: ${openDesignSkills.join(', ')}] ` : '';
+    
     let enhancedPrompt = "";
     if (isLogo) {
-      enhancedPrompt = `${odContext}A high-quality, professional corporate brand logo isotype, flat vector design graphic, minimalist style. ${prompt}. Clean background, modern sans-serif typography, symmetrical geometry, SVG sleek aesthetic, sharp edges, incorporating overlapping vibrant transparent colored circular shapes (red, yellow, green, blue, purple) on a deep navy or dark slate backdrop. NO blurry textures, NO generic placeholders.`;
+      const chosenLogoStyle = logoStyle || "minimalist flat vector design";
+      enhancedPrompt = `${odContext}A high-quality, professional corporate brand logo isotype, flat vector design graphic, ${chosenLogoStyle} style. ${prompt}. Clean background, modern typography, symmetrical geometry, SVG sleek aesthetic, sharp edges, ${colorDescription} ${styleDescription}. NO blurry textures, NO generic placeholders.`;
     } else {
-      enhancedPrompt = `${odContext}A high-resolution, premium editorial photograph of a business brand mockup. ${prompt}. Layout matching clean structured slides and info-card grids with solid borders. Set on a deep slate gray (#1E293B) or solid dark navy blue (#0F172A) studio background, minimal negative space, clean studio lighting, 3D photorealistic design mockup, detailed, sharp focus, 8k resolution.`;
+      const chosenMockup = mockupType || "premium editorial photograph of a business brand mockup";
+      enhancedPrompt = `${odContext}A high-resolution, premium editorial photograph of a business brand mockup. ${prompt}. Layout matching a ${chosenMockup} style, ${colorDescription} ${styleDescription}, clean studio lighting, 3D photorealistic design mockup, detailed, sharp focus, 8k resolution.`;
     }
 
     // Prohibit unrequested texts or gibberish that image generators often output
@@ -148,10 +175,16 @@ export function generateAdvancedDynamicSVG(
     return cleanName.trim().slice(0, 2).toUpperCase();
   })();
 
-  const hex1 = colors?.[0]?.hex || "#4F46E5";
-  const hex2 = colors?.[1]?.hex || "#F59E0B";
-  const hex3 = colors?.[2]?.hex || "#0F172A";
-  const hex4 = colors?.[3]?.hex || "#1E293B";
+  const getHex = (val: any) => {
+    if (!val) return null;
+    if (typeof val === 'string') return val;
+    if (typeof val === 'object' && val.hex) return val.hex;
+    return null;
+  };
+  const hex1 = getHex(colors?.[0]) || "#4F46E5";
+  const hex2 = getHex(colors?.[1]) || "#F59E0B";
+  const hex3 = getHex(colors?.[2]) || "#0F172A";
+  const hex4 = getHex(colors?.[3]) || "#1E293B";
 
   const lowerNiche = (niche || "").toLowerCase();
   const lowerPrompt = textPrompt.toLowerCase();
@@ -606,20 +639,15 @@ export function generateAdvancedDynamicSVG(
       <circle cx="200" cy="240" r="4" fill="${hex1}" />
     `;
   } else {
-    // Default: Círculos cromáticos superpuestos y transparentes (Estilo de portafolio del usuario - BDT / Emprendimiento)
+    // Default: Círculos cromáticos superpuestos y transparentes adaptados a los colores seleccionados
     graphicContent = `
-      <!-- User's signature overlapping transparent color wheels -->
+      <!-- Overlapping transparent color wheels using brand colors -->
       <g opacity="0.85" stroke-width="1.5" stroke="#FFFFFF" stroke-opacity="0.1">
-        <!-- Blue sphere -->
-        <circle cx="170" cy="155" r="45" fill="#3B82F6" fill-opacity="0.45" />
-        <!-- Red sphere -->
-        <circle cx="230" cy="155" r="45" fill="#EF4444" fill-opacity="0.45" />
-        <!-- Yellow sphere -->
-        <circle cx="200" cy="205" r="45" fill="#F59E0B" fill-opacity="0.45" />
-        <!-- Green sphere -->
-        <circle cx="165" cy="200" r="30" fill="#10B981" fill-opacity="0.45" />
-        <!-- Purple sphere -->
-        <circle cx="235" cy="200" r="30" fill="#8B5CF6" fill-opacity="0.45" />
+        <circle cx="170" cy="155" r="45" fill="${hex1}" fill-opacity="0.45" />
+        <circle cx="230" cy="155" r="45" fill="${hex2}" fill-opacity="0.45" />
+        <circle cx="200" cy="205" r="45" fill="${hex3}" fill-opacity="0.45" />
+        <circle cx="165" cy="200" r="30" fill="${hex4}" fill-opacity="0.45" />
+        <circle cx="235" cy="200" r="30" fill="${hex1}" fill-opacity="0.3" />
       </g>
       <!-- Center overlay icon -->
       <circle cx="200" cy="175" r="50" fill="none" stroke="url(#${strokeGradId})" stroke-width="4.5" />

@@ -1449,7 +1449,13 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
     }
 
     try {
-      const resp = await chatWithAdvisor(customPrompt, [], "Nueva Marca");
+      const resp = await chatWithAdvisor(
+        customPrompt, 
+        [], 
+        "Nueva Marca",
+        selectedStrategySkills,
+        selectedDesignSystem
+      );
       setBlueprintResult(resp);
 
       if (type === 'all' || type === 'logo_generation') {
@@ -1510,7 +1516,18 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
           finalImagePrompt = promptLine.replace("IMAGE_PROMPT:", "").trim();
         }
 
-        const imgUrl = await generateCreativeImage(finalImagePrompt, "1:1");
+        const imgUrl = await generateCreativeImage(
+          finalImagePrompt, 
+          "1:1",
+          ["Modern Vector"],
+          {
+            brandName: activeBrand?.name || "Futura",
+            niche: blueprintIdea,
+            logoStyle: "Simétrico y Geométrico de Lujo (Premium Gold/Obsidian)"
+          },
+          selectedImageSkills,
+          selectedDesignSystem
+        );
         if (imgUrl) {
           setBlueprintLogoUrl(imgUrl);
         }
