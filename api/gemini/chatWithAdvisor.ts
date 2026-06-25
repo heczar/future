@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatWithAdvisorFallback } from "./utils";
-import { buildSkillsInjection, listSkillNames } from './loadOpenDesignSkill';
+import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatWithAdvisorFallback } from "./utils.js";
+import { buildSkillsInjection, listSkillNames } from './loadOpenDesignSkill.js';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');

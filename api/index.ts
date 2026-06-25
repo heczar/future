@@ -3,6 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import app from "../appInstance";
+import app from "../appInstance.js";
 
 export default app;
