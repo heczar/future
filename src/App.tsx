@@ -1519,6 +1519,94 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
     return `${diffDays} ${diffDays === 1 ? 'día' : 'días'} restantes`;
   };
 
+  // Auto-reset quotas once on admin login
+  React.useEffect(() => {
+    const email = user?.email?.toLowerCase();
+    if (email === 'heczaroficial@gmail.com' && users.length > 0) {
+      const autoResetDone = sessionStorage.getItem('futura_quotas_auto_reset_done');
+      if (!autoResetDone) {
+        sessionStorage.setItem('futura_quotas_auto_reset_done', 'true');
+        
+        const runAutoReset = async () => {
+          try {
+            let count = 0;
+            for (const u of users) {
+              const uEmail = (u.email || '').toLowerCase().trim();
+              if (uEmail !== 'heczaroficial@gmail.com' && u.id !== 'heczaroficial@gmail.com') {
+                const userRef = doc(db, 'users', u.id);
+                const isPremium = !!u.isPremium;
+                const dailyLimit = isPremium ? 250 : 5;
+                const tokenLimit = isPremium ? 15000000 : 25000;
+                const imageLimit = isPremium ? 500 : 3;
+
+                await setDoc(userRef, {
+                  ...u,
+                  apiConsumption: {
+                    dailyConsultsUsed: 0,
+                    dailyConsultsLimit: dailyLimit,
+                    monthlyTokensUsed: 0,
+                    monthlyTokensLimit: tokenLimit,
+                    monthlyImagesUsed: 0,
+                    monthlyImagesLimit: imageLimit,
+                    lastResetDate: new Date().toISOString().split('T')[0]
+                  }
+                }, { merge: true });
+                count++;
+              }
+            }
+            if (count > 0) {
+              triggerToast(`FUTURA: Consumos de ${count} usuarios reiniciados automáticamente.`);
+            }
+          } catch (err) {
+            console.error("Auto reset quotas failed:", err);
+          }
+        };
+        runAutoReset();
+      }
+    }
+  }, [user, users]);
+
+  const handleResetAllQuotas = async () => {
+    const eligibleUsers = users.filter(u => (u.email || '').toLowerCase().trim() !== 'heczaroficial@gmail.com' && u.id !== 'heczaroficial@gmail.com');
+    if (eligibleUsers.length === 0) {
+      triggerToast("No hay otros usuarios registrados para reiniciar.");
+      return;
+    }
+
+    if (!window.confirm(`⚠️ ADVERTENCIA: ¿Estás seguro de que deseas reiniciar todos los consumos (consultas, tokens, imágenes) de ${eligibleUsers.length} usuarios? Esta acción restablecerá sus cuotas al valor inicial de su membresía.`)) {
+      return;
+    }
+
+    try {
+      let resetCount = 0;
+      for (const u of eligibleUsers) {
+        const userRef = doc(db, 'users', u.id);
+        const isPremium = !!u.isPremium;
+        const dailyLimit = isPremium ? 250 : 5;
+        const tokenLimit = isPremium ? 15000000 : 25000;
+        const imageLimit = isPremium ? 500 : 3;
+
+        await setDoc(userRef, {
+          ...u,
+          apiConsumption: {
+            dailyConsultsUsed: 0,
+            dailyConsultsLimit: dailyLimit,
+            monthlyTokensUsed: 0,
+            monthlyTokensLimit: tokenLimit,
+            monthlyImagesUsed: 0,
+            monthlyImagesLimit: imageLimit,
+            lastResetDate: new Date().toISOString().split('T')[0]
+          }
+        }, { merge: true });
+        resetCount++;
+      }
+      triggerToast(`FUTURA: Consumos de ${resetCount} usuarios restablecidos con éxito.`);
+    } catch (e: any) {
+      console.error("Failed to reset user quotas:", e);
+      triggerToast(`Error al reiniciar consumos: ${e.message}`);
+    }
+  };
+
   // Filter queues
   const pendingRequests = users.filter(u => u.pagoMovilRequest && u.pagoMovilRequest.status === 'pending');
   const filteredCRM = users.filter(u => {
@@ -2082,6 +2170,28 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
                   )}
                 </div>
               </div>
+
+              {/* ACCIÓN GLOBAL: REINICIAR CONSUMOS */}
+              <div className="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-left space-y-1">
+                  <span className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1.5">
+                    <RefreshCw className="w-3.5 h-3.5 text-amber-500" />
+                    Reinicio Táctico de Consumos de API
+                  </span>
+                  <p className="text-[11px] text-slate-400 leading-normal max-w-md">
+                    Restablece los límites y cuotas a cero para todos los correos registrados (excepto heczaroficial@gmail.com) permitiendo a todos los usuarios volver a realizar consultas, diseñar imágenes y generar copias con normalidad.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetAllQuotas}
+                  className="w-full sm:w-auto px-6 py-3.5 bg-brand-primary hover:bg-brand-primary/90 text-white font-mono font-black text-[10px] tracking-widest uppercase rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-white" />
+                  Reiniciar Consumos de Todos
+                </button>
+              </div>
+
             </div>
           </motion.div>
         )}
