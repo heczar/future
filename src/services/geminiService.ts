@@ -432,6 +432,7 @@ async function executeWithFallback<T>(
     // 404 indicates server route is not present (standard static host like Vercel)
     if (res.status === 404) {
       console.warn(`[FUTURA HYBRID] Servidor local no soporta esta ruta o estás en un hosting estático (404). Escalando a API de Cliente...`);
+      localStorage.setItem('futura_api_fallback_active', 'true');
       return await fallbackFn();
     }
 
@@ -449,6 +450,7 @@ async function executeWithFallback<T>(
     }
 
     const data = await res.json();
+    localStorage.setItem('futura_api_fallback_active', 'false');
     if (data && typeof data === 'object') {
       if ('response' in data) {
         return data.response as any;
@@ -471,7 +473,9 @@ async function executeWithFallback<T>(
     if (hasClientApiKey()) {
       try {
         console.warn(`[FUTURA] Intentando canal directo del navegador...`);
-        return await fallbackFn();
+        const result = await fallbackFn();
+        localStorage.setItem('futura_api_fallback_active', 'false');
+        return result;
       } catch (fallbackError: any) {
         console.warn(`[FUTURA HYBRID] Canal directo completado con aviso:`, fallbackError.message);
       }
@@ -479,6 +483,7 @@ async function executeWithFallback<T>(
 
     // Elegant deterministic simulation fallback as the ultimate protection
     console.warn(`[FUTURA HYBRID] Cargando respuesta estructurada de resguardo estratégico para continuar...`);
+    localStorage.setItem('futura_api_fallback_active', 'true');
     return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
   }
 }
