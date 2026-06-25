@@ -29,6 +29,7 @@ import {
   Sparkles,
   Plus,
   ShieldCheck,
+  Trash2,
   Layout,
   X,
   FileText,
@@ -72,7 +73,7 @@ import { useAuth } from './components/AuthWrapper';
 import { AccountProvider } from './components/AccountProvider';
 
 import { db } from './lib/firebase';
-import { doc, setDoc, onSnapshot, collection, query, where, addDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot, collection, query, where, addDoc, deleteDoc, getDocs } from 'firebase/firestore';
 
 // DashboardInput extracted to src/components/dashboard/DashboardInput.tsx
 
@@ -1519,53 +1520,6 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
     return `${diffDays} ${diffDays === 1 ? 'día' : 'días'} restantes`;
   };
 
-  // Auto-reset quotas once on admin login
-  React.useEffect(() => {
-    const email = user?.email?.toLowerCase();
-    if (email === 'heczaroficial@gmail.com' && users.length > 0) {
-      const autoResetDone = sessionStorage.getItem('futura_quotas_auto_reset_done');
-      if (!autoResetDone) {
-        sessionStorage.setItem('futura_quotas_auto_reset_done', 'true');
-        
-        const runAutoReset = async () => {
-          try {
-            let count = 0;
-            for (const u of users) {
-              const uEmail = (u.email || '').toLowerCase().trim();
-              if (uEmail !== 'heczaroficial@gmail.com' && u.id !== 'heczaroficial@gmail.com') {
-                const userRef = doc(db, 'users', u.id);
-                const isPremium = !!u.isPremium;
-                const dailyLimit = isPremium ? 250 : 5;
-                const tokenLimit = isPremium ? 15000000 : 25000;
-                const imageLimit = isPremium ? 500 : 3;
-
-                await setDoc(userRef, {
-                  ...u,
-                  apiConsumption: {
-                    dailyConsultsUsed: 0,
-                    dailyConsultsLimit: dailyLimit,
-                    monthlyTokensUsed: 0,
-                    monthlyTokensLimit: tokenLimit,
-                    monthlyImagesUsed: 0,
-                    monthlyImagesLimit: imageLimit,
-                    lastResetDate: new Date().toISOString().split('T')[0]
-                  }
-                }, { merge: true });
-                count++;
-              }
-            }
-            if (count > 0) {
-              triggerToast(`FUTURA: Consumos de ${count} usuarios reiniciados automáticamente.`);
-            }
-          } catch (err) {
-            console.error("Auto reset quotas failed:", err);
-          }
-        };
-        runAutoReset();
-      }
-    }
-  }, [user, users]);
-
   const handleResetAllQuotas = async () => {
     const eligibleUsers = users.filter(u => (u.email || '').toLowerCase().trim() !== 'heczaroficial@gmail.com' && u.id !== 'heczaroficial@gmail.com');
     if (eligibleUsers.length === 0) {
@@ -1604,6 +1558,137 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
     } catch (e: any) {
       console.error("Failed to reset user quotas:", e);
       triggerToast(`Error al reiniciar consumos: ${e.message}`);
+    }
+  };
+
+  const handleSystemResetAndCleanup = async () => {
+    const eligibleUsers = users.filter(u => (u.email || '').toLowerCase().trim() !== 'heczaroficial@gmail.com' && u.id !== 'heczaroficial@gmail.com');
+
+    if (!window.confirm("⚠️ ADVERTENCIA CRÍTICA: ¿Estás seguro de que deseas realizar una Limpieza General del Sistema?\n\nEsto eliminará permanentemente todos los proyectos y marcas del Baúl de todos los usuarios (excepto heczaroficial@gmail.com) y restablecerá sus cuotas a cero para que empiecen desde el principio.\n\nEsta acción NO se puede deshacer.")) {
+      return;
+    }
+
+    try {
+      triggerToast("Iniciando limpieza del sistema...");
+      
+      // Helper function to check if brand name matches target
+      const isTargetBrand = (name: string) => {
+        const n = (name || '').toLowerCase().trim();
+        return n === 'mi proyecto premiun' || n === 'mi proyecto premium';
+      };
+
+      // 1. Obtener y eliminar proyectos
+      const projectsSnap = await getDocs(collection(db, 'projects'));
+      let deletedProjectsCount = 0;
+      
+      for (const projDoc of projectsSnap.docs) {
+        const projData = projDoc.data();
+        const ownerId = projData.ownerId || "";
+        const ownerUser = users.find(u => u.id === ownerId);
+        const ownerEmail = (projData.email || ownerUser?.email || '').toLowerCase().trim();
+        const isHeczar = ownerId === user?.uid || ownerEmail === 'heczaroficial@gmail.com' || ownerId === 'heczaroficial@gmail.com';
+        
+        const isTarget = isTargetBrand(projData.name);
+        
+        // Borrar si es la marca objetivo ("mi proyecto premiun") o si no pertenece al administrador
+        if (isTarget || !isHeczar) {
+          await deleteDoc(doc(db, 'projects', projDoc.id));
+          deletedProjectsCount++;
+        }
+      }
+
+      // 2. Obtener y eliminar saved_assets (Baúl de archivos guardados)
+      let deletedAssetsCount = 0;
+      try {
+        const assetsSnap = await getDocs(collection(db, 'saved_assets'));
+        for (const assetDoc of assetsSnap.docs) {
+          const assetData = assetDoc.data();
+          const ownerId = assetData.ownerId || "";
+          const ownerUser = users.find(u => u.id === ownerId);
+          const ownerEmail = (ownerUser?.email || '').toLowerCase().trim();
+          const isHeczar = ownerId === user?.uid || ownerEmail === 'heczaroficial@gmail.com' || ownerId === 'heczaroficial@gmail.com';
+          
+          const isTarget = isTargetBrand(assetData.brandName);
+          
+          if (isTarget || !isHeczar) {
+            await deleteDoc(doc(db, 'saved_assets', assetDoc.id));
+            deletedAssetsCount++;
+          }
+        }
+      } catch (err) {
+        console.warn("Could not clean up saved_assets:", err);
+      }
+
+      // 3. Obtener y eliminar publications (Calendarios/Copys)
+      let deletedPubsCount = 0;
+      try {
+        const pubsSnap = await getDocs(collection(db, 'publications'));
+        for (const pubDoc of pubsSnap.docs) {
+          const pubData = pubDoc.data();
+          const ownerId = pubData.ownerId || "";
+          const ownerUser = users.find(u => u.id === ownerId);
+          const ownerEmail = (ownerUser?.email || '').toLowerCase().trim();
+          const isHeczar = ownerId === user?.uid || ownerEmail === 'heczaroficial@gmail.com' || ownerId === 'heczaroficial@gmail.com';
+          
+          if (!isHeczar) {
+            await deleteDoc(doc(db, 'publications', pubDoc.id));
+            deletedPubsCount++;
+          }
+        }
+      } catch (err) {
+        console.warn("Could not clean up publications:", err);
+      }
+
+      // 4. Obtener y eliminar futura_comercial_docs
+      let deletedComDocsCount = 0;
+      try {
+        const comDocsSnap = await getDocs(collection(db, 'futura_comercial_docs'));
+        for (const docDoc of comDocsSnap.docs) {
+          const docData = docDoc.data();
+          const ownerId = docData.ownerId || "";
+          const ownerUser = users.find(u => u.id === ownerId);
+          const ownerEmail = (ownerUser?.email || '').toLowerCase().trim();
+          const isHeczar = ownerId === user?.uid || ownerEmail === 'heczaroficial@gmail.com' || ownerId === 'heczaroficial@gmail.com';
+          
+          if (!isHeczar) {
+            await deleteDoc(doc(db, 'futura_comercial_docs', docDoc.id));
+            deletedComDocsCount++;
+          }
+        }
+      } catch (err) {
+        console.warn("Could not clean up futura_comercial_docs:", err);
+      }
+
+      // 5. Restablecer consumos y créditos de todos los demás usuarios
+      let resetUsersCount = 0;
+      for (const u of eligibleUsers) {
+        const userRef = doc(db, 'users', u.id);
+        const isPremium = !!u.isPremium;
+        const dailyLimit = isPremium ? 250 : 5;
+        const tokenLimit = isPremium ? 15000000 : 25000;
+        const imageLimit = isPremium ? 500 : 3;
+
+        await setDoc(userRef, {
+          ...u,
+          credits: isPremium ? 500 : 10,
+          pagoMovilRequest: null,
+          apiConsumption: {
+            dailyConsultsUsed: 0,
+            dailyConsultsLimit: dailyLimit,
+            monthlyTokensUsed: 0,
+            monthlyTokensLimit: tokenLimit,
+            monthlyImagesUsed: 0,
+            monthlyImagesLimit: imageLimit,
+            lastResetDate: new Date().toISOString().split('T')[0]
+          }
+        }, { merge: true });
+        resetUsersCount++;
+      }
+
+      triggerToast(`✓ Limpieza completada: Se eliminaron ${deletedProjectsCount} proyectos, ${deletedAssetsCount} archivos de baúl y se reiniciaron ${resetUsersCount} usuarios.`);
+    } catch (e: any) {
+      console.error("System cleanup failed:", e);
+      triggerToast(`Error en la limpieza: ${e.message}`);
     }
   };
 
@@ -2171,25 +2256,49 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
                 </div>
               </div>
 
-              {/* ACCIÓN GLOBAL: REINICIAR CONSUMOS */}
-              <div className="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="text-left space-y-1">
-                  <span className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1.5">
-                    <RefreshCw className="w-3.5 h-3.5 text-amber-500" />
-                    Reinicio Táctico de Consumos de API
-                  </span>
-                  <p className="text-[11px] text-slate-400 leading-normal max-w-md">
-                    Restablece los límites y cuotas a cero para todos los correos registrados (excepto heczaroficial@gmail.com) permitiendo a todos los usuarios volver a realizar consultas, diseñar imágenes y generar copias con normalidad.
-                  </p>
+              {/* ACCIONES GLOBALES DE ADMINISTRACIÓN */}
+              <div className="mt-8 pt-6 border-t border-white/5 space-y-6">
+                {/* REINICIAR CONSUMOS */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="text-left space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1.5">
+                      <RefreshCw className="w-3.5 h-3.5 text-amber-500" />
+                      Reinicio Táctico de Consumos de API
+                    </span>
+                    <p className="text-[11px] text-slate-400 leading-normal max-w-md">
+                      Restablece los límites y cuotas a cero para todos los correos registrados (excepto heczaroficial@gmail.com) permitiendo a todos los usuarios volver a realizar consultas, diseñar imágenes y generar copias con normalidad.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleResetAllQuotas}
+                    className="w-full sm:w-auto px-6 py-3.5 bg-brand-primary hover:bg-brand-primary/90 text-white font-mono font-black text-[10px] tracking-widest uppercase rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 text-white" />
+                    Reiniciar Consumos de Todos
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleResetAllQuotas}
-                  className="w-full sm:w-auto px-6 py-3.5 bg-brand-primary hover:bg-brand-primary/90 text-white font-mono font-black text-[10px] tracking-widest uppercase rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <RefreshCw className="w-3.5 h-3.5 text-white" />
-                  Reiniciar Consumos de Todos
-                </button>
+
+                {/* LIMPIEZA GENERAL Y RESET */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-white/5">
+                  <div className="text-left space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-red-500 uppercase tracking-widest flex items-center gap-1.5">
+                      <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                      Limpieza y Depuración del Sistema (Re-Inicio)
+                    </span>
+                    <p className="text-[11px] text-slate-400 leading-normal max-w-md">
+                      Elimina todos los proyectos de marcas y archivos guardados de otros usuarios (excepto heczaroficial@gmail.com) y restablece sus límites para que inicien desde el principio.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSystemResetAndCleanup}
+                    className="w-full sm:w-auto px-6 py-3.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 font-mono font-black text-[10px] tracking-widest uppercase rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 border border-red-500/20 shrink-0"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                    Ejecutar Limpieza General
+                  </button>
+                </div>
               </div>
 
             </div>
