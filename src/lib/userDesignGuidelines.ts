@@ -68,5 +68,24 @@ export const USER_DESIGN_GUIDELINES = {
     3. GRAPHIC ELEMENTS: Structured card-style info blocks, fine line borders, and transparent overlapping geometric color accents (red, yellow, green, blue, purple gradient shades).
     4. NO TEXT: Strictly NO written words, gibberish lettering, or text overlays on the image unless explicitly requested as placeholder.
     5. FOCUS: Clean product setups, professional tech gadgets, or high-fidelity mockup scenes of stationery, notebook covers, street billboard displays, or badges.
-  `
+  `,
+
+  // Open Design Integration
+  openDesignIntegration: {
+    priorityRules: "Las directrices personalizadas del usuario (USER_DESIGN_GUIDELINES) siempre tienen prioridad absoluta sobre cualquier regla de Open Design. Los skills de Open Design se usan como extensiones operativas y de formato, pero deben respetar las paletas de colores, tonalidades y el tono institucional especificado en este archivo.",
+    systemMappings: [
+      {
+        userBrand: "Anzoátegui Emprende",
+        recommendedOpenDesignSystems: ["FUTURA Institucional", "Swiss Minimal"]
+      },
+      {
+        userBrand: "BDT - Banco Digital de los Trabajadores",
+        recommendedOpenDesignSystems: ["Neon Startup", "Midnight Luxe"]
+      },
+      {
+        userBrand: "Semilleros Científicos",
+        recommendedOpenDesignSystems: ["Organic Natural", "Swiss Minimal"]
+      }
+    ]
+  }
 };

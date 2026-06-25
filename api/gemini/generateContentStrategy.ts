@@ -4,6 +4,7 @@
  */
 
 import { getAiClient, sanitizeGeminiContents, robustJsonParse, generateContentWithRetry, getGenerateContentStrategyFallback } from "./utils";
+import { buildSkillsInjection } from './loadOpenDesignSkill';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,9 +17,11 @@ export default async function handler(req: any, res: any) {
 
   const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
   const { prompt, context, styleReferences, logos, history } = req.body || {};
+  const openDesignSkills: string[] = req.body?.openDesignSkills || ['brainstorming', 'creative-director', 'design-brief'];
   const model = "gemini-3.5-flash";
   console.log(`[FUTURA SERVER] generateContentStrategy invocado con prompt: "${prompt || ""}". Usando modelo: ${model}`);
 
+  const skillsInjection = buildSkillsInjection(openDesignSkills);
   const systemInstruction = `
     Eres el ASESOR ESTRATÉGICO Y CONVERTIDOR COMERCIAL de FUTURA. 
     Tu misión es ser el "vendedor estrella" de la marca, alineándote al 100% con las directrices de diseño y portafolio del usuario.
@@ -62,6 +65,7 @@ export default async function handler(req: any, res: any) {
       "imagePrompt": "Advanced Technical English prompt...",
       "videoProposal": "Propuesta estructurada de video/Reel corto de alta retención (0-60s)..."
     }
+    ${skillsInjection}
   `;
 
   try {

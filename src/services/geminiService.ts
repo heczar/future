@@ -4,6 +4,7 @@
  */
 
 import { GoogleGenAI } from "@google/genai";
+import { buildSkillsPromptInjection, buildDesignSystemPromptInjection } from "./openDesignService";
 
 // Secure Hybrid Client/Server Gemini Service Proxy
 // First attempts to use the robust Express API proxy.
@@ -490,11 +491,13 @@ export async function generateContentStrategy(
   context: string,
   styleReferences?: string[],
   logos?: string[],
-  history: { role: 'user' | 'model'; content: string }[] = []
+  history: { role: 'user' | 'model'; content: string }[] = [],
+  openDesignSkills?: string[],
+  designSystem?: string
 ): Promise<{ strategy: string; copy: string; imagePrompt: string; videoProposal?: string }> {
   
   const apiEndpoint = "/api/gemini/generateContentStrategy";
-  const payload = { prompt, context, styleReferences, logos, history };
+  const payload = { prompt, context, styleReferences, logos, history, openDesignSkills, designSystem };
 
   const clientFallback = async () => {
     const model = "gemini-3.5-flash";
@@ -538,6 +541,8 @@ export async function generateContentStrategy(
         "imagePrompt": "Advanced Technical English prompt...",
         "videoProposal": "Propuesta estructurada de video/Reel corto de alta retención (0-60s)..."
       }
+      ${openDesignSkills ? buildSkillsPromptInjection(openDesignSkills) : ''}
+      ${designSystem ? buildDesignSystemPromptInjection(designSystem) : ''}
     `;
 
     const listHistory = Array.isArray(history) ? history : [];
@@ -615,7 +620,9 @@ export async function generateCreativeImage(
     logoStyle?: string;
     mockupType?: string;
     customMockupDesc?: string;
-  }
+  },
+  openDesignSkills?: string[],
+  designSystem?: string
 ): Promise<string | null> {
 
   const apiEndpoint = "/api/gemini/generateCreativeImage";
@@ -628,7 +635,9 @@ export async function generateCreativeImage(
     colors: metadata?.colors,
     logoStyle: metadata?.logoStyle,
     mockupType: metadata?.mockupType,
-    customMockupDesc: metadata?.customMockupDesc
+    customMockupDesc: metadata?.customMockupDesc,
+    openDesignSkills,
+    designSystem
   };
 
   const clientFallback = async () => {
@@ -636,9 +645,11 @@ export async function generateCreativeImage(
     // Instead we will try to make a safe mock call or trigger client SDK Imagen-3
     const ai = getClientAi();
     try {
+      const skillsInjected = openDesignSkills ? `[Skills: ${openDesignSkills.join(', ')}] ` : '';
+      const designSysInjected = designSystem ? `[Design System: ${designSystem}] ` : '';
       const response = await ai.models.generateImages({
         model: "imagen-3.0-generate-002",
-        prompt: `${prompt}. Vector aesthetic, high contrast, clean minimalist. No written words.`,
+        prompt: `${skillsInjected}${designSysInjected}${prompt}. Vector aesthetic, high contrast, clean minimalist. No written words.`,
         config: {
           numberOfImages: 1,
           aspectRatio: aspectRatio || "1:1",
@@ -1119,11 +1130,13 @@ export function generateAdvancedDynamicSVG(
 export async function chatWithAdvisor(
   message: string,
   history: { role: 'user' | 'model'; text: string }[] = [],
-  brandContext?: string
+  brandContext?: string,
+  openDesignSkills?: string[],
+  designSystem?: string
 ): Promise<string> {
 
   const apiEndpoint = "/api/gemini/chatWithAdvisor";
-  const payload = { message, history, brandContext };
+  const payload = { message, history, brandContext, openDesignSkills, designSystem };
 
   const clientFallback = async () => {
     const model = "gemini-3.5-flash";
@@ -1161,6 +1174,8 @@ export async function chatWithAdvisor(
 
       Responde en ESPAÑOL, usando Markdown muy legible, limpio y pulido.
       Contexto de Marca: ${brandContext || "Ninguno"}
+      ${openDesignSkills ? buildSkillsPromptInjection(openDesignSkills) : ''}
+      ${designSystem ? buildDesignSystemPromptInjection(designSystem) : ''}
     `;
 
     const listHistory = Array.isArray(history) ? history : [];
@@ -1228,22 +1243,26 @@ export async function chatAboutPhase(
 }
 
 // 5. Ultimate Copywriter Generator
-export async function generateSocialCopy(params: {
-  copyType: 'advertising' | 'informative' | 'engagement';
-  platform: string;
-  tone: string;
-  clientDetails: string;
-  extraContext: string;
-  language: 'es' | 'en';
-  userRole?: string;
-  userBio?: string;
-  userPhilosophy?: string;
-  projectName?: string;
-  projectDescription?: string;
-}): Promise<string> {
+export async function generateSocialCopy(
+  params: {
+    copyType: 'advertising' | 'informative' | 'engagement';
+    platform: string;
+    tone: string;
+    clientDetails: string;
+    extraContext: string;
+    language: 'es' | 'en';
+    userRole?: string;
+    userBio?: string;
+    userPhilosophy?: string;
+    projectName?: string;
+    projectDescription?: string;
+  },
+  openDesignSkills?: string[],
+  designSystem?: string
+): Promise<string> {
 
   const apiEndpoint = "/api/gemini/generateSocialCopy";
-  const payload = { params };
+  const payload = { params, openDesignSkills, designSystem };
 
   const clientFallback = async () => {
     const model = "gemini-3.5-flash";
@@ -1267,6 +1286,8 @@ export async function generateSocialCopy(params: {
       - Results over Aesthetics: Muy pragmático, enfocado a resultados rápidos y llamado a la acción directo.
       - Educador de Élite / Institucional: Profesional, cercano, promueve el crecimiento y desarrollo local, transmite credibilidad y autoridad.
       - Brutalist Persuasion: Directo al cuello de botella del emprendedor, eliminando adornos inútiles y ofreciendo la capacitación o tu producto como solución real.
+      ${openDesignSkills ? buildSkillsPromptInjection(openDesignSkills) : ''}
+      ${designSystem ? buildDesignSystemPromptInjection(designSystem) : ''}
     `;
 
     const prompt = `

@@ -4,6 +4,7 @@
  */
 
 import { getAiClient, callWithRetry } from "./utils";
+import { buildSkillsInjection } from './loadOpenDesignSkill';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -26,17 +27,21 @@ export default async function handler(req: any, res: any) {
     mockupType,
     customMockupDesc
   } = req.body || {};
+  const openDesignSkills: string[] = req.body?.openDesignSkills || ['enhance-prompt', 'color-expert', 'canvas-design'];
+  const skillsInjection = buildSkillsInjection(openDesignSkills);
   let model = "imagen-3.0-generate-002";
 
   try {
     const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo");
     
     // Create an incredibly descriptive high-quality prompt wrapper matching the user's design style
+    // Inject Open Design skills context into prompt enhancement
+    const odContext = skillsInjection ? `[OPEN DESIGN SKILLS CONTEXT: ${openDesignSkills.join(', ')}] ` : '';
     let enhancedPrompt = "";
     if (isLogo) {
-      enhancedPrompt = `A high-quality, professional corporate brand logo isotype, flat vector design graphic, minimalist style. ${prompt}. Clean background, modern sans-serif typography, symmetrical geometry, SVG sleek aesthetic, sharp edges, incorporating overlapping vibrant transparent colored circular shapes (red, yellow, green, blue, purple) on a deep navy or dark slate backdrop. NO blurry textures, NO generic placeholders.`;
+      enhancedPrompt = `${odContext}A high-quality, professional corporate brand logo isotype, flat vector design graphic, minimalist style. ${prompt}. Clean background, modern sans-serif typography, symmetrical geometry, SVG sleek aesthetic, sharp edges, incorporating overlapping vibrant transparent colored circular shapes (red, yellow, green, blue, purple) on a deep navy or dark slate backdrop. NO blurry textures, NO generic placeholders.`;
     } else {
-      enhancedPrompt = `A high-resolution, premium editorial photograph of a business brand mockup. ${prompt}. Layout matching clean structured slides and info-card grids with solid borders. Set on a deep slate gray (#1E293B) or solid dark navy blue (#0F172A) studio background, minimal negative space, clean studio lighting, 3D photorealistic design mockup, detailed, sharp focus, 8k resolution.`;
+      enhancedPrompt = `${odContext}A high-resolution, premium editorial photograph of a business brand mockup. ${prompt}. Layout matching clean structured slides and info-card grids with solid borders. Set on a deep slate gray (#1E293B) or solid dark navy blue (#0F172A) studio background, minimal negative space, clean studio lighting, 3D photorealistic design mockup, detailed, sharp focus, 8k resolution.`;
     }
 
     // Prohibit unrequested texts or gibberish that image generators often output

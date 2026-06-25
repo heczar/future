@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Send, Image as ImageIcon, Zap, Loader2, Briefcase, Camera, Pencil, Square, Trash2, Download, Check, Eraser, Undo, Type, Layers, ChevronDown, ShieldCheck, Bot, User, Maximize2, Minimize2, Copy, Plus, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Underline, PenTool } from 'lucide-react';
 import { generateContentStrategy, generateCreativeImage, generateSocialCopy, refineSocialCopy, chatWithAdvisor } from '../services/geminiService';
+import OpenDesignSkillPicker from './OpenDesignSkillPicker';
+import PromptTemplateGallery from './PromptTemplateGallery';
+import { getDesignSystems } from '../services/openDesignService';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { db, auth } from '../lib/firebase';
@@ -60,6 +63,12 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
   const [activeStrokeWidth, setActiveStrokeWidth] = useState(0);
   
   const canvasImageUploadRef = React.useRef<HTMLInputElement>(null);
+
+  // Open Design Integration States
+  const [selectedStrategySkills, setSelectedStrategySkills] = useState<string[]>(['brainstorming', 'creative-director', 'design-brief']);
+  const [selectedCopySkills, setSelectedCopySkills] = useState<string[]>(['copywriting', 'ad-creative']);
+  const [selectedImageSkills, setSelectedImageSkills] = useState<string[]>(['enhance-prompt', 'color-expert', 'canvas-design']);
+  const [selectedDesignSystem, setSelectedDesignSystem] = useState<string>('FUTURA Institucional');
 
   const [refinement, setRefinement] = useState('');
   const [adhocReference, setAdhocReference] = useState<string | null>(null);
@@ -204,7 +213,9 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
       const responseText = await chatWithAdvisor(
         textToSend,
         futuraMessages,
-        `CONTEXTO DE TRABAJO (MOTOR CREATIVO): El usuario está rellenando las opciones del Motor Creativo y necesita optimizar su enfoque de publicación. El usuario está buscando asesorarse para generar su contenido aquí de la mejor manera. ${activeBrandInfo}`
+        `CONTEXTO DE TRABAJO (MOTOR CREATIVO): El usuario está rellenando las opciones del Motor Creativo y necesita optimizar su enfoque de publicación. El usuario está buscando asesorarse para generar su contenido aquí de la mejor manera. ${activeBrandInfo}`,
+        selectedStrategySkills,
+        selectedDesignSystem
       );
       setFuturaMessages(prev => [...prev, { role: 'model', text: responseText }]);
     } catch (err) {
@@ -404,7 +415,9 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
         `Contexto Operativo: ${brandContext}. Enfócate en ANALIZAR Y REFINAR la inquietud del usuario antes de pasar a la ejecución. No des un prompt de imagen definitivo aún si la idea es vaga.`,
         styleReferences,
         logos,
-        chatHistory
+        chatHistory,
+        selectedStrategySkills,
+        selectedDesignSystem
       );
       
       setChatHistory(prev => [
@@ -517,7 +530,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
         userPhilosophy: '',
         projectName: '',
         projectDescription: '',
-      });
+      }, selectedCopySkills, selectedDesignSystem);
       setCustomGeneratedCopy(resultCopy);
     } catch (err) {
       console.error("Failed to generate copy:", err);
@@ -712,7 +725,9 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
         context, 
         styleReferences, 
         logos, 
-        chatHistory
+        chatHistory,
+        selectedStrategySkills,
+        selectedDesignSystem
       );
       
       // Actualizar historial con la estrategia final
@@ -754,7 +769,24 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
             ? (adhocReference ? [adhocReference, ...(selectedProj.trainingMaterial || [])] : (selectedProj.trainingMaterial || []))
             : (adhocReference ? [adhocReference] : []);
 
-          const img = await generateCreativeImage(strategy.imagePrompt, aspectRatio, styleReferences);
+          const img = await generateCreativeImage(
+            strategy.imagePrompt, 
+            aspectRatio, 
+            styleReferences,
+            {
+              brandName: selectedProj?.name,
+              niche: selectedProj?.methodology,
+              colors: selectedProj?.brandGuidelines 
+                ? [
+                    { hex: selectedProj.brandGuidelines.primaryColor, name: 'Primary Color' },
+                    { hex: selectedProj.brandGuidelines.secondaryColor, name: 'Secondary Color' }
+                  ]
+                : undefined,
+              logoStyle: selectedStyle
+            },
+            selectedImageSkills,
+            selectedDesignSystem
+          );
           setFinalImage(img);
         } catch (errImg: any) {
           console.warn("Auto image render failed, triggering localized brand generator:", errImg);
@@ -812,7 +844,24 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
         ? (adhocReference ? [adhocReference, ...(selectedProj.trainingMaterial || [])] : (selectedProj.trainingMaterial || []))
         : (adhocReference ? [adhocReference] : []);
 
-      const img = await generateCreativeImage(result.imagePrompt, aspectRatio, styleReferences);
+      const img = await generateCreativeImage(
+        result.imagePrompt, 
+        aspectRatio, 
+        styleReferences,
+        {
+          brandName: selectedProj?.name,
+          niche: selectedProj?.methodology,
+          colors: selectedProj?.brandGuidelines 
+            ? [
+                { hex: selectedProj.brandGuidelines.primaryColor, name: 'Primary Color' },
+                { hex: selectedProj.brandGuidelines.secondaryColor, name: 'Secondary Color' }
+              ]
+            : undefined,
+          logoStyle: selectedStyle
+        },
+        selectedImageSkills,
+        selectedDesignSystem
+      );
       setFinalImage(img);
     } catch (err: any) {
       console.warn("Manual image generation failed, triggering localized brand generator:", err);
@@ -2216,7 +2265,7 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                       <Zap className="w-3.5 h-3.5" /> Configurador de Carga
                     </span>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block ml-1">Formato de Producción</label>
                         <div className="relative">
@@ -2230,6 +2279,23 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                               <option value="Post (1080x1080)">Post Cuadrado (1080x1080)</option>
                               <option value="Story (1080x1920)">Story / Reel Vertical (1080x1920)</option>
                             </optgroup>
+                          </select>
+                          <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block ml-1">Sistema de Diseño (Style)</label>
+                        <div className="relative">
+                          <select 
+                            value={selectedDesignSystem}
+                            onChange={(e) => setSelectedDesignSystem(e.target.value)}
+                            className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-brand-primary/50 cursor-pointer appearance-none outline-none"
+                          >
+                            <option value="Mi Estilo (userDesignGuidelines)">Mi Estilo (Default)</option>
+                            {getDesignSystems().map(ds => (
+                              <option key={ds.name} value={ds.name}>{ds.name}</option>
+                            ))}
                           </select>
                           <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>
@@ -2276,6 +2342,19 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                           )}
                         </div>
                       </div>
+                    </div>
+
+                    <div className="space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5">
+                      <OpenDesignSkillPicker 
+                        engineType="strategy" 
+                        selectedSkills={selectedStrategySkills} 
+                        onSkillsChange={setSelectedStrategySkills} 
+                      />
+                      <PromptTemplateGallery 
+                        onSelectTemplate={(template) => {
+                          setPrompt(template.prompt);
+                        }}
+                      />
                     </div>
 
                     <div className="space-y-1.5">
@@ -2520,6 +2599,21 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                                 <span className="text-[8px] font-mono text-slate-500 uppercase">Sin logotipos cargados en la Bóveda</span>
                               )}
                             </div>
+                          </div>
+
+                          <div className="space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <OpenDesignSkillPicker 
+                              engineType="image" 
+                              selectedSkills={selectedImageSkills} 
+                              onSkillsChange={setSelectedImageSkills} 
+                            />
+                            <PromptTemplateGallery 
+                              onSelectTemplate={(template) => {
+                                if (result) {
+                                  setResult({ ...result, imagePrompt: template.prompt });
+                                }
+                              }}
+                            />
                           </div>
 
                           <div className="space-y-1.5">
@@ -3190,6 +3284,14 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                                 </button>
                               ))}
                             </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <OpenDesignSkillPicker 
+                              engineType="copy" 
+                              selectedSkills={selectedCopySkills} 
+                              onSkillsChange={setSelectedCopySkills} 
+                            />
                           </div>
 
                           {/* CONTEXTO EXTRA */}
@@ -4195,6 +4297,14 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                       </button>
                     ))}
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <OpenDesignSkillPicker 
+                    engineType="copy" 
+                    selectedSkills={selectedCopySkills} 
+                    onSkillsChange={setSelectedCopySkills} 
+                  />
                 </div>
 
                 {/* CONTEXTO EXTRA */}

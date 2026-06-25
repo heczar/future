@@ -4,6 +4,7 @@
  */
 
 import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatWithAdvisorFallback } from "./utils";
+import { buildSkillsInjection, listSkillNames } from './loadOpenDesignSkill';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,6 +17,8 @@ export default async function handler(req: any, res: any) {
 
   const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
   const { message, history, brandContext } = req.body || {};
+  const openDesignSkills: string[] = req.body?.openDesignSkills || ['design-consultation', 'brand-guidelines'];
+  const skillsInjection = buildSkillsInjection(openDesignSkills);
   const model = "gemini-3.5-flash";
   console.log(`[FUTURA SERVER] chatWithAdvisor invocado con mensaje: "${message || ""}". Usando modelo: ${model}`);
 
@@ -53,6 +56,11 @@ export default async function handler(req: any, res: any) {
 
     Responde en ESPAÑOL, usando Markdown muy legible, limpio y pulido.
     Contexto de Marca: ${brandContext || "Ninguno"}
+    ${skillsInjection}
+    
+    CATÁLOGO DE SKILLS DISPONIBLES DE OPEN DESIGN:
+    Puedes recomendar al usuario activar cualquiera de estos skills: ${listSkillNames().join(', ')}.
+    Explica brevemente qué hace cada skill cuando el usuario pregunte.
   `;
 
   try {
