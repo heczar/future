@@ -5,7 +5,6 @@
 
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 
 import chatWithAdvisorHandler from "./api/gemini/chatWithAdvisor";
@@ -87,6 +86,7 @@ app.post("/api/gemini/refineSocialCopy", wrapHandler(refineSocialCopyHandler));
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     console.log("Iniciando Vite en Middleware Mode (Desarrollo)...");
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
