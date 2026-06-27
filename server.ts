@@ -7,12 +7,12 @@ import express from "express";
 import path from "path";
 import dotenv from "dotenv";
 
-import chatWithAdvisorHandler from "./api/gemini/chatWithAdvisor";
-import chatAboutPhaseHandler from "./api/gemini/chatAboutPhase";
-import generateContentStrategyHandler from "./api/gemini/generateContentStrategy";
-import generateCreativeImageHandler from "./api/gemini/generateCreativeImage";
-import generateSocialCopyHandler from "./api/gemini/generateSocialCopy";
-import refineSocialCopyHandler from "./api/gemini/refineSocialCopy";
+import chatWithAdvisorHandler from "./server-api/chatWithAdvisor.js";
+import chatAboutPhaseHandler from "./server-api/chatAboutPhase.js";
+import generateContentStrategyHandler from "./server-api/generateContentStrategy.js";
+import generateCreativeImageHandler from "./server-api/generateCreativeImage.js";
+import generateSocialCopyHandler from "./server-api/generateSocialCopy.js";
+import refineSocialCopyHandler from "./server-api/refineSocialCopy.js";
 
 dotenv.config();
 
@@ -107,7 +107,7 @@ async function startServer() {
 }
 
 // Only start the listening port when run directly (not under Vercel Serverless Functions)
-if (!process.env.VERCEL || process.env.NODE_ENV !== "production") {
+if (!process.env.VERCEL) {
   startServer();
 }
 

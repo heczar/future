@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatAboutPhaseFallback } from "./utils";
+import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatAboutPhaseFallback } from "./utils.js";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
