@@ -602,7 +602,6 @@ export async function generateCreativeImage(
     logoStyle?: string;
     mockupType?: string;
     customMockupDesc?: string;
-    correctionCommand?: string;
   }
 ): Promise<string | null> {
 
@@ -616,8 +615,7 @@ export async function generateCreativeImage(
     colors: metadata?.colors,
     logoStyle: metadata?.logoStyle,
     mockupType: metadata?.mockupType,
-    customMockupDesc: metadata?.customMockupDesc,
-    correctionCommand: metadata?.correctionCommand
+    customMockupDesc: metadata?.customMockupDesc
   };
 
   const clientFallback = async () => {

@@ -24,68 +24,23 @@ export default async function handler(req: any, res: any) {
     colors,
     logoStyle,
     mockupType,
-    customMockupDesc,
-    correctionCommand
+    customMockupDesc
   } = req.body || {};
   let model = "imagen-3.0-generate-002";
 
   try {
-    let promptToUse = prompt || "";
-
-    // 1. INTELLIGENT WRITTEN COMMAND BLENDING
-    if (correctionCommand && correctionCommand.trim()) {
-      console.log(`[FUTURA SERVER] Blending original prompt and written correction command with Gemini...`);
-      try {
-        const aiRes = await getAiClient(customKey).models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: `You are an expert prompt engineer for Google's Imagen 3.0 model.
-Original Image Concept/Prompt: "${prompt || 'Premium business graphic design'}"
-User's Written Correction/Refinement Command: "${correctionCommand}"
-
-Synthesize both inputs into a single, cohesive, highly descriptive English prompt optimized for Imagen 3.0.
-Rules:
-- Do NOT output any conversational preamble, commentary, or Markdown code blocks. Output ONLY the raw final synthesized prompt.
-- Make the requested corrections high-priority in the scene composition.
-- Retain the core business/creative intent of the original prompt while completely replacing rigid aspects with the new fluid, organic instructions.
-- Translate any Spanish instructions to professional English prompt design terminology.`,
-        });
-        const blendedPrompt = aiRes.text?.trim();
-        if (blendedPrompt) {
-          console.log(`[FUTURA SERVER] Successfully blended prompt: "${blendedPrompt}"`);
-          promptToUse = blendedPrompt;
-        }
-      } catch (blendErr) {
-        console.error("[FUTURA SERVER] Failed to blend prompt with Gemini, falling back to simple concatenation:", blendErr);
-        promptToUse = `${prompt}. User requested modification: ${correctionCommand}.`;
-      }
-    }
-
-    const isLogo = (promptToUse || "").toLowerCase().includes("logo") || (promptToUse || "").toLowerCase().includes("icon") || (promptToUse || "").toLowerCase().includes("symbol") || (promptToUse || "").toLowerCase().includes("isotipo");
-    const isMockup = (promptToUse || "").toLowerCase().includes("mockup") || (promptToUse || "").toLowerCase().includes("mock-up") || (promptToUse || "").toLowerCase().includes("valla") || (promptToUse || "").toLowerCase().includes("packaging") || (promptToUse || "").toLowerCase().includes("taza") || (promptToUse || "").toLowerCase().includes("camiseta") || (promptToUse || "").toLowerCase().includes("flyer");
-
-    // 2. PROMPT ENHANCEMENT & DE-RIGIDIZATION
+    const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo");
+    
+    // Create an incredibly descriptive high-quality prompt wrapper
     let enhancedPrompt = "";
     if (isLogo) {
-      enhancedPrompt = `A high-quality, professional corporate brand logo isotype, flat vector design graphic, minimalist style. ${promptToUse}. Clean background, modern typography, symmetrical geometry, SVG sleek aesthetic, sharp edges, suitable for luxury and high-converting modern brands. NO blurry textures, NO generic placeholders.`;
-    } else if (isMockup) {
-      enhancedPrompt = `A high-resolution, premium editorial photograph of a business brand mockup context. ${promptToUse}. Cinematic lighting, 3D photorealistic studio design mockup, detailed, sharp focus, 8k resolution. Solid composition resembling premium marketing assets, realistic texture.`;
+      enhancedPrompt = `A high-quality, professional corporate brand logo isotype, flat vector design graphic, minimalist style. ${prompt}. Clean background, modern typography, symmetrical geometry, SVG sleek aesthetic, sharp edges, suitable for luxury and high-converting modern brands. NO blurry textures, NO generic placeholders.`;
     } else {
-      enhancedPrompt = `A stunning, high-resolution premium professional commercial visual graphic for modern brand advertising. ${promptToUse}. Elegant natural depth of field, modern framing, authentic professional production, rich organic textures, premium high-end advertising aesthetic, balanced composition. Beautiful and vibrant, highly engaging, free of rigid artificial borders or cookie-cutter template lines.`;
-    }
-
-    // 3. CHROMATIC CONSISTENCY INTEGRATION
-    if (colors && colors.length > 0) {
-      const colorList = colors.map((c: any) => {
-        if (typeof c === 'string') return c;
-        return `${c.name || 'brand color'} (${c.hex || '#ffffff'})`;
-      }).join(", ");
-      enhancedPrompt += ` Dominated by and perfectly aligned with the brand's corporate color palette: ${colorList}. These exact colors must act as the primary, dominant accent colors to maintain perfect corporate identity and strong visual consistency. Avoid unrelated, random, or generic colors.`;
-    } else {
-      enhancedPrompt += " Clean modern professional color grading aligned with a luxury tech palette.";
+      enhancedPrompt = `A high-resolution, premium editorial photograph of a business brand mockup context. ${prompt}. Cinematic lighting, 3D photorealistic studio design mockup, detailed, sharp focus, 8k resolution. Solid composition resembling premium marketing assets, realistic texture.`;
     }
 
     // Prohibit unrequested texts or gibberish that image generators often output
-    enhancedPrompt += " Ensure extremely high rendering quality with professional studio presentation. Strictly NO written text, misspelled generic words, garbled logos or letters unless explicitly requested.";
+    enhancedPrompt += " Ensure extremely high rendering quality with professional studio presentation. Strictly NO written text, misspelled generic words, garbled logos or letters unless requested.";
 
     console.log(`[FUTURA SERVER] Final enhanced prompt sent to Imagen 3.0: "${enhancedPrompt}"`);
 
@@ -123,7 +78,7 @@ Rules:
 
     // Default elegant fallback if zero bytes found or quota was hit
     if (!imageUrl || quotaDetected) {
-      imageUrl = getContextualFallback(promptToUse, brandName, niche, colors, logoStyle, mockupType, customMockupDesc);
+      imageUrl = getContextualFallback(prompt, brandName, niche, colors, logoStyle, mockupType, customMockupDesc);
     }
 
     return res.status(200).json({ imageUrl });

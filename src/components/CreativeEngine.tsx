@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Send, Image as ImageIcon, Zap, Loader2, Briefcase, Camera, Pencil, Square, Trash2, Download, Check, Eraser, Undo, Type, Layers, ChevronDown, ShieldCheck, Bot, User, Maximize2, Minimize2, Copy, Plus, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Underline, PenTool, Sliders } from 'lucide-react';
+import { Sparkles, Send, Image as ImageIcon, Zap, Loader2, Briefcase, Camera, Pencil, Square, Trash2, Download, Check, Eraser, Undo, Type, Layers, ChevronDown, ShieldCheck, Bot, User, Maximize2, Minimize2, Copy, Plus, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Underline, PenTool } from 'lucide-react';
 import { generateContentStrategy, generateCreativeImage, generateSocialCopy, refineSocialCopy, chatWithAdvisor } from '../services/geminiService';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -51,7 +51,6 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
   const [imageError, setImageError] = useState<string | null>(null);
   const [finalImage, setFinalImage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [directImageCorrection, setDirectImageCorrection] = useState('');
   const [phrases, setPhrases] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -772,14 +771,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
             ? (adhocReference ? [adhocReference, ...(selectedProj.trainingMaterial || [])] : (selectedProj.trainingMaterial || []))
             : (adhocReference ? [adhocReference] : []);
 
-          const img = await generateCreativeImage(strategy.imagePrompt, aspectRatio, styleReferences, {
-            brandName: selectedProj?.name,
-            niche: selectedProj?.description,
-            colors: selectedProj?.brandGuidelines?.primaryColor ? [
-              { hex: selectedProj.brandGuidelines.primaryColor, name: 'primary' },
-              ...(selectedProj.brandGuidelines.secondaryColor ? [{ hex: selectedProj.brandGuidelines.secondaryColor, name: 'secondary' }] : [])
-            ] : undefined
-          });
+          const img = await generateCreativeImage(strategy.imagePrompt, aspectRatio, styleReferences);
           setFinalImage(img);
         } catch (errImg: any) {
           console.warn("Auto image render failed, triggering localized brand generator:", errImg);
@@ -837,66 +829,12 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
         ? (adhocReference ? [adhocReference, ...(selectedProj.trainingMaterial || [])] : (selectedProj.trainingMaterial || []))
         : (adhocReference ? [adhocReference] : []);
 
-      const img = await generateCreativeImage(result.imagePrompt, aspectRatio, styleReferences, {
-        brandName: selectedProj?.name,
-        niche: selectedProj?.description,
-        colors: selectedProj?.brandGuidelines?.primaryColor ? [
-          { hex: selectedProj.brandGuidelines.primaryColor, name: 'primary' },
-          ...(selectedProj.brandGuidelines.secondaryColor ? [{ hex: selectedProj.brandGuidelines.secondaryColor, name: 'secondary' }] : [])
-        ] : undefined
-      });
+      const img = await generateCreativeImage(result.imagePrompt, aspectRatio, styleReferences);
       setFinalImage(img);
     } catch (err: any) {
       console.warn("Manual image generation failed, triggering localized brand generator:", err);
       const fallbackImg = getRandomFallbackImage(result.imagePrompt || prompt);
       setFinalImage(fallbackImg);
-    } finally {
-      setGeneratingImage(false);
-    }
-  };
-
-  const handleDirectImageCorrection = async () => {
-    const currentPrompt = result?.imagePrompt || prompt || "Premium branding graphic";
-    if (!directImageCorrection.trim()) return;
-
-    setGeneratingImage(true);
-    setImageError(null);
-    try {
-      let aspectRatio = "1:1";
-      if (selectedFormat.includes("1080x1920") || selectedFormat.includes("Story")) {
-        aspectRatio = "9:16";
-      } else if (selectedFormat.includes("1080x1350") || selectedFormat.includes("Carrusel")) {
-        aspectRatio = "3:4";
-      }
-
-      const selectedProj = activeBrand || projects.find(p => p.id === selectedProjectId);
-      const styleReferences = selectedProj 
-        ? (adhocReference ? [adhocReference, ...(selectedProj.trainingMaterial || [])] : (selectedProj.trainingMaterial || []))
-        : (adhocReference ? [adhocReference] : []);
-
-      const img = await generateCreativeImage(currentPrompt, aspectRatio, styleReferences, {
-        brandName: selectedProj?.name,
-        niche: selectedProj?.description,
-        colors: selectedProj?.brandGuidelines?.primaryColor ? [
-          { hex: selectedProj.brandGuidelines.primaryColor, name: 'primary' },
-          ...(selectedProj.brandGuidelines.secondaryColor ? [{ hex: selectedProj.brandGuidelines.secondaryColor, name: 'secondary' }] : [])
-        ] : undefined,
-        correctionCommand: directImageCorrection.trim()
-      });
-      
-      if (img) {
-        setFinalImage(img);
-        if (result) {
-          setResult({
-            ...result,
-            imagePrompt: `${currentPrompt} (Con corrección: ${directImageCorrection.trim()})`
-          });
-        }
-        setDirectImageCorrection('');
-      }
-    } catch (err: any) {
-      console.warn("Direct image correction failed:", err);
-      setImageError(err.message || String(err));
     } finally {
       setGeneratingImage(false);
     }
@@ -2686,58 +2624,7 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                             </div>
                           )}
 
-                          {finalImage && (
-                            <div className="w-full max-w-[340px] bg-surface-900 border border-white/10 p-3 rounded-2xl space-y-3">
-                              <div>
-                                <h5 className="text-[9px] font-black text-white uppercase tracking-widest flex items-center gap-1">
-                                  <Sliders className="w-3.5 h-3.5 text-brand-primary animate-pulse" />
-                                  Ajuste Crítico de Imagen (Por Comando)
-                                </h5>
-                                <p className="text-[7.5px] text-slate-400">Corrige rigidez, colores o composición al instante.</p>
-                              </div>
-                              <div className="flex gap-1.5">
-                                <input 
-                                  type="text"
-                                  value={directImageCorrection}
-                                  onChange={(e) => setDirectImageCorrection(e.target.value)}
-                                  placeholder="Ej: pon fondo negro mate, cambia a oro y azul..."
-                                  className="flex-1 bg-black/60 border border-white/5 rounded-lg px-2.5 py-1.5 text-[10px] text-white placeholder:text-slate-600 focus:outline-none focus:border-brand-primary"
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !generatingImage && directImageCorrection.trim()) {
-                                      handleDirectImageCorrection();
-                                    }
-                                  }}
-                                />
-                                <button
-                                  onClick={handleDirectImageCorrection}
-                                  disabled={generatingImage || !directImageCorrection.trim()}
-                                  className="px-3 py-1.5 bg-brand-primary hover:bg-brand-primary/80 transition-all text-[8.5px] font-black text-white uppercase tracking-wider rounded-lg disabled:opacity-50 flex items-center gap-1 shrink-0 cursor-pointer"
-                                >
-                                  {generatingImage ? "..." : "Ajustar"}
-                                </button>
-                              </div>
-                              <div className="flex flex-wrap gap-1">
-                                <button
-                                  onClick={() => { setDirectImageCorrection("Eliminar rigidez, hazlo más orgánico, estilo editorial moderno"); }}
-                                  className="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-[7.5px] font-mono text-slate-400 transition-colors"
-                                >
-                                  🍃 Menos Rígido
-                                </button>
-                                <button
-                                  onClick={() => { setDirectImageCorrection("Reforzar colores corporativos de marca y consistencia cromática estricta"); }}
-                                  className="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-[7.5px] font-mono text-slate-400 transition-colors"
-                                >
-                                  🎨 Consistencia Cromática
-                                </button>
-                                <button
-                                  onClick={() => { setDirectImageCorrection("Estilo premium minimalista con fondo limpio de alto contraste"); }}
-                                  className="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-[7.5px] font-mono text-slate-400 transition-colors"
-                                >
-                                  ✨ Minimalista
-                                </button>
-                              </div>
-                            </div>
-                          )}
+
 
                           <p className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Relación de Aspecto Limitada por Formato: {selectedFormat}</p>
                         </div>
