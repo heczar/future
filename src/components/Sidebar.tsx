@@ -14,8 +14,7 @@ import {
   ShieldCheck,
   Shield,
   Rocket,
-  MessageSquare,
-  AlertTriangle
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -30,16 +29,6 @@ interface SidebarProps {
 
 export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: SidebarProps) {
   const isMaster = auth.currentUser?.email?.toLowerCase() === 'heczaroficial@gmail.com';
-  const [isFallbackActive, setIsFallbackActive] = React.useState(false);
-
-  React.useEffect(() => {
-    const checkFallback = () => {
-      setIsFallbackActive(localStorage.getItem('futura_api_fallback_active') === 'true');
-    };
-    checkFallback();
-    const interval = setInterval(checkFallback, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   const menuGroups = [
     {
@@ -141,18 +130,6 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
             </div>
           ))}
         </nav>
-
-        {isFallbackActive && (
-          <div className="mx-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-left space-y-1.5 animate-pulse">
-            <div className="flex items-center gap-1.5 text-amber-500">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-              <span className="text-[10px] font-black font-mono uppercase tracking-wider">Modo de Respaldo Activo</span>
-            </div>
-            <p className="text-[9.5px] text-slate-400 leading-normal">
-              La API de Gemini no responde. Para activar la IA real y generación de imágenes, configura la clave <strong className="text-white font-mono text-[9px]">GEMINI_API_KEY</strong> en las variables de entorno de tu dashboard de Vercel, o ingresa tu clave en la pestaña <button onClick={() => setActiveTab('profile')} className="text-brand-primary underline hover:text-brand-primary/80 font-bold cursor-pointer">Mi Perfil</button>.
-            </p>
-          </div>
-        )}
 
         <div className="p-6 border-t border-white/5 space-y-4 shrink-0">
           <div className="flex items-center gap-3 px-4 py-2 bg-white/5 rounded-xl">

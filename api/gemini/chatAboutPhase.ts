@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatAboutPhaseFallback } from "./utils.js";
+import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatAboutPhaseFallback } from "./utils";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,7 +16,7 @@ export default async function handler(req: any, res: any) {
 
   const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
   const { phase, history, message } = req.body || {};
-  const model = "gemini-3.5-flash";
+  const model = "gemini-2.5-flash";
   console.log(`[FUTURA SERVER] chatAboutPhase invocado para fase "${phase}". Mensaje: "${message || ""}". Usando modelo: ${model}`);
 
   const systemInstruction = `

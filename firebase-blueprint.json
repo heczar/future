@@ -50,12 +50,43 @@
         "createdAt": { "type": "object" }
       },
       "required": ["ownerId", "imageUrl", "brandName"]
+    },
+    "product": {
+      "title": "Product Offer",
+      "description": "Payment and billing products configured per user account",
+      "type": "object",
+      "properties": {
+        "productName": { "type": "string" },
+        "productDescription": { "type": "string" },
+        "productPrice": { "type": "number" }
+      },
+      "required": ["productName", "productPrice"]
+    },
+    "publication": {
+      "title": "Scheduled Publication",
+      "description": "Content scheduled to be published on social media channels",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string" },
+        "title": { "type": "string" },
+        "copy": { "type": "string" },
+        "scheduledTime": { "type": "string" },
+        "channels": { "type": "array", "items": { "type": "string" } },
+        "imageUrl": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["ownerId", "title", "copy", "scheduledTime"]
     }
   },
   "firestore": {
     "users/{userId}": {
       "schema": "profile",
       "description": "Public and private user profile data"
+    },
+    "users/{userId}/products/{productId}": {
+      "schema": "product",
+      "description": "Custom payment products of the user profile"
     },
     "projects/{projectId}": {
       "schema": "project",
@@ -64,6 +95,10 @@
     "saved_assets/{assetId}": {
       "schema": "saved_asset",
       "description": "Finalized designs saved in the Gallery"
+    },
+    "publications/{pubId}": {
+      "schema": "publication",
+      "description": "Scheduled content pieces on the marketing calendar"
     }
   }
 }

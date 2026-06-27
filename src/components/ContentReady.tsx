@@ -38,10 +38,6 @@ import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'fire
 import { chatWithAdvisor, generateCreativeImage } from '../services/geminiService';
 import { assertHasQuota, trackActionConsumption } from '../services/consumptionTracker';
 import { cn } from '../lib/utils';
-import OpenDesignSkillPicker from './OpenDesignSkillPicker';
-import PromptTemplateGallery from './PromptTemplateGallery';
-import { getDesignSystems } from '../services/openDesignService';
-
 
 interface CampaignPreset {
   id: string;
@@ -92,13 +88,6 @@ interface ContentReadyProps {
 export default function ContentReady({ initialProfile, profile }: ContentReadyProps = {}) {
   // Profiles: 'ignicion' (brand creation from scratch) vs 'propulsion' (established workflow with existing / client materials)
   const [selectedProfile, setSelectedProfile] = useState<'ignicion' | 'propulsion' | null>(initialProfile || null);
-
-  // Open Design Integration States
-  const [selectedStrategySkills, setSelectedStrategySkills] = useState<string[]>(['brainstorming', 'creative-director', 'design-brief']);
-  const [selectedCopySkills, setSelectedCopySkills] = useState<string[]>(['copywriting', 'ad-creative']);
-  const [selectedImageSkills, setSelectedImageSkills] = useState<string[]>(['enhance-prompt', 'color-expert', 'canvas-design']);
-  const [selectedDesignSystem, setSelectedDesignSystem] = useState<string>('FUTURA Institucional');
-
 
   useEffect(() => {
     if (initialProfile !== undefined && initialProfile !== null) {
@@ -325,13 +314,7 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
     `;
 
     try {
-      const response = await chatWithAdvisor(
-        brandGenerationPrompt, 
-        [], 
-        "Fase de Creación: Ignición de Marca",
-        selectedStrategySkills,
-        selectedDesignSystem
-      );
+      const response = await chatWithAdvisor(brandGenerationPrompt, [], "Fase de Creación: Ignición de Marca");
       
       // Parse output sections
       let nameOptions: string[] = [];
@@ -486,9 +469,7 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
           logoStyle: ignitionLogoStyle,
           mockupType: ignitionMockupType,
           customMockupDesc: ignitionCustomMockupDesc
-        },
-        selectedImageSkills,
-        selectedDesignSystem
+        }
       );
 
       setGeneratedLogoUrl(imgUrl);
@@ -542,9 +523,7 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
           logoStyle: ignitionLogoStyle,
           mockupType: ignitionMockupType,
           customMockupDesc: ignitionCustomMockupDesc
-        },
-        selectedImageSkills,
-        selectedDesignSystem
+        }
       );
 
       setGeneratedMockupUrl(imgUrl);
@@ -663,9 +642,7 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
       const responseText = await chatWithAdvisor(
         dynamicPrompt, 
         [], 
-        `WORKFLOW DE CAMPAÑA CON ACELERADOR DE COMPORTAMIENTOS: ${brandContextText}`,
-        selectedCopySkills,
-        selectedDesignSystem
+        `WORKFLOW DE CAMPAÑA CON ACELERADOR DE COMPORTAMIENTOS: ${brandContextText}`
       );
 
       // Parse the response into clean slots
@@ -736,18 +713,7 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
       const imgUrl = await generateCreativeImage(
         rawPrompt || "obsidian minimalist graphic style, premium tech design, gold accents, high contrast noir render",
         "1:1",
-        ["Brutalist Tech"],
-        selectedBrand ? {
-          brandName: selectedBrand.name,
-          niche: selectedBrand.description,
-          colors: selectedBrand.colorPalette || [],
-        } : (generatedBrandData ? {
-          brandName: selectedBrandName || (generatedBrandData.nameOptions && generatedBrandData.nameOptions[0]) || "Futura",
-          niche: ignitionNiche,
-          colors: generatedBrandData.colorPalette,
-        } : undefined),
-        selectedImageSkills,
-        selectedDesignSystem
+        ["Brutalist Tech"]
       );
 
       setGeneratedImage(imgUrl);
@@ -1072,35 +1038,6 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
                               className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500/40 transition font-sans"
                             />
                           </div>
-
-                          {/* Open Design Integration */}
-                          <div className="pt-3 border-t border-white/5 space-y-4">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block font-mono">Sistema de Diseño (Style)</label>
-                              <select 
-                                value={selectedDesignSystem}
-                                onChange={(e) => setSelectedDesignSystem(e.target.value)}
-                                className="w-full bg-surface-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/40 transition cursor-pointer font-sans"
-                              >
-                                <option value="Mi Estilo (userDesignGuidelines)">Mi Estilo (Default)</option>
-                                {getDesignSystems().map(ds => (
-                                  <option key={ds.name} value={ds.name}>{ds.name}</option>
-                                ))}
-                              </select>
-                            </div>
-
-                            <OpenDesignSkillPicker 
-                              engineType="strategy" 
-                              selectedSkills={selectedStrategySkills} 
-                              onSkillsChange={setSelectedStrategySkills} 
-                            />
-
-                            <OpenDesignSkillPicker 
-                              engineType="image" 
-                              selectedSkills={selectedImageSkills} 
-                              onSkillsChange={setSelectedImageSkills} 
-                            />
-                          </div>
                         </div>
                       )}
 
@@ -1266,29 +1203,6 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
                       <option value="LinkedIn Expert Articles">LinkedIn Insights (Autoridad Técnica de Élite)</option>
                       <option value="X Micro-Hooks Threads">X (Hilo persuasivo y ganchos de conversión)</option>
                     </select>
-                  </div>
-
-                  {/* Open Design Styling & Skill Integration */}
-                  <div className="space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <div className="space-y-1.5 text-left">
-                      <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">Sistema de Diseño</label>
-                      <select 
-                        value={selectedDesignSystem}
-                        onChange={(e) => setSelectedDesignSystem(e.target.value)}
-                        className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-primary/45 transition cursor-pointer"
-                      >
-                        <option value="Mi Estilo (userDesignGuidelines)">Mi Estilo (Default)</option>
-                        {getDesignSystems().map(ds => (
-                          <option key={ds.name} value={ds.name}>{ds.name}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <OpenDesignSkillPicker 
-                      engineType="copy" 
-                      selectedSkills={selectedCopySkills} 
-                      onSkillsChange={setSelectedCopySkills} 
-                    />
                   </div>
 
                   {/* CTA Action button to generate campaign */}
@@ -1859,24 +1773,7 @@ export default function ContentReady({ initialProfile, profile }: ContentReadyPr
                           <p className="text-xs text-slate-400 leading-normal">
                             FUTURA compila la dirección de arte en un prompt hiper-detallado en inglés de acuerdo al nicho y restricciones del Baúl. Presiona el botón para renderizar el activo publicitario de base.
                           </p>
-
-                          <div className="space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5 text-left">
-                            <OpenDesignSkillPicker 
-                              engineType="image" 
-                              selectedSkills={selectedImageSkills} 
-                              onSkillsChange={setSelectedImageSkills} 
-                            />
-                            <PromptTemplateGallery 
-                              onSelectTemplate={(template) => {
-                                setCampaignOutputs({
-                                  ...campaignOutputs,
-                                  visualDirection: template.prompt
-                                });
-                              }}
-                            />
-                          </div>
-
-                          <div className="bg-black/30 border border-white/5 rounded-xl p-3 text-left">
+                          <div className="bg-black/30 border border-white/5 rounded-xl p-3">
                             <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest block font-bold mb-1">PROMPT DE IA VISUAL COMPILADO</span>
                             <p className="text-[10px] text-slate-400 italic line-clamp-3 leading-normal font-mono">
                               "{campaignOutputs.visualDirection}"

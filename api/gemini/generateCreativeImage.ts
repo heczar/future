@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getAiClient, callWithRetry } from "./utils.js";
-import { buildSkillsInjection } from './loadOpenDesignSkill.js';
+import { getAiClient, callWithRetry } from "./utils";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -26,107 +25,105 @@ export default async function handler(req: any, res: any) {
     logoStyle,
     mockupType,
     customMockupDesc,
-    designSystem
+    correctionCommand
   } = req.body || {};
-  const openDesignSkills: string[] = req.body?.openDesignSkills || ['enhance-prompt', 'color-expert', 'canvas-design'];
-  const skillsInjection = buildSkillsInjection(openDesignSkills);
   let model = "imagen-3.0-generate-002";
 
   try {
-    const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo");
-    
-    // Parse color specifications if available
-    let colorDescription = "";
-    if (Array.isArray(colors) && colors.length > 0) {
-      const colorValues = colors.map((c: any) => {
-        if (typeof c === 'string') return c;
-        if (typeof c === 'object' && c.hex) return c.name ? `${c.name} (${c.hex})` : c.hex;
-        return '';
-      }).filter(Boolean);
-      if (colorValues.length > 0) {
-        colorDescription = `using the color palette: ${colorValues.join(', ')}`;
+    let promptToUse = prompt || "";
+
+    // 1. INTELLIGENT WRITTEN COMMAND BLENDING
+    if (correctionCommand && correctionCommand.trim()) {
+      console.log(`[FUTURA SERVER] Blending original prompt and written correction command with Gemini...`);
+      try {
+        const aiRes = await getAiClient(customKey).models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: `You are an expert prompt engineer for Google's Imagen 3.0 model.
+Original Image Concept/Prompt: "${prompt || 'Premium business graphic design'}"
+User's Written Correction/Refinement Command: "${correctionCommand}"
+
+Synthesize both inputs into a single, cohesive, highly descriptive English prompt optimized for Imagen 3.0.
+Rules:
+- Do NOT output any conversational preamble, commentary, or Markdown code blocks. Output ONLY the raw final synthesized prompt.
+- Make the requested corrections high-priority in the scene composition.
+- Retain the core business/creative intent of the original prompt while completely replacing rigid aspects with the new fluid, organic instructions.
+- Translate any Spanish instructions to professional English prompt design terminology.`,
+        });
+        const blendedPrompt = aiRes.text?.trim();
+        if (blendedPrompt) {
+          console.log(`[FUTURA SERVER] Successfully blended prompt: "${blendedPrompt}"`);
+          promptToUse = blendedPrompt;
+        }
+      } catch (blendErr) {
+        console.error("[FUTURA SERVER] Failed to blend prompt with Gemini, falling back to simple concatenation:", blendErr);
+        promptToUse = `${prompt}. User requested modification: ${correctionCommand}.`;
       }
     }
 
-    if (!colorDescription) {
-      // User design guidelines fallback if nothing specified
-      colorDescription = "using a clean and professional color scheme matching the brand concept";
-    }
+    const isLogo = (promptToUse || "").toLowerCase().includes("logo") || (promptToUse || "").toLowerCase().includes("icon") || (promptToUse || "").toLowerCase().includes("symbol") || (promptToUse || "").toLowerCase().includes("isotipo");
+    const isMockup = (promptToUse || "").toLowerCase().includes("mockup") || (promptToUse || "").toLowerCase().includes("mock-up") || (promptToUse || "").toLowerCase().includes("valla") || (promptToUse || "").toLowerCase().includes("packaging") || (promptToUse || "").toLowerCase().includes("taza") || (promptToUse || "").toLowerCase().includes("camiseta") || (promptToUse || "").toLowerCase().includes("flyer");
 
-    // Parse design system style description if active
-    let styleDescription = "";
-    if (designSystem) {
-      styleDescription = `following the guidelines of the design system: ${designSystem}`;
-    }
-
-    // Context from Open Design skills
-    const odContext = skillsInjection ? `[OPEN DESIGN SKILLS CONTEXT: ${openDesignSkills.join(', ')}] ` : '';
-    
+    // 2. PROMPT ENHANCEMENT & DE-RIGIDIZATION
     let enhancedPrompt = "";
     if (isLogo) {
-      const chosenLogoStyle = logoStyle || "minimalist flat vector design";
-      enhancedPrompt = `${odContext}A high-quality, professional corporate brand logo isotype, flat vector design graphic, ${chosenLogoStyle} style. ${prompt}. Clean background, modern typography, symmetrical geometry, SVG sleek aesthetic, sharp edges, ${colorDescription} ${styleDescription}. NO blurry textures, NO generic placeholders.`;
+      enhancedPrompt = `A high-quality, professional corporate brand logo isotype, flat vector design graphic, minimalist style. ${promptToUse}. Clean background, modern typography, symmetrical geometry, SVG sleek aesthetic, sharp edges, suitable for luxury and high-converting modern brands. NO blurry textures, NO generic placeholders.`;
+    } else if (isMockup) {
+      enhancedPrompt = `A high-resolution, premium editorial photograph of a business brand mockup context. ${promptToUse}. Cinematic lighting, 3D photorealistic studio design mockup, detailed, sharp focus, 8k resolution. Solid composition resembling premium marketing assets, realistic texture.`;
     } else {
-      const chosenMockup = mockupType || "premium editorial photograph of a business brand mockup";
-      enhancedPrompt = `${odContext}A high-resolution, premium editorial photograph of a business brand mockup. ${prompt}. Layout matching a ${chosenMockup} style, ${colorDescription} ${styleDescription}, clean studio lighting, 3D photorealistic design mockup, detailed, sharp focus, 8k resolution.`;
+      enhancedPrompt = `A stunning, high-resolution premium professional commercial visual graphic for modern brand advertising. ${promptToUse}. Elegant natural depth of field, modern framing, authentic professional production, rich organic textures, premium high-end advertising aesthetic, balanced composition. Beautiful and vibrant, highly engaging, free of rigid artificial borders or cookie-cutter template lines.`;
+    }
+
+    // 3. CHROMATIC CONSISTENCY INTEGRATION
+    if (colors && colors.length > 0) {
+      const colorList = colors.map((c: any) => {
+        if (typeof c === 'string') return c;
+        return `${c.name || 'brand color'} (${c.hex || '#ffffff'})`;
+      }).join(", ");
+      enhancedPrompt += ` Dominated by and perfectly aligned with the brand's corporate color palette: ${colorList}. These exact colors must act as the primary, dominant accent colors to maintain perfect corporate identity and strong visual consistency. Avoid unrelated, random, or generic colors.`;
+    } else {
+      enhancedPrompt += " Clean modern professional color grading aligned with a luxury tech palette.";
     }
 
     // Prohibit unrequested texts or gibberish that image generators often output
-    enhancedPrompt += " Ensure extremely high rendering quality with professional studio presentation. Strictly NO written text, misspelled generic words, garbled logos or letters unless requested.";
+    enhancedPrompt += " Ensure extremely high rendering quality with professional studio presentation. Strictly NO written text, misspelled generic words, garbled logos or letters unless explicitly requested.";
+
+    console.log(`[FUTURA SERVER] Final enhanced prompt sent to Imagen 3.0: "${enhancedPrompt}"`);
 
     let response = null;
     let quotaDetected = false;
 
+    // Use official Google GenAI Imagen 3.0 image generation model
     try {
       response = await callWithRetry(async () => {
         return await getAiClient(customKey).models.generateImages({
-          model,
+          model: "imagen-3.0-generate-002",
           prompt: enhancedPrompt,
           config: {
             numberOfImages: 1,
             aspectRatio: (aspectRatio || "1:1") as any,
           },
         });
-      }, 2, 1000);
+      }, 1, 1000);
     } catch (modelErr: any) {
       const errStr = (modelErr?.message || "").toLowerCase();
       if (errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit")) {
         quotaDetected = true;
-        console.log("[FUTURA] Image model quota limit exceeded. Activating local vector design engine.");
+        console.log("[FUTURA] Imagen model hit quota/limits.");
       } else {
-        const cleanErr = (modelErr?.message || String(modelErr)).slice(0, 100);
-        console.warn("[FUTURA] Primary Imagen model failed. Retrying one more time...", cleanErr);
-        try {
-          response = await callWithRetry(async () => {
-            return await getAiClient(customKey).models.generateImages({
-              model: "imagen-3.0-generate-002",
-              prompt: enhancedPrompt,
-              config: {
-                numberOfImages: 1,
-                aspectRatio: (aspectRatio || "1:1") as any,
-              },
-            });
-          }, 1, 1000);
-        } catch (altErr: any) {
-          const altErrStr = (altErr?.message || "").toLowerCase();
-          if (altErrStr.includes("quota") || altErrStr.includes("429") || altErrStr.includes("exhausted") || altErrStr.includes("limit")) {
-            quotaDetected = true;
-            console.log("[FUTURA] Alternate Imagen attempt failed due to quota limit.");
-          } else {
-            console.warn("[FUTURA] Alternate image generation failed:", altErr?.message || altErr);
-          }
-        }
+        console.warn("[FUTURA] imagen-3.0-generate-002 failed. Serving ultra-polished Vector SVG mockup fallback...", modelErr?.message || modelErr);
       }
     }
 
     let imageUrl: string | null = null;
+
+    // Parse image from generateImages response
     if (response && response.generatedImages?.[0]?.imageBytes) {
       imageUrl = `data:image/jpeg;base64,${response.generatedImages[0].imageBytes}`;
     }
 
     // Default elegant fallback if zero bytes found or quota was hit
     if (!imageUrl || quotaDetected) {
-      imageUrl = getContextualFallback(prompt, brandName, niche, colors, logoStyle, mockupType, customMockupDesc);
+      imageUrl = getContextualFallback(promptToUse, brandName, niche, colors, logoStyle, mockupType, customMockupDesc);
     }
 
     return res.status(200).json({ imageUrl });
@@ -175,16 +172,10 @@ export function generateAdvancedDynamicSVG(
     return cleanName.trim().slice(0, 2).toUpperCase();
   })();
 
-  const getHex = (val: any) => {
-    if (!val) return null;
-    if (typeof val === 'string') return val;
-    if (typeof val === 'object' && val.hex) return val.hex;
-    return null;
-  };
-  const hex1 = getHex(colors?.[0]) || "#4F46E5";
-  const hex2 = getHex(colors?.[1]) || "#F59E0B";
-  const hex3 = getHex(colors?.[2]) || "#0F172A";
-  const hex4 = getHex(colors?.[3]) || "#1E293B";
+  const hex1 = colors?.[0]?.hex || "#FFD700";
+  const hex2 = colors?.[1]?.hex || "#C58927";
+  const hex3 = colors?.[2]?.hex || "#090d16";
+  const hex4 = colors?.[3]?.hex || "#1e293b";
 
   const lowerNiche = (niche || "").toLowerCase();
   const lowerPrompt = textPrompt.toLowerCase();
@@ -639,20 +630,21 @@ export function generateAdvancedDynamicSVG(
       <circle cx="200" cy="240" r="4" fill="${hex1}" />
     `;
   } else {
-    // Default: Círculos cromáticos superpuestos y transparentes adaptados a los colores seleccionados
+    // Default: Simétrico y Geométrico de Lujo (Premium Gold/Obsidian)
     graphicContent = `
-      <!-- Overlapping transparent color wheels using brand colors -->
-      <g opacity="0.85" stroke-width="1.5" stroke="#FFFFFF" stroke-opacity="0.1">
-        <circle cx="170" cy="155" r="45" fill="${hex1}" fill-opacity="0.45" />
-        <circle cx="230" cy="155" r="45" fill="${hex2}" fill-opacity="0.45" />
-        <circle cx="200" cy="205" r="45" fill="${hex3}" fill-opacity="0.45" />
-        <circle cx="165" cy="200" r="30" fill="${hex4}" fill-opacity="0.45" />
-        <circle cx="235" cy="200" r="30" fill="${hex1}" fill-opacity="0.3" />
-      </g>
-      <!-- Center overlay icon -->
-      <circle cx="200" cy="175" r="50" fill="none" stroke="url(#${strokeGradId})" stroke-width="4.5" />
-      <polygon points="200,145 225,185 175,185" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" />
-      <circle cx="200" cy="175" r="8" fill="#FFFFFF" />
+      <!-- Interlocking luxurious golden spheres -->
+      <circle cx="200" cy="175" r="95" fill="none" stroke="rgba(255,255,255,0.02)" stroke-width="1" />
+      
+      <circle cx="200" cy="120" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
+      <circle cx="200" cy="230" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
+      <circle cx="145" cy="175" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
+      <circle cx="255" cy="175" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
+      
+      <!-- Inner core diamond -->
+      <polygon points="200,135 235,175 200,215 165,175" fill="url(#${strokeGradId})" opacity="0.85" />
+      <polygon points="200,145 224,175 200,205 176,175" fill="#FFFFFF" />
+      
+      <circle cx="200" cy="175" r="6" fill="#04060b" />
     `;
   }
 

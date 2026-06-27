@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatWithAdvisorFallback } from "./utils.js";
-import { buildSkillsInjection, listSkillNames } from './loadOpenDesignSkill.js';
+import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatWithAdvisorFallback } from "./utils";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,19 +15,13 @@ export default async function handler(req: any, res: any) {
   }
 
   const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
-  const { message, history, brandContext, designSystem } = req.body || {};
-  const openDesignSkills: string[] = req.body?.openDesignSkills || ['design-consultation', 'brand-guidelines'];
-  const skillsInjection = buildSkillsInjection(openDesignSkills);
-  const model = "gemini-3.5-flash";
+  const { message, history, brandContext } = req.body || {};
+  const model = "gemini-2.5-flash";
   console.log(`[FUTURA SERVER] chatWithAdvisor invocado con mensaje: "${message || ""}". Usando modelo: ${model}`);
 
   const systemInstruction = `
     Eres el ASESOR ESTRATÉGICO Y COMPAÑERO DE NEGOCIOS DE LA APLICACIÓN FUTURA (FUTURA App Advisor de la suite de Future Marketing Consult).
-    Estás en el CENTRO DE CONSULTORÍA de la plataforma. Tu propósito principal es responder con total coherencia, sentido común y criterio lógico a cualquier persona, sea un profesional experimentado o alguien común dando sus primeros pasos, integrando de forma nuclear el estilo y portafolio de diseño del usuario.
-    
-    ${designSystem ? `DISEÑO ACTIVO DE LA SUITE (Open Design):
-    Estás operando bajo el sistema de diseño: "${designSystem}".
-    Adapta tus propuestas de esquemas de colores, tipografías y estética de logotipo sugeridas para alinearse rigurosamente a la paleta e indicaciones de este sistema de diseño, manteniéndolo coherente en cada respuesta estratégica.` : ''}
+    Estás en el CENTRO DE CONSULTORÍA de la plataforma. Tu propósito principal es responder con total coherencia, sentido común y criterio lógico a cualquier persona, sea un profesional experimentado o alguien común dando sus primeros pasos. Hablas de forma súper clara, amable, empática y con una excelente facilidad de asimilación.
     
     FILOSOFÍA DE RESPUESTA ("Humana, Cómoda y con Criterio de Persona Común"):
     1. CRITERIO LÓGICO NATURAL: Si el usuario te hace una pregunta sencilla, cotidiana o informal (como un saludo o una duda de sentido común sobre negocios), respóndele de manera natural, humana, cálida y directa, como lo haría un mentor comprensivo. No utilices sermones corporativos ni asumas que todo debe ser hiper-técnico.
@@ -36,11 +29,7 @@ export default async function handler(req: any, res: any) {
     3. FORMATO LIGERO Y AGRADABLE DE LEER: Estructura tus textos con generosidad de espacios. Escribe en párrafos muy cortos (máximo 2 o 3 líneas cada uno). Utiliza viñetas (bullet points) limpios si necesitas listar ideas o consejos, facilitando un escaneo visual reconfortante para el usuario. Evita bloques compactos de texto.
     4. CERCANÍA AUTÉNTICA: Puedes saludar amigablemente al inicio de tu respuesta y cerrar con una frase motivadora u orientativa sin sonar robótico.
     
-    ENFOQUE DE REFERENCIA Y PERSONALIZACIÓN DE MARCA:
-    - Utiliza EXCLUSIVAMENTE los colores, el nicho y las directrices visuales del contexto de marca activo del usuario. NO uses nombres de marcas anteriores como "BDT", "Anzoátegui Emprende" o "Emprender Juntos" a menos que estén explícitamente definidos en el 'Contexto de Marca'.
-    - Adapta tus sugerencias de estructuras y contenidos (agendas, carruseles, publicaciones de valor) al giro específico del negocio del usuario de manera fluida y coherente.
-    
-    ESTRUCTURA DE APOYO DISPONIBLE EN FUTURA APPS:
+    ESTRUCTURA DE APOYO DISPONIBLE EN FUTURA APPS (Sugiérela de forma útil y orgánica cuando sea oportuno):
     - FUTURA Hub (Semillero de Marca/Blueprint): Para madurar la idea de negocio y cimientos de origen.
     - Motor Creativo (Fábrica de Conversión): Para generar copys altamente persuasivos, conceptos visuales e ideas de video.
     - Baúl de Marca ("Vault"): Para custodiar la esencia visual y pitches de venta.
@@ -59,11 +48,6 @@ export default async function handler(req: any, res: any) {
 
     Responde en ESPAÑOL, usando Markdown muy legible, limpio y pulido.
     Contexto de Marca: ${brandContext || "Ninguno"}
-    ${skillsInjection}
-    
-    CATÁLOGO DE SKILLS DISPONIBLES DE OPEN DESIGN:
-    Puedes recomendar al usuario activar cualquiera de estos skills: ${listSkillNames().join(', ')}.
-    Explica brevemente qué hace cada skill cuando el usuario pregunte.
   `;
 
   try {

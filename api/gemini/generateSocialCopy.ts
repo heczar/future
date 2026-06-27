@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getAiClient, generateContentWithRetry, getGenerateSocialCopyFallback } from "./utils.js";
-import { buildSkillsInjection } from './loadOpenDesignSkill.js';
+import { getAiClient, generateContentWithRetry, getGenerateSocialCopyFallback } from "./utils";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,40 +15,33 @@ export default async function handler(req: any, res: any) {
   }
 
   const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
-  const { params, designSystem } = req.body || {};
-  const openDesignSkills: string[] = req.body?.openDesignSkills || ['copywriting', 'ad-creative'];
-  const skillsInjection = buildSkillsInjection(openDesignSkills);
+  const { params } = req.body || {};
   if (!params) {
     return res.status(400).json({ error: "Missing campaign params" });
   }
 
-  const model = "gemini-3.5-flash";
+  const model = "gemini-2.5-flash";
   console.log(`[FUTURA SERVER] generateSocialCopy invocado para plataforma "${params.platform || ""}", tipo: "${params.copyType || ""}". Usando modelo: ${model}`);
 
   const systemInstruction = `
     Eres el REDACTOR CREATIVO DE ÉLITE (Copywriter) de FUTURA (FUTURA Marketing Consult).
-    Tu especialidad es redactar copies que convierten y detienen el scroll en redes sociales, adaptándote de forma nativa al portafolio y estilo institucional del usuario.
-    
-    Sigue fielmente la filosofía de FUTURA de "Results over Aesthetics" (Resultados sobre Estética) combinada con la manera de trabajar del usuario:
-    - Redacción directa, persuasiva, de alto impacto, y orientada a la acción. 
+    Tu especialidad es redactar copies que convierten y detienen el scroll en redes sociales.
+    Sigue fielmente la filosofía de FUTURA de "Results over Aesthetics" (Resultados sobre Estética):
+    - Redacción directa, persuasiva, de alto impacto y orientada a la acción. 
     - Cero palabras de relleno o formalismos corporativos aburridos.
-    - Captura la atención con ganchos magnéticos desde la primera frase (ej: Hooks de retos, cronogramas de actividades o hitos informativos).
+    - Captura la atención con ganchos magnéticos desde la primera frase.
     - Utiliza saltos de línea estratégicos para facilitar la lectura visual.
-    - IMPORTANTE: Los hashtags locales (como #AnzoateguiEmprende #EmprenderJuntos) y nombres de programas son REFERENCIAS DE ESTRUCTURA Y FORMATO. No debes usarlos de forma literal a menos que el usuario lo pida explícitamente para esa marca. Usa hashtags y nombres dinámicos adaptados al nicho y marca del usuario actual.
+    - Combina llamadas a la acción (CTAs) de conversión directa con hashtags de nicho quirúrgicos.
 
     SEGÚN LA CATEGORÍA SOLICITADA DEBES ADAPTARTE:
-    1. Publicitario (Advertising): Estructura AIDA o dolor-agitación-solución. Enfocado en invitar a talleres, registrar marcas, formalizar proyectos y captar clientes de manera persuasiva, cercana y amigable.
-    2. Informativo (Informativo): Aporta valor educativo mediante checklists accionables, "Ciclos de Ponencias", "Agendas Semanales", o tips estructurados para carruseles ("Desliza 👉").
-    3. Engagement (Participación): Fomenta comentarios y debates amigables sobre crecimiento, ideas de negocio y desafíos del nicho.
+    1. Publicitario (Advertising): Estructura AIDA (Atención, Interés, Deseo, Acción) o dolor-agitación-solución. Enfocado en conversiones rápidas, beneficios comerciales irresistibles, destacar ofertas audaces, y urgencia sutil.
+    2. Informativo (Informativo): Aporta valor educativo masivo, resúmenes organizados, checklists accionables, o desgloses paso a paso para el usuario final.
+    3. Engagement (Participación): Fomenta comentarios, inicia debates, realiza preguntas provocadoras de alta retención o ganchos para carruseles de interacción masiva.
 
     SEGÚN EL TONO SELECCIONADO DEBES ADAPTARTE:
-    - Results over Aesthetics: Muy pragmático, enfocado a resultados rápidos y llamado a la acción directo.
-    - Educador de Élite / Institucional: Profesional, cercano, promueve el crecimiento y desarrollo local, transmite credibilidad y autoridad.
-    - Brutalist Persuasion: Directo al cuello de botella del emprendedor, eliminando adornos inútiles y ofreciendo la capacitación o tu producto como solución real.
-    ${designSystem ? `DISEÑO ACTIVO DE LA SUITE (Open Design):
-    Estás operando bajo el sistema de diseño: "${designSystem}".
-    Adapta tus propuestas de esquemas de colores, tipografías y estética de logotipo sugeridas para alinearse rigurosamente a la paleta e indicaciones de este sistema de diseño, manteniéndolo coherente en cada respuesta estratégica.` : ''}
-    ${skillsInjection}
+    - Results over Aesthetics: Muy pragmático, agresivo centrado en conversiones rápidas, directo al grano, sin mentiras ni rellenos pomposos.
+    - Educador de Élite: Sofisticado, de alta gama, elegante, ultra-profesional, transmite autoridad técnica indisputable.
+    - Brutalist Persuasion: Crudo, directo al dolor del cliente, brutalmente audaz, destaca el cuello de botella real de los negocios y ofrece la cura con FUTURA.
   `;
 
   try {

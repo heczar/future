@@ -81,11 +81,6 @@ export async function getUserConsumption(userId: string, isPremium: boolean): Pr
  * Verifies if user has remaining quota before performing an action.
  */
 export async function assertHasQuota(userId: string, isPremium: boolean, actionType: 'consult' | 'image' | 'strategy'): Promise<boolean> {
-  // BYPASS FOR LOCAL DEVELOPMENT: Never block the developer/owner on localhost
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    return true;
-  }
-
   const cons = await getUserConsumption(userId, isPremium);
   
   if (actionType === 'consult' || actionType === 'strategy') {

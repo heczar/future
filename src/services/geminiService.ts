@@ -4,7 +4,6 @@
  */
 
 import { GoogleGenAI } from "@google/genai";
-import { buildSkillsPromptInjection, buildDesignSystemPromptInjection } from "./openDesignService";
 
 // Secure Hybrid Client/Server Gemini Service Proxy
 // First attempts to use the robust Express API proxy.
@@ -432,7 +431,6 @@ async function executeWithFallback<T>(
     // 404 indicates server route is not present (standard static host like Vercel)
     if (res.status === 404) {
       console.warn(`[FUTURA HYBRID] Servidor local no soporta esta ruta o estás en un hosting estático (404). Escalando a API de Cliente...`);
-      localStorage.setItem('futura_api_fallback_active', 'true');
       return await fallbackFn();
     }
 
@@ -450,7 +448,6 @@ async function executeWithFallback<T>(
     }
 
     const data = await res.json();
-    localStorage.setItem('futura_api_fallback_active', 'false');
     if (data && typeof data === 'object') {
       if ('response' in data) {
         return data.response as any;
@@ -473,9 +470,7 @@ async function executeWithFallback<T>(
     if (hasClientApiKey()) {
       try {
         console.warn(`[FUTURA] Intentando canal directo del navegador...`);
-        const result = await fallbackFn();
-        localStorage.setItem('futura_api_fallback_active', 'false');
-        return result;
+        return await fallbackFn();
       } catch (fallbackError: any) {
         console.warn(`[FUTURA HYBRID] Canal directo completado con aviso:`, fallbackError.message);
       }
@@ -483,7 +478,6 @@ async function executeWithFallback<T>(
 
     // Elegant deterministic simulation fallback as the ultimate protection
     console.warn(`[FUTURA HYBRID] Cargando respuesta estructurada de resguardo estratégico para continuar...`);
-    localStorage.setItem('futura_api_fallback_active', 'true');
     return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
   }
 }
@@ -496,58 +490,41 @@ export async function generateContentStrategy(
   context: string,
   styleReferences?: string[],
   logos?: string[],
-  history: { role: 'user' | 'model'; content: string }[] = [],
-  openDesignSkills?: string[],
-  designSystem?: string
+  history: { role: 'user' | 'model'; content: string }[] = []
 ): Promise<{ strategy: string; copy: string; imagePrompt: string; videoProposal?: string }> {
   
   const apiEndpoint = "/api/gemini/generateContentStrategy";
-  const payload = { prompt, context, styleReferences, logos, history, openDesignSkills, designSystem };
+  const payload = { prompt, context, styleReferences, logos, history };
 
   const clientFallback = async () => {
     const model = "gemini-3.5-flash";
     const systemInstruction = `
       Eres el ASESOR ESTRATÉGICO Y CONVERTIDOR COMERCIAL de FUTURA. 
-      Tu misión es ser el "vendedor estrella" de la marca, alineándote al 100% con las directrices de diseño y portafolio del usuario.
+      Tu misión es ser el "vendedor estrella" de la marca. Recibes a los usuarios en la sección "Conversa con Futura".
       
       TONALIDAD Y PERSONA:
       - Eres audaz, profesional, visionario y profundamente persuasivo.
-      - No solo respondes, VENDES LA VISIÓN de crecimiento del emprendimiento y la banca digital.
-      - LÍMITE DE CORTESÍA: Actúa como si esta consulta fuera un regalo de tiempo limitado. Recuerda sutilmente que el acceso pleno a la inteligencia de mercado está en el plan FUTURA PRO.
-      - Si el usuario pregunta qué es FUTURA: Explica de forma directa que es un ecosistema del Sistema Pentagonal de Ejecución.
+      - No solo respondes, VENDES LA VISIÓN. Si el usuario duda, refuérzale por qué FUTURA es la única opción estratégica real.
+      - LÍMITE DE CORTESÍA: Actúa como si esta consulta fuera un regalo de tiempo limitado. Recuerda sutilmente que el acceso pleno a la inteligencia de mercado y el motor de renderizado masivo está en el plan FUTURA PRO.
+      - Si el usuario pregunta qué es FUTURA: Explica que es un ecosistema de inteligencia creativa basado en el Sistema Pentagonal de Ejecución (SPE) que prioriza resultados sobre estética.
+      - PROMOCIÓN DE FUTURA PRO: Si detectas que el usuario tiene una visión grande, invítalo a pasarse a Pro para obtener créditos ilimitados, motor de renderizado 4K, y asesoría sin límites de sesión.
       
-      DIRECTRICES DE DISEÑO DEL PORTAFOLIO DEL USUARIO (REFERENCIA ESTÉTICA DE MARCA - MANERA DE TRABAJAR):
-      - IMPORTANTE: Estos nombres de marca (como Anzoátegui Emprende, BDT, etc.) y sus respectivos hashtags son REFERENCIAS DE TU MANERA DE TRABAJAR DISEÑO. No debes usarlos ni copiarlos de forma literal en los textos generados a menos que el usuario lo pida explícitamente para esa marca. Debes ADAPTAR esta manera de trabajar (estructuras, estilos, layouts) a cualquier marca o nicho que el usuario te solicite.
-      - Paleta de Colores a usar como inspiración estructural:
-        1. Estilo Institucional / Emprendimiento: Azul pizarra profundo (#1E293B), índigo/morado real (#4F46E5), gris claro (#F1F5F9) y blanco puro.
-        2. Estilo Banca/Finanzas Digitales: Fondo azul marino/oscuro (#0F172A), con círculos cromáticos superpuestos y transparentes muy vibrantes (rojo, amarillo, verde, azul, violeta).
-      - Estilo de Layouts de Diapositiva: Formatos de agenda semanal, carruseles de tips informativos, bloques de datos tipo tarjeta con bordes sólidos y layouts estilo presentación limpia.
-      - Tipografía: Roboto o sans-serif limpia en pesos bold/extra-bold para títulos.
-      
-      DIRECTRICES DE REDACCIÓN Y ESTRUCTURA (TONO Y FORMATO DE CONTENIDO):
-      - Utiliza un tono que combine la metodología de FUTURA con la estructura limpia del portafolio del usuario: formal pero muy cercano, apoyando al usuario, y con excelente facilidad de asimilación.
-      - Incorpora estructuras de agendas semanales, calendarios de actividades, checklists de hitos y tips de carrusel (ej. "Aprende con estos tips:", "Desliza 👉") adaptados al nicho solicitado.
-      - Párrafos muy cortos (máximo 2 líneas por párrafo) y viñetas limpias para fácil lectura.
-      - Usa hashtags de nicho acordes a la marca que solicita el usuario (no uses hashtags de Anzoátegui Emprende a menos que sea el tema consultado).
-
       REDUCACIÓN DEL MOTOR (MÍMICA VISUAL DE PLANTILLAS Y REFERENCIAS):
-      1. Si el usuario ha cargado diseños de referencia, plantillas previas, o materiales visuales de entrenamiento:
-         - Analiza la ubicación de objetos, el fondo, estilo y colores.
-         - Tu "imagePrompt" debe ser técnico y en inglés para que el render-engine lo entienda perfecto, modelando composiciones de rejilla limpia, layouts de diapositivas y los colores del portafolio.
+      1. Si el usuario ha cargado diseños de referencia, plantillas previas, una "Referencia Visual Directa" (adhocReference), o materiales visuales de entrenamiento en su Brand Vault o attachments:
+         - Es un REQUISITO CRÍTICO e IMPERATIVO reverse-engineer la composición exacta de estos archivos de referencia. Analiza la ubicación de objetos, el fondo, el estilo fotográfico/artístico, sombras e iluminación focal.
+         - Tu "imagePrompt" debe ser técnico y en inglés para inducir al motor a clonar visualmente este diseño adaptándolo al motivo del usuario.
       
       REGLA DE ORO: BRAND LOCK
-      - ES OBLIGATORIO usar la composición y colores de los logos y referencias adjuntos, adaptando las formas (morado/slate o círculos de color sobre marino) según corresponda.
+      - ES OBLIGATORIO usar la composición y colores de los logos y referencias adjuntos.
       - PROHIBICIÓN DE TEXTO EN IMAGEN: No generes NINGUNA palabra ni letras escritas en el imagePrompt.
       
       OUTPUT FORMAT (JSON ONLY):
       {
-        "strategy": "Sintética recomendación estratégica directa, accionable y corta en un párrafo conciso...",
+        "strategy": "Asesoría o recomendación estratégica detallada...",
         "copy": "El copy persuasivo completo listo para publicar...",
         "imagePrompt": "Advanced Technical English prompt...",
         "videoProposal": "Propuesta estructurada de video/Reel corto de alta retención (0-60s)..."
       }
-      ${openDesignSkills ? buildSkillsPromptInjection(openDesignSkills) : ''}
-      ${designSystem ? buildDesignSystemPromptInjection(designSystem) : ''}
     `;
 
     const listHistory = Array.isArray(history) ? history : [];
@@ -625,9 +602,8 @@ export async function generateCreativeImage(
     logoStyle?: string;
     mockupType?: string;
     customMockupDesc?: string;
-  },
-  openDesignSkills?: string[],
-  designSystem?: string
+    correctionCommand?: string;
+  }
 ): Promise<string | null> {
 
   const apiEndpoint = "/api/gemini/generateCreativeImage";
@@ -641,32 +617,41 @@ export async function generateCreativeImage(
     logoStyle: metadata?.logoStyle,
     mockupType: metadata?.mockupType,
     customMockupDesc: metadata?.customMockupDesc,
-    openDesignSkills,
-    designSystem
+    correctionCommand: metadata?.correctionCommand
   };
 
   const clientFallback = async () => {
     // We cannot easily run client-side Image Generation if keys are missing or model not activated on free tier.
-    // Instead we will try to make a safe mock call or trigger client SDK Imagen-3
+    // Instead we will try to make a safe call or trigger client SDK gemini-3.1-flash-image
     const ai = getClientAi();
     try {
-      const skillsInjected = openDesignSkills ? `[Skills: ${openDesignSkills.join(', ')}] ` : '';
-      const designSysInjected = designSystem ? `[Design System: ${designSystem}] ` : '';
-      const response = await ai.models.generateImages({
-        model: "imagen-3.0-generate-002",
-        prompt: `${skillsInjected}${designSysInjected}${prompt}. Vector aesthetic, high contrast, clean minimalist. No written words.`,
+      const response = await ai.models.generateContent({
+        model: "gemini-3.1-flash-image",
+        contents: {
+          parts: [{ text: `${prompt}. Vector aesthetic, high contrast, clean minimalist. No written words.` }]
+        },
         config: {
-          numberOfImages: 1,
-          aspectRatio: aspectRatio || "1:1",
+          imageConfig: {
+            aspectRatio: (aspectRatio || "1:1") as any,
+            imageSize: "1K"
+          }
         }
       });
 
-      const imgBytes = response.generatedImages?.[0]?.imageBytes;
+      let imgBytes = "";
+      if (response && response.candidates?.[0]?.content?.parts) {
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData) {
+            imgBytes = part.inlineData.data;
+            break;
+          }
+        }
+      }
       if (imgBytes) {
         return `data:image/jpeg;base64,${imgBytes}`;
       }
     } catch (apiErr) {
-      console.warn("Client Imagen model failed, falling back to beautiful curated Unsplash design...", apiErr);
+      console.warn("Client image model failed, falling back to beautiful curated Unsplash design...", apiErr);
     }
     // High premium abstract design fallback for professional interface
     const text = (prompt || "").toLowerCase();
@@ -829,10 +814,10 @@ export function generateAdvancedDynamicSVG(
     return cleanName.trim().slice(0, 2).toUpperCase();
   })();
 
-  const hex1 = colors?.[0]?.hex || "#4F46E5";
-  const hex2 = colors?.[1]?.hex || "#F59E0B";
-  const hex3 = colors?.[2]?.hex || "#0F172A";
-  const hex4 = colors?.[3]?.hex || "#1E293B";
+  const hex1 = colors?.[0]?.hex || "#FFD700";
+  const hex2 = colors?.[1]?.hex || "#C58927";
+  const hex3 = colors?.[2]?.hex || "#090d16";
+  const hex4 = colors?.[3]?.hex || "#1e293b";
 
   const isMockup = textPrompt.toLowerCase().includes("mockup") || textPrompt.toLowerCase().includes("valla") || textPrompt.toLowerCase().includes("escaparate") || textPrompt.toLowerCase().includes("packaging") || textPrompt.toLowerCase().includes("letrero");
 
@@ -1074,25 +1059,21 @@ export function generateAdvancedDynamicSVG(
       <circle cx="200" cy="240" r="4" fill="${hex1}" />
     `;
   } else {
-    // Default: Círculos cromáticos superpuestos y transparentes (Estilo de portafolio del usuario - BDT / Emprendimiento)
+    // Default: Simétrico y Geométrico de Lujo (Premium Gold/Obsidian)
     graphicContent = `
-      <!-- User's signature overlapping transparent color wheels -->
-      <g opacity="0.85" stroke-width="1.5" stroke="#FFFFFF" stroke-opacity="0.1">
-        <!-- Blue sphere -->
-        <circle cx="170" cy="155" r="45" fill="#3B82F6" fill-opacity="0.45" />
-        <!-- Red sphere -->
-        <circle cx="230" cy="155" r="45" fill="#EF4444" fill-opacity="0.45" />
-        <!-- Yellow sphere -->
-        <circle cx="200" cy="205" r="45" fill="#F59E0B" fill-opacity="0.45" />
-        <!-- Green sphere -->
-        <circle cx="165" cy="200" r="30" fill="#10B981" fill-opacity="0.45" />
-        <!-- Purple sphere -->
-        <circle cx="235" cy="200" r="30" fill="#8B5CF6" fill-opacity="0.45" />
-      </g>
-      <!-- Center overlay icon -->
-      <circle cx="200" cy="175" r="50" fill="none" stroke="url(#${strokeGradId})" stroke-width="4.5" />
-      <polygon points="200,145 225,185 175,185" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" />
-      <circle cx="200" cy="175" r="8" fill="#FFFFFF" />
+      <!-- Interlocking luxurious golden spheres -->
+      <circle cx="200" cy="175" r="95" fill="none" stroke="rgba(255,255,255,0.02)" stroke-width="1" />
+      
+      <circle cx="200" cy="120" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
+      <circle cx="200" cy="230" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
+      <circle cx="145" cy="175" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
+      <circle cx="255" cy="175" r="70" fill="none" stroke="url(#${strokeGradId})" stroke-width="3" opacity="0.55"/>
+      
+      <!-- Inner core diamond -->
+      <polygon points="200,135 235,175 200,215 165,175" fill="url(#${strokeGradId})" opacity="0.85" />
+      <polygon points="200,145 224,175 200,205 176,175" fill="#FFFFFF" />
+      
+      <circle cx="200" cy="175" r="6" fill="#04060b" />
     `;
   }
 
@@ -1135,31 +1116,25 @@ export function generateAdvancedDynamicSVG(
 export async function chatWithAdvisor(
   message: string,
   history: { role: 'user' | 'model'; text: string }[] = [],
-  brandContext?: string,
-  openDesignSkills?: string[],
-  designSystem?: string
+  brandContext?: string
 ): Promise<string> {
 
   const apiEndpoint = "/api/gemini/chatWithAdvisor";
-  const payload = { message, history, brandContext, openDesignSkills, designSystem };
+  const payload = { message, history, brandContext };
 
   const clientFallback = async () => {
     const model = "gemini-3.5-flash";
     const systemInstruction = `
       Eres el ASESOR ESTRATÉGICO Y COMPAÑERO DE NEGOCIOS DE LA APLICACIÓN FUTURA (FUTURA App Advisor de la suite de Future Marketing Consult).
-      Estás en el CENTRO DE CONSULTORÍA de la plataforma. Tu propósito principal es responder con total coherencia, sentido común y criterio lógico a cualquier persona, sea un profesional experimentado o alguien común dando sus primeros pasos, integrando de forma nuclear el estilo y portafolio de diseño del usuario.
+      Estás en el CENTRO DE CONSULTORÍA de la plataforma. Tu propósito principal es responder con total coherencia, sentido común y criterio lógico a cualquier persona, sea un profesional experimentado o alguien común dando sus primeros pasos. Hablas de forma súper clara, amable, empática y con una excelente facilidad de asimilación.
       
       FILOSOFÍA DE RESPUESTA ("Humana, Cómoda y con Criterio de Persona Común"):
       1. CRITERIO LÓGICO NATURAL: Si el usuario te hace una pregunta sencilla, cotidiana o informal (como un saludo o una duda de sentido común sobre negocios), respóndele de manera natural, humana, cálida y directa, como lo haría un mentor comprensivo. No utilices sermones corporativos ni asumas que todo debe ser hiper-técnico.
-      2. EXPLICACIONES SENCILLAS Y CÓMODAS: Traduce cualquier concepto complejo a palabras de uso cotidiano. Explica el "por qué" y el "cómo" de forma didáctica. Tu misión es hacer el marketing y la estrategia comercial amigables, accesibles y cómodas para todo el mundo.
+      2. EXPLICACIONES SENCILLAS Y CÓMODAS: Traduce cualquier concepto complejo a palabras de uso cotidiano. Explica el "por qué" y el "cómo" de forma didáctica. Tu misión es hacer el marketing y la estrategia comercial amigables, accesibles y cómodos para todo el mundo.
       3. FORMATO LIGERO Y AGRADABLE DE LEER: Estructura tus textos con generosidad de espacios. Escribe en párrafos muy cortos (máximo 2 o 3 líneas cada uno). Utiliza viñetas (bullet points) limpios si necesitas listar ideas o consejos, facilitando un escaneo visual reconfortante para el usuario. Evita bloques compactos de texto.
       4. CERCANÍA AUTÉNTICA: Puedes saludar amigablemente al inicio de tu respuesta y cerrar con una frase motivadora u orientativa sin sonar robótico.
       
-      ENFOQUE DE REFERENCIA Y PERSONALIZACIÓN DE MARCA:
-      - Utiliza EXCLUSIVAMENTE los colores, el nicho y las directrices visuales del contexto de marca activo del usuario. NO uses nombres de marcas anteriores como "BDT", "Anzoátegui Emprende" o "Emprender Juntos" a menos que estén explícitamente definidos en el 'Contexto de Marca'.
-      - Adapta tus sugerencias de estructuras y contenidos (agendas, carruseles, publicaciones de valor) al giro específico del negocio del usuario de manera fluida y coherente.
-      
-      ESTRUCTURA DE APOYO DISPONIBLE EN FUTURA APPS:
+      ESTRUCTURA DE APOYO DISPONIBLE EN FUTURA APPS (Sugiérela de forma útil y orgánica cuando sea oportuno):
       - FUTURA Hub (Semillero de Marca/Blueprint): Para madurar la idea de negocio y cimientos de origen.
       - Motor Creativo (Fábrica de Conversión): Para generar copys altamente persuasivos, conceptos visuales e ideas de video.
       - Baúl de Marca ("Vault"): Para custodiar la esencia visual y pitches de venta.
@@ -1178,8 +1153,6 @@ export async function chatWithAdvisor(
 
       Responde en ESPAÑOL, usando Markdown muy legible, limpio y pulido.
       Contexto de Marca: ${brandContext || "Ninguno"}
-      ${openDesignSkills ? buildSkillsPromptInjection(openDesignSkills) : ''}
-      ${designSystem ? buildDesignSystemPromptInjection(designSystem) : ''}
     `;
 
     const listHistory = Array.isArray(history) ? history : [];
@@ -1247,51 +1220,29 @@ export async function chatAboutPhase(
 }
 
 // 5. Ultimate Copywriter Generator
-export async function generateSocialCopy(
-  params: {
-    copyType: 'advertising' | 'informative' | 'engagement';
-    platform: string;
-    tone: string;
-    clientDetails: string;
-    extraContext: string;
-    language: 'es' | 'en';
-    userRole?: string;
-    userBio?: string;
-    userPhilosophy?: string;
-    projectName?: string;
-    projectDescription?: string;
-  },
-  openDesignSkills?: string[],
-  designSystem?: string
-): Promise<string> {
+export async function generateSocialCopy(params: {
+  copyType: 'advertising' | 'informative' | 'engagement';
+  platform: string;
+  tone: string;
+  clientDetails: string;
+  extraContext: string;
+  language: 'es' | 'en';
+  userRole?: string;
+  userBio?: string;
+  userPhilosophy?: string;
+  projectName?: string;
+  projectDescription?: string;
+}): Promise<string> {
 
   const apiEndpoint = "/api/gemini/generateSocialCopy";
-  const payload = { params, openDesignSkills, designSystem };
+  const payload = { params };
 
   const clientFallback = async () => {
     const model = "gemini-3.5-flash";
     const systemInstruction = `
-      Eres el REDACTOR CREATIVO DE ÉLITE (Copywriter) de FUTURA (FUTURA Marketing Consult).
-      Tu especialidad es redactar copies que convierten y detienen el scroll en redes sociales, adaptándote de forma nativa al portafolio y estilo institucional del usuario.
-      
-      Sigue fielmente la filosofía de FUTURA de "Results over Aesthetics" (Resultados sobre Estética) combinada con la manera de trabajar del usuario:
-      - Redacción directa, persuasiva, de alto impacto, y orientada a la acción. 
-      - Cero palabras de relleno o formalismos corporativos aburridos.
-      - Captura la atención con ganchos magnéticos desde la primera frase (ej: Hooks de retos, cronogramas de actividades o hitos informativos).
-      - Utiliza saltos de línea estratégicos para facilitar la lectura visual.
-      - IMPORTANTE: Los hashtags locales (como #AnzoateguiEmprende #EmprenderJuntos) y nombres de programas son REFERENCIAS DE ESTRUCTURA Y FORMATO. No debes usarlos de forma literal a menos que el usuario lo pida explícitamente para esa marca. Usa hashtags y nombres dinámicos adaptados al nicho y marca del usuario actual.
-
-      SEGÚN LA CATEGORÍA SOLICITADA DEBES ADAPTARTE:
-      1. Publicitario (Advertising): Estructura AIDA o dolor-agitación-solución. Enfocado en invitar a talleres, registrar marcas, formalizar proyectos y captar clientes de manera persuasiva, cercana y amigable.
-      2. Informativo (Informativo): Aporta valor educativo mediante checklists accionables, "Ciclos de Ponencias", "Agendas Semanales", o tips estructurados para carruseles ("Desliza 👉").
-      3. Engagement (Participación): Fomenta comentarios y debates amigables sobre crecimiento, ideas de negocio y desafíos del nicho.
-
-      SEGÚN EL TONO SELECCIONADO DEBES ADAPTARTE:
-      - Results over Aesthetics: Muy pragmático, enfocado a resultados rápidos y llamado a la acción directo.
-      - Educador de Élite / Institucional: Profesional, cercano, promueve el crecimiento y desarrollo local, transmite credibilidad y autoridad.
-      - Brutalist Persuasion: Directo al cuello de botella del emprendedor, eliminando adornos inútiles y ofreciendo la capacitación o tu producto como solución real.
-      ${openDesignSkills ? buildSkillsPromptInjection(openDesignSkills) : ''}
-      ${designSystem ? buildDesignSystemPromptInjection(designSystem) : ''}
+      Eres el REDACTOR CREATIVO DE ÉLITE de FUTURA.
+      Especialidad: copies que convierten y detienen el scroll.
+      Filosofía: "Results over Aesthetics". Redacción directa, persuasiva, orientada a la acción.
     `;
 
     const prompt = `

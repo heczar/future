@@ -4,7 +4,6 @@
  */
 
 import React, { useState } from 'react';
-import DashboardInput from './components/dashboard/DashboardInput';
 import Markdown from 'react-markdown';
 import { chatWithAdvisor } from './services/geminiService';
 import Sidebar from './components/Sidebar';
@@ -29,7 +28,6 @@ import {
   Sparkles,
   Plus,
   ShieldCheck,
-  Trash2,
   Layout,
   X,
   FileText,
@@ -52,7 +50,6 @@ import {
   MessageSquare,
   Clock,
   ArrowUpRight,
-  ArrowRight,
   Lock,
   Layers,
   Check,
@@ -73,9 +70,59 @@ import { useAuth } from './components/AuthWrapper';
 import { AccountProvider } from './components/AccountProvider';
 
 import { db } from './lib/firebase';
-import { doc, setDoc, onSnapshot, collection, query, where, addDoc, deleteDoc, getDocs } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot, collection, query, where, addDoc, deleteDoc } from 'firebase/firestore';
 
-// DashboardInput extracted to src/components/dashboard/DashboardInput.tsx
+interface DashboardInputProps {
+  value: string;
+  onSubmit: (text: string) => void;
+  isLoading: boolean;
+}
+
+function DashboardInput({ value, onSubmit, isLoading }: DashboardInputProps) {
+  const [localVal, setLocalVal] = React.useState(value);
+
+  React.useEffect(() => {
+    setLocalVal(value);
+  }, [value]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && localVal.trim()) {
+      onSubmit(localVal);
+      setLocalVal('');
+    }
+  };
+
+  return (
+    <div className="relative group max-w-3xl mx-auto pt-2">
+      <div className="absolute -inset-1 bg-gradient-to-r from-brand-primary to-purple-600 rounded-2xl blur-xl opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+      <div className="relative flex flex-col sm:flex-row items-center gap-3 bg-surface-950 border border-white/10 p-2 rounded-2xl shadow-3xl group-focus-within:border-brand-primary/40 transition-all">
+        <input 
+          type="text"
+          value={localVal}
+          onChange={(e) => setLocalVal(e.target.value)}
+          placeholder="Consulta sobre tu estrategia corporativa..."
+          className="flex-1 bg-transparent border-none text-white px-4 py-3 focus:ring-0 text-sm placeholder:text-slate-700 outline-none w-full"
+          onKeyDown={handleKeyDown}
+        />
+        <div className="flex w-full sm:w-auto gap-3 p-1 sm:p-0">
+          <button 
+            onClick={() => {
+              if (localVal.trim()) {
+                onSubmit(localVal);
+                setLocalVal('');
+              }
+            }}
+            disabled={isLoading || !localVal.trim()}
+            className="flex-1 sm:w-auto px-6 py-3 bg-brand-primary disabled:opacity-40 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-2xl shadow-brand-primary/30 w-full cursor-pointer"
+          >
+            CONSULTAR
+            <Send className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   return (
@@ -87,8 +134,25 @@ export default function App() {
   );
 }
 
-// virtualFuturaBrand is now centralized in src/lib/constants.ts
-import { virtualFuturaBrand } from './lib/constants';
+const virtualFuturaBrand: ProjectContext = {
+  id: 'futura_brand_vault',
+  name: 'FUTURA (Auto-Marketing SPE)',
+  description: 'Consultora Estratégica y Suite de IA Avanzada de Future Marketing Consult enfocada en el lema "Resultados sobre Estética". Es un robot pensante y generador de activos de alta conversión bajo la metodología SPE para dominar el mercado hispanohablante de infoproductores y agencias de marketing, capturando clientes listos para pagar.',
+  logos: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'],
+  trainingMaterial: [
+    'Mantra central: Resultados sobre Estética.',
+    'Metodología base: Sistema Pentagonal de Ejecución (SPE).',
+    'Gancho clave: Deja de crear contenido que solo le gusta a tu mamá y empieza a capturar clientes reales.',
+    'Paleta de diseño recomendada: Fucsia eléctrico, Violeta y Slate profundo con gran espacio negativo.',
+    'Enfoque promocional: Destrucción de fricciones de compra mediante la consultoría y la IA de nivel ultra-élite.'
+  ],
+  methodology: 'SPE',
+  brandGuidelines: {
+    primaryColor: '#BF5AF2',
+    secondaryColor: '#0A0A0C',
+    tone: 'Persuasivo brutal de alta conversión, de élite educadora y analítico pragmático'
+  }
+};
 
 function AppContent() {
   const { user, signIn } = useAuth();
@@ -148,6 +212,7 @@ function AppContent() {
     };
     scrollToTop();
     const t = setTimeout(scrollToTop, 150);
+    return () => clearTimeout(t);
   }, [activeTab, showLanding]);
 
   // Auto-scroll Consultoría
@@ -167,6 +232,47 @@ function AppContent() {
     setTimeout(trigger, 300);
     setTimeout(trigger, 500);
   };
+
+  const [projectsList, setProjectsList] = React.useState<ProjectContext[]>([]);
+  const [onboardingPath, setOnboardingPath] = React.useState<'no-brand' | 'has-brand'>('no-brand');
+  const [activeConsultBrandId, setActiveConsultBrandId] = React.useState<string>(() => {
+    return localStorage.getItem('activeConsultBrandId') || '';
+  });
+
+  React.useEffect(() => {
+    if (activeConsultBrandId) {
+      localStorage.setItem('activeConsultBrandId', activeConsultBrandId);
+    }
+  }, [activeConsultBrandId]);
+
+  React.useEffect(() => {
+    if (projectsList.length > 0 && !activeConsultBrandId) {
+      setActiveConsultBrandId(projectsList[0].id);
+    }
+  }, [projectsList, activeConsultBrandId]);
+
+  // Subscribe to projects to have access to active brand details and style guidelines in the Hub & Advisor
+  React.useEffect(() => {
+    if (!user) {
+      setProjectsList([virtualFuturaBrand]);
+      return;
+    }
+
+    const q = query(
+      collection(db, 'projects'),
+      where('ownerId', '==', user.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const projs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      setProjectsList([virtualFuturaBrand, ...projs]);
+    }, (err) => {
+      console.error("Failed to fetch projects in Hub context:", err);
+      setProjectsList([virtualFuturaBrand]);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const isHubNearBottom = React.useRef(true);
 
@@ -242,49 +348,6 @@ function AppContent() {
       setIsHubLoading(false);
     }
   };
-
-
-  const [projectsList, setProjectsList] = React.useState<ProjectContext[]>([]);
-  const [onboardingPath, setOnboardingPath] = React.useState<'no-brand' | 'has-brand'>('no-brand');
-  const [activeConsultBrandId, setActiveConsultBrandId] = React.useState<string>(() => {
-    return localStorage.getItem('activeConsultBrandId') || '';
-  });
-
-  React.useEffect(() => {
-    if (activeConsultBrandId) {
-      localStorage.setItem('activeConsultBrandId', activeConsultBrandId);
-    }
-  }, [activeConsultBrandId]);
-
-  React.useEffect(() => {
-    if (projectsList.length > 0 && !activeConsultBrandId) {
-      setActiveConsultBrandId(projectsList[0].id);
-    }
-  }, [projectsList, activeConsultBrandId]);
-
-  // Subscribe to projects to have access to active brand details and style guidelines in the Hub & Advisor
-  React.useEffect(() => {
-    if (!user) {
-      setProjectsList([virtualFuturaBrand]);
-      return;
-    }
-
-    const q = query(
-      collection(db, 'projects'),
-      where('ownerId', '==', user.uid)
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const projs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
-      setProjectsList([virtualFuturaBrand, ...projs]);
-    }, (err) => {
-      console.error("Failed to fetch projects in Hub context:", err);
-      setProjectsList([virtualFuturaBrand]);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
 
   // Perfil persistente en Firestore
   React.useEffect(() => {
@@ -1182,9 +1245,9 @@ function AppContent() {
                      setSelectedPhase(null);
                      setActiveTab('');
                      setTimeout(() => {
-                       hubRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                       handleHubConsult(selectedPhase.prompt);
-                     }, 100);
+                        hubRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        handleHubConsult(selectedPhase.prompt);
+                      }, 100);
                    }}
                    className="w-full py-3 bg-brand-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-brand-primary/15 flex items-center justify-center gap-2 cursor-pointer"
                  >
@@ -1518,178 +1581,6 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
       return `${months} ${months === 1 ? 'mes' : 'meses'} y ${days} ${days === 1 ? 'día' : 'días'} restantes`;
     }
     return `${diffDays} ${diffDays === 1 ? 'día' : 'días'} restantes`;
-  };
-
-  const handleResetAllQuotas = async () => {
-    const eligibleUsers = users.filter(u => (u.email || '').toLowerCase().trim() !== 'heczaroficial@gmail.com' && u.id !== 'heczaroficial@gmail.com');
-    if (eligibleUsers.length === 0) {
-      triggerToast("No hay otros usuarios registrados para reiniciar.");
-      return;
-    }
-
-    if (!window.confirm(`⚠️ ADVERTENCIA: ¿Estás seguro de que deseas reiniciar todos los consumos (consultas, tokens, imágenes) de ${eligibleUsers.length} usuarios? Esta acción restablecerá sus cuotas al valor inicial de su membresía.`)) {
-      return;
-    }
-
-    try {
-      let resetCount = 0;
-      for (const u of eligibleUsers) {
-        const userRef = doc(db, 'users', u.id);
-        const isPremium = !!u.isPremium;
-        const dailyLimit = isPremium ? 250 : 5;
-        const tokenLimit = isPremium ? 15000000 : 25000;
-        const imageLimit = isPremium ? 500 : 3;
-
-        await setDoc(userRef, {
-          ...u,
-          apiConsumption: {
-            dailyConsultsUsed: 0,
-            dailyConsultsLimit: dailyLimit,
-            monthlyTokensUsed: 0,
-            monthlyTokensLimit: tokenLimit,
-            monthlyImagesUsed: 0,
-            monthlyImagesLimit: imageLimit,
-            lastResetDate: new Date().toISOString().split('T')[0]
-          }
-        }, { merge: true });
-        resetCount++;
-      }
-      triggerToast(`FUTURA: Consumos de ${resetCount} usuarios restablecidos con éxito.`);
-    } catch (e: any) {
-      console.error("Failed to reset user quotas:", e);
-      triggerToast(`Error al reiniciar consumos: ${e.message}`);
-    }
-  };
-
-  const handleSystemResetAndCleanup = async () => {
-    const eligibleUsers = users.filter(u => (u.email || '').toLowerCase().trim() !== 'heczaroficial@gmail.com' && u.id !== 'heczaroficial@gmail.com');
-
-    if (!window.confirm("⚠️ ADVERTENCIA CRÍTICA: ¿Estás seguro de que deseas realizar una Limpieza General del Sistema?\n\nEsto eliminará permanentemente todos los proyectos y marcas del Baúl de todos los usuarios (excepto heczaroficial@gmail.com) y restablecerá sus cuotas a cero para que empiecen desde el principio.\n\nEsta acción NO se puede deshacer.")) {
-      return;
-    }
-
-    try {
-      triggerToast("Iniciando limpieza del sistema...");
-      
-      // Helper function to check if brand name matches target
-      const isTargetBrand = (name: string) => {
-        const n = (name || '').toLowerCase().trim();
-        return n === 'mi proyecto premiun' || n === 'mi proyecto premium';
-      };
-
-      // 1. Obtener y eliminar proyectos
-      const projectsSnap = await getDocs(collection(db, 'projects'));
-      let deletedProjectsCount = 0;
-      
-      for (const projDoc of projectsSnap.docs) {
-        const projData = projDoc.data();
-        const ownerId = projData.ownerId || "";
-        const ownerUser = users.find(u => u.id === ownerId);
-        const ownerEmail = (projData.email || ownerUser?.email || '').toLowerCase().trim();
-        const isHeczar = ownerId === user?.uid || ownerEmail === 'heczaroficial@gmail.com' || ownerId === 'heczaroficial@gmail.com';
-        
-        const isTarget = isTargetBrand(projData.name);
-        
-        // Borrar si es la marca objetivo ("mi proyecto premiun") o si no pertenece al administrador
-        if (isTarget || !isHeczar) {
-          await deleteDoc(doc(db, 'projects', projDoc.id));
-          deletedProjectsCount++;
-        }
-      }
-
-      // 2. Obtener y eliminar saved_assets (Baúl de archivos guardados)
-      let deletedAssetsCount = 0;
-      try {
-        const assetsSnap = await getDocs(collection(db, 'saved_assets'));
-        for (const assetDoc of assetsSnap.docs) {
-          const assetData = assetDoc.data();
-          const ownerId = assetData.ownerId || "";
-          const ownerUser = users.find(u => u.id === ownerId);
-          const ownerEmail = (ownerUser?.email || '').toLowerCase().trim();
-          const isHeczar = ownerId === user?.uid || ownerEmail === 'heczaroficial@gmail.com' || ownerId === 'heczaroficial@gmail.com';
-          
-          const isTarget = isTargetBrand(assetData.brandName);
-          
-          if (isTarget || !isHeczar) {
-            await deleteDoc(doc(db, 'saved_assets', assetDoc.id));
-            deletedAssetsCount++;
-          }
-        }
-      } catch (err) {
-        console.warn("Could not clean up saved_assets:", err);
-      }
-
-      // 3. Obtener y eliminar publications (Calendarios/Copys)
-      let deletedPubsCount = 0;
-      try {
-        const pubsSnap = await getDocs(collection(db, 'publications'));
-        for (const pubDoc of pubsSnap.docs) {
-          const pubData = pubDoc.data();
-          const ownerId = pubData.ownerId || "";
-          const ownerUser = users.find(u => u.id === ownerId);
-          const ownerEmail = (ownerUser?.email || '').toLowerCase().trim();
-          const isHeczar = ownerId === user?.uid || ownerEmail === 'heczaroficial@gmail.com' || ownerId === 'heczaroficial@gmail.com';
-          
-          if (!isHeczar) {
-            await deleteDoc(doc(db, 'publications', pubDoc.id));
-            deletedPubsCount++;
-          }
-        }
-      } catch (err) {
-        console.warn("Could not clean up publications:", err);
-      }
-
-      // 4. Obtener y eliminar futura_comercial_docs
-      let deletedComDocsCount = 0;
-      try {
-        const comDocsSnap = await getDocs(collection(db, 'futura_comercial_docs'));
-        for (const docDoc of comDocsSnap.docs) {
-          const docData = docDoc.data();
-          const ownerId = docData.ownerId || "";
-          const ownerUser = users.find(u => u.id === ownerId);
-          const ownerEmail = (ownerUser?.email || '').toLowerCase().trim();
-          const isHeczar = ownerId === user?.uid || ownerEmail === 'heczaroficial@gmail.com' || ownerId === 'heczaroficial@gmail.com';
-          
-          if (!isHeczar) {
-            await deleteDoc(doc(db, 'futura_comercial_docs', docDoc.id));
-            deletedComDocsCount++;
-          }
-        }
-      } catch (err) {
-        console.warn("Could not clean up futura_comercial_docs:", err);
-      }
-
-      // 5. Restablecer consumos y créditos de todos los demás usuarios
-      let resetUsersCount = 0;
-      for (const u of eligibleUsers) {
-        const userRef = doc(db, 'users', u.id);
-        const isPremium = !!u.isPremium;
-        const dailyLimit = isPremium ? 250 : 5;
-        const tokenLimit = isPremium ? 15000000 : 25000;
-        const imageLimit = isPremium ? 500 : 3;
-
-        await setDoc(userRef, {
-          ...u,
-          credits: isPremium ? 500 : 10,
-          pagoMovilRequest: null,
-          apiConsumption: {
-            dailyConsultsUsed: 0,
-            dailyConsultsLimit: dailyLimit,
-            monthlyTokensUsed: 0,
-            monthlyTokensLimit: tokenLimit,
-            monthlyImagesUsed: 0,
-            monthlyImagesLimit: imageLimit,
-            lastResetDate: new Date().toISOString().split('T')[0]
-          }
-        }, { merge: true });
-        resetUsersCount++;
-      }
-
-      triggerToast(`✓ Limpieza completada: Se eliminaron ${deletedProjectsCount} proyectos, ${deletedAssetsCount} archivos de baúl y se reiniciaron ${resetUsersCount} usuarios.`);
-    } catch (e: any) {
-      console.error("System cleanup failed:", e);
-      triggerToast(`Error en la limpieza: ${e.message}`);
-    }
   };
 
   // Filter queues
@@ -2255,52 +2146,6 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
                   )}
                 </div>
               </div>
-
-              {/* ACCIONES GLOBALES DE ADMINISTRACIÓN */}
-              <div className="mt-8 pt-6 border-t border-white/5 space-y-6">
-                {/* REINICIAR CONSUMOS */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="text-left space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1.5">
-                      <RefreshCw className="w-3.5 h-3.5 text-amber-500" />
-                      Reinicio Táctico de Consumos de API
-                    </span>
-                    <p className="text-[11px] text-slate-400 leading-normal max-w-md">
-                      Restablece los límites y cuotas a cero para todos los correos registrados (excepto heczaroficial@gmail.com) permitiendo a todos los usuarios volver a realizar consultas, diseñar imágenes y generar copias con normalidad.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleResetAllQuotas}
-                    className="w-full sm:w-auto px-6 py-3.5 bg-brand-primary hover:bg-brand-primary/90 text-white font-mono font-black text-[10px] tracking-widest uppercase rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5 text-white" />
-                    Reiniciar Consumos de Todos
-                  </button>
-                </div>
-
-                {/* LIMPIEZA GENERAL Y RESET */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-white/5">
-                  <div className="text-left space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-red-500 uppercase tracking-widest flex items-center gap-1.5">
-                      <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                      Limpieza y Depuración del Sistema (Re-Inicio)
-                    </span>
-                    <p className="text-[11px] text-slate-400 leading-normal max-w-md">
-                      Elimina todos los proyectos de marcas y archivos guardados de otros usuarios (excepto heczaroficial@gmail.com) y restablece sus límites para que inicien desde el principio.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleSystemResetAndCleanup}
-                    className="w-full sm:w-auto px-6 py-3.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 font-mono font-black text-[10px] tracking-widest uppercase rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 border border-red-500/20 shrink-0"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                    Ejecutar Limpieza General
-                  </button>
-                </div>
-              </div>
-
             </div>
           </motion.div>
         )}

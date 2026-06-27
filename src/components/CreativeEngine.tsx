@@ -1,10 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Send, Image as ImageIcon, Zap, Loader2, Briefcase, Camera, Pencil, Square, Trash2, Download, Check, Eraser, Undo, Type, Layers, ChevronDown, ShieldCheck, Bot, User, Maximize2, Minimize2, Copy, Plus, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Underline, PenTool } from 'lucide-react';
+import { Sparkles, Send, Image as ImageIcon, Zap, Loader2, Briefcase, Camera, Pencil, Square, Trash2, Download, Check, Eraser, Undo, Type, Layers, ChevronDown, ShieldCheck, Bot, User, Maximize2, Minimize2, Copy, Plus, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Underline, PenTool, Sliders } from 'lucide-react';
 import { generateContentStrategy, generateCreativeImage, generateSocialCopy, refineSocialCopy, chatWithAdvisor } from '../services/geminiService';
-import OpenDesignSkillPicker from './OpenDesignSkillPicker';
-import PromptTemplateGallery from './PromptTemplateGallery';
-import { getDesignSystems } from '../services/openDesignService';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { db, auth } from '../lib/firebase';
@@ -23,8 +20,25 @@ interface CreativeEngineProps {
   onPromptConsumed?: () => void;
 }
 
-// virtualFuturaBrand is now centralized in src/lib/constants.ts
-import { virtualFuturaBrand } from '../lib/constants';
+const virtualFuturaBrand: ProjectContext = {
+  id: 'futura_brand_vault',
+  name: 'FUTURA (Auto-Marketing SPE)',
+  description: 'Consultora Estratégica y Suite de IA Avanzada de Future Marketing Consult enfocada en el lema "Resultados sobre Estética". Es un robot pensante y generador de activos de alta conversión bajo la metodología SPE para dominar el mercado hispanohablante de infoproductores y agencias de marketing, capturando clientes listos para pagar.',
+  logos: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'],
+  trainingMaterial: [
+    'Mantra central: Resultados sobre Estética.',
+    'Metodología base: Sistema Pentagonal de Ejecución (SPE).',
+    'Gancho clave: Deja de crear contenido que solo le gusta a tu mamá y empieza a capturar clientes reales.',
+    'Paleta de diseño recomendada: Fucsia eléctrico, Violeta y Slate profundo con gran espacio negativo.',
+    'Enfoque promocional: Destrucción de fricciones de compra mediante la consultoría y la IA de nivel ultra-élite.'
+  ],
+  methodology: 'SPE',
+  brandGuidelines: {
+    primaryColor: '#BF5AF2',
+    secondaryColor: '#0A0A0C',
+    tone: 'Persuasivo brutal de alta conversión, de élite educadora y analítico pragmático'
+  }
+};
 
 export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToVault, initialPrompt, onPromptConsumed }: CreativeEngineProps) {
   const [displayMode, setDisplayMode] = useState<'launcher' | 'briefing' | 'engine'>('launcher');
@@ -37,6 +51,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
   const [imageError, setImageError] = useState<string | null>(null);
   const [finalImage, setFinalImage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [directImageCorrection, setDirectImageCorrection] = useState('');
   const [phrases, setPhrases] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -63,12 +78,6 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
   const [activeStrokeWidth, setActiveStrokeWidth] = useState(0);
   
   const canvasImageUploadRef = React.useRef<HTMLInputElement>(null);
-
-  // Open Design Integration States
-  const [selectedStrategySkills, setSelectedStrategySkills] = useState<string[]>(['brainstorming', 'creative-director', 'design-brief']);
-  const [selectedCopySkills, setSelectedCopySkills] = useState<string[]>(['copywriting', 'ad-creative']);
-  const [selectedImageSkills, setSelectedImageSkills] = useState<string[]>(['enhance-prompt', 'color-expert', 'canvas-design']);
-  const [selectedDesignSystem, setSelectedDesignSystem] = useState<string>('FUTURA Institucional');
 
   const [refinement, setRefinement] = useState('');
   const [adhocReference, setAdhocReference] = useState<string | null>(null);
@@ -213,9 +222,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
       const responseText = await chatWithAdvisor(
         textToSend,
         futuraMessages,
-        `CONTEXTO DE TRABAJO (MOTOR CREATIVO): El usuario está rellenando las opciones del Motor Creativo y necesita optimizar su enfoque de publicación. El usuario está buscando asesorarse para generar su contenido aquí de la mejor manera. ${activeBrandInfo}`,
-        selectedStrategySkills,
-        selectedDesignSystem
+        `CONTEXTO DE TRABAJO (MOTOR CREATIVO): El usuario está rellenando las opciones del Motor Creativo y necesita optimizar su enfoque de publicación. El usuario está buscando asesorarse para generar su contenido aquí de la mejor manera. ${activeBrandInfo}`
       );
       setFuturaMessages(prev => [...prev, { role: 'model', text: responseText }]);
     } catch (err) {
@@ -415,9 +422,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
         `Contexto Operativo: ${brandContext}. Enfócate en ANALIZAR Y REFINAR la inquietud del usuario antes de pasar a la ejecución. No des un prompt de imagen definitivo aún si la idea es vaga.`,
         styleReferences,
         logos,
-        chatHistory,
-        selectedStrategySkills,
-        selectedDesignSystem
+        chatHistory
       );
       
       setChatHistory(prev => [
@@ -530,7 +535,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
         userPhilosophy: '',
         projectName: '',
         projectDescription: '',
-      }, selectedCopySkills, selectedDesignSystem);
+      });
       setCustomGeneratedCopy(resultCopy);
     } catch (err) {
       console.error("Failed to generate copy:", err);
@@ -725,9 +730,7 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
         context, 
         styleReferences, 
         logos, 
-        chatHistory,
-        selectedStrategySkills,
-        selectedDesignSystem
+        chatHistory
       );
       
       // Actualizar historial con la estrategia final
@@ -769,24 +772,14 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
             ? (adhocReference ? [adhocReference, ...(selectedProj.trainingMaterial || [])] : (selectedProj.trainingMaterial || []))
             : (adhocReference ? [adhocReference] : []);
 
-          const img = await generateCreativeImage(
-            strategy.imagePrompt, 
-            aspectRatio, 
-            styleReferences,
-            {
-              brandName: selectedProj?.name,
-              niche: selectedProj?.methodology,
-              colors: selectedProj?.brandGuidelines 
-                ? [
-                    { hex: selectedProj.brandGuidelines.primaryColor, name: 'Primary Color' },
-                    { hex: selectedProj.brandGuidelines.secondaryColor, name: 'Secondary Color' }
-                  ]
-                : undefined,
-              logoStyle: selectedStyle
-            },
-            selectedImageSkills,
-            selectedDesignSystem
-          );
+          const img = await generateCreativeImage(strategy.imagePrompt, aspectRatio, styleReferences, {
+            brandName: selectedProj?.name,
+            niche: selectedProj?.description,
+            colors: selectedProj?.brandGuidelines?.primaryColor ? [
+              { hex: selectedProj.brandGuidelines.primaryColor, name: 'primary' },
+              ...(selectedProj.brandGuidelines.secondaryColor ? [{ hex: selectedProj.brandGuidelines.secondaryColor, name: 'secondary' }] : [])
+            ] : undefined
+          });
           setFinalImage(img);
         } catch (errImg: any) {
           console.warn("Auto image render failed, triggering localized brand generator:", errImg);
@@ -844,29 +837,66 @@ export default function CreativeEngine({ profile, onUpdateProfile, onNavigateToV
         ? (adhocReference ? [adhocReference, ...(selectedProj.trainingMaterial || [])] : (selectedProj.trainingMaterial || []))
         : (adhocReference ? [adhocReference] : []);
 
-      const img = await generateCreativeImage(
-        result.imagePrompt, 
-        aspectRatio, 
-        styleReferences,
-        {
-          brandName: selectedProj?.name,
-          niche: selectedProj?.methodology,
-          colors: selectedProj?.brandGuidelines 
-            ? [
-                { hex: selectedProj.brandGuidelines.primaryColor, name: 'Primary Color' },
-                { hex: selectedProj.brandGuidelines.secondaryColor, name: 'Secondary Color' }
-              ]
-            : undefined,
-          logoStyle: selectedStyle
-        },
-        selectedImageSkills,
-        selectedDesignSystem
-      );
+      const img = await generateCreativeImage(result.imagePrompt, aspectRatio, styleReferences, {
+        brandName: selectedProj?.name,
+        niche: selectedProj?.description,
+        colors: selectedProj?.brandGuidelines?.primaryColor ? [
+          { hex: selectedProj.brandGuidelines.primaryColor, name: 'primary' },
+          ...(selectedProj.brandGuidelines.secondaryColor ? [{ hex: selectedProj.brandGuidelines.secondaryColor, name: 'secondary' }] : [])
+        ] : undefined
+      });
       setFinalImage(img);
     } catch (err: any) {
       console.warn("Manual image generation failed, triggering localized brand generator:", err);
       const fallbackImg = getRandomFallbackImage(result.imagePrompt || prompt);
       setFinalImage(fallbackImg);
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
+
+  const handleDirectImageCorrection = async () => {
+    const currentPrompt = result?.imagePrompt || prompt || "Premium branding graphic";
+    if (!directImageCorrection.trim()) return;
+
+    setGeneratingImage(true);
+    setImageError(null);
+    try {
+      let aspectRatio = "1:1";
+      if (selectedFormat.includes("1080x1920") || selectedFormat.includes("Story")) {
+        aspectRatio = "9:16";
+      } else if (selectedFormat.includes("1080x1350") || selectedFormat.includes("Carrusel")) {
+        aspectRatio = "3:4";
+      }
+
+      const selectedProj = activeBrand || projects.find(p => p.id === selectedProjectId);
+      const styleReferences = selectedProj 
+        ? (adhocReference ? [adhocReference, ...(selectedProj.trainingMaterial || [])] : (selectedProj.trainingMaterial || []))
+        : (adhocReference ? [adhocReference] : []);
+
+      const img = await generateCreativeImage(currentPrompt, aspectRatio, styleReferences, {
+        brandName: selectedProj?.name,
+        niche: selectedProj?.description,
+        colors: selectedProj?.brandGuidelines?.primaryColor ? [
+          { hex: selectedProj.brandGuidelines.primaryColor, name: 'primary' },
+          ...(selectedProj.brandGuidelines.secondaryColor ? [{ hex: selectedProj.brandGuidelines.secondaryColor, name: 'secondary' }] : [])
+        ] : undefined,
+        correctionCommand: directImageCorrection.trim()
+      });
+      
+      if (img) {
+        setFinalImage(img);
+        if (result) {
+          setResult({
+            ...result,
+            imagePrompt: `${currentPrompt} (Con corrección: ${directImageCorrection.trim()})`
+          });
+        }
+        setDirectImageCorrection('');
+      }
+    } catch (err: any) {
+      console.warn("Direct image correction failed:", err);
+      setImageError(err.message || String(err));
     } finally {
       setGeneratingImage(false);
     }
@@ -1449,13 +1479,7 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
     }
 
     try {
-      const resp = await chatWithAdvisor(
-        customPrompt, 
-        [], 
-        "Nueva Marca",
-        selectedStrategySkills,
-        selectedDesignSystem
-      );
+      const resp = await chatWithAdvisor(customPrompt, [], "Nueva Marca");
       setBlueprintResult(resp);
 
       if (type === 'all' || type === 'logo_generation') {
@@ -1516,18 +1540,7 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
           finalImagePrompt = promptLine.replace("IMAGE_PROMPT:", "").trim();
         }
 
-        const imgUrl = await generateCreativeImage(
-          finalImagePrompt, 
-          "1:1",
-          ["Modern Vector"],
-          {
-            brandName: activeBrand?.name || "Futura",
-            niche: blueprintIdea,
-            logoStyle: "Simétrico y Geométrico de Lujo (Premium Gold/Obsidian)"
-          },
-          selectedImageSkills,
-          selectedDesignSystem
-        );
+        const imgUrl = await generateCreativeImage(finalImagePrompt, "1:1");
         if (imgUrl) {
           setBlueprintLogoUrl(imgUrl);
         }
@@ -2282,7 +2295,7 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                       <Zap className="w-3.5 h-3.5" /> Configurador de Carga
                     </span>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block ml-1">Formato de Producción</label>
                         <div className="relative">
@@ -2296,23 +2309,6 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                               <option value="Post (1080x1080)">Post Cuadrado (1080x1080)</option>
                               <option value="Story (1080x1920)">Story / Reel Vertical (1080x1920)</option>
                             </optgroup>
-                          </select>
-                          <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block ml-1">Sistema de Diseño (Style)</label>
-                        <div className="relative">
-                          <select 
-                            value={selectedDesignSystem}
-                            onChange={(e) => setSelectedDesignSystem(e.target.value)}
-                            className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-brand-primary/50 cursor-pointer appearance-none outline-none"
-                          >
-                            <option value="Mi Estilo (userDesignGuidelines)">Mi Estilo (Default)</option>
-                            {getDesignSystems().map(ds => (
-                              <option key={ds.name} value={ds.name}>{ds.name}</option>
-                            ))}
                           </select>
                           <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>
@@ -2359,19 +2355,6 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                           )}
                         </div>
                       </div>
-                    </div>
-
-                    <div className="space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5">
-                      <OpenDesignSkillPicker 
-                        engineType="strategy" 
-                        selectedSkills={selectedStrategySkills} 
-                        onSkillsChange={setSelectedStrategySkills} 
-                      />
-                      <PromptTemplateGallery 
-                        onSelectTemplate={(template) => {
-                          setPrompt(template.prompt);
-                        }}
-                      />
                     </div>
 
                     <div className="space-y-1.5">
@@ -2618,21 +2601,6 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                             </div>
                           </div>
 
-                          <div className="space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5">
-                            <OpenDesignSkillPicker 
-                              engineType="image" 
-                              selectedSkills={selectedImageSkills} 
-                              onSkillsChange={setSelectedImageSkills} 
-                            />
-                            <PromptTemplateGallery 
-                              onSelectTemplate={(template) => {
-                                if (result) {
-                                  setResult({ ...result, imagePrompt: template.prompt });
-                                }
-                              }}
-                            />
-                          </div>
-
                           <div className="space-y-1.5">
                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block font-mono">Prompt de Modelado Estructural (AI Prompt)</label>
                             <div className="bg-black/50 border border-white/10 p-3 rounded-xl text-xs font-mono text-slate-400 break-words leading-relaxed max-h-32 overflow-y-auto">
@@ -2715,6 +2683,59 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                               <p className="text-[7.5px] text-slate-300 leading-normal">
                                 Modelo de renderizado estético basado en el Sistema Pentagonal de Ejecución. Composición equilibrada y colorimetría corporativa de alta recordación.
                               </p>
+                            </div>
+                          )}
+
+                          {finalImage && (
+                            <div className="w-full max-w-[340px] bg-surface-900 border border-white/10 p-3 rounded-2xl space-y-3">
+                              <div>
+                                <h5 className="text-[9px] font-black text-white uppercase tracking-widest flex items-center gap-1">
+                                  <Sliders className="w-3.5 h-3.5 text-brand-primary animate-pulse" />
+                                  Ajuste Crítico de Imagen (Por Comando)
+                                </h5>
+                                <p className="text-[7.5px] text-slate-400">Corrige rigidez, colores o composición al instante.</p>
+                              </div>
+                              <div className="flex gap-1.5">
+                                <input 
+                                  type="text"
+                                  value={directImageCorrection}
+                                  onChange={(e) => setDirectImageCorrection(e.target.value)}
+                                  placeholder="Ej: pon fondo negro mate, cambia a oro y azul..."
+                                  className="flex-1 bg-black/60 border border-white/5 rounded-lg px-2.5 py-1.5 text-[10px] text-white placeholder:text-slate-600 focus:outline-none focus:border-brand-primary"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !generatingImage && directImageCorrection.trim()) {
+                                      handleDirectImageCorrection();
+                                    }
+                                  }}
+                                />
+                                <button
+                                  onClick={handleDirectImageCorrection}
+                                  disabled={generatingImage || !directImageCorrection.trim()}
+                                  className="px-3 py-1.5 bg-brand-primary hover:bg-brand-primary/80 transition-all text-[8.5px] font-black text-white uppercase tracking-wider rounded-lg disabled:opacity-50 flex items-center gap-1 shrink-0 cursor-pointer"
+                                >
+                                  {generatingImage ? "..." : "Ajustar"}
+                                </button>
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                <button
+                                  onClick={() => { setDirectImageCorrection("Eliminar rigidez, hazlo más orgánico, estilo editorial moderno"); }}
+                                  className="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-[7.5px] font-mono text-slate-400 transition-colors"
+                                >
+                                  🍃 Menos Rígido
+                                </button>
+                                <button
+                                  onClick={() => { setDirectImageCorrection("Reforzar colores corporativos de marca y consistencia cromática estricta"); }}
+                                  className="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-[7.5px] font-mono text-slate-400 transition-colors"
+                                >
+                                  🎨 Consistencia Cromática
+                                </button>
+                                <button
+                                  onClick={() => { setDirectImageCorrection("Estilo premium minimalista con fondo limpio de alto contraste"); }}
+                                  className="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-[7.5px] font-mono text-slate-400 transition-colors"
+                                >
+                                  ✨ Minimalista
+                                </button>
+                              </div>
                             </div>
                           )}
 
@@ -3301,14 +3322,6 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                                 </button>
                               ))}
                             </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <OpenDesignSkillPicker 
-                              engineType="copy" 
-                              selectedSkills={selectedCopySkills} 
-                              onSkillsChange={setSelectedCopySkills} 
-                            />
                           </div>
 
                           {/* CONTEXTO EXTRA */}
@@ -4314,14 +4327,6 @@ IMAGE_PROMPT: Minimalist vector logo icon for ${blueprintIdea}, extremely simple
                       </button>
                     ))}
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <OpenDesignSkillPicker 
-                    engineType="copy" 
-                    selectedSkills={selectedCopySkills} 
-                    onSkillsChange={setSelectedCopySkills} 
-                  />
                 </div>
 
                 {/* CONTEXTO EXTRA */}
