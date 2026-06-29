@@ -542,7 +542,10 @@ function AppContent() {
                 </div>
               </div>
               <button 
-                onClick={() => setActiveTab('ignicion')}
+                onClick={() => {
+                  setDashboardPrompt("Soy un nuevo negocio. Ayúdame a estructurar mi marca y diseñar mi campaña de marketing desde cero usando el sistema SPE.");
+                  setActiveTab('futura');
+                }}
                 className="mt-6 w-full py-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 hover:scale-[1.01]"
               >
                 CREAR DESDE CERO AHORA <ChevronRight className="w-3.5 h-3.5" />
@@ -564,7 +567,10 @@ function AppContent() {
                 </div>
               </div>
               <button 
-                onClick={() => setActiveTab('propulsion')}
+                onClick={() => {
+                  setDashboardPrompt("Quiero propulsar y escalar mi marca existente. Ayúdame a analizar mis guías de marca y diseñar nuevas piezas publicitarias.");
+                  setActiveTab('futura');
+                }}
                 className="mt-6 w-full py-3 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-xl border border-brand-primary/30 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 hover:scale-[1.01]"
               >
                 PROXIMAR BAÚL Y PROPULSAR <ChevronRight className="w-3.5 h-3.5" />

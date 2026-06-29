@@ -14,7 +14,9 @@ import {
   ShieldCheck,
   Shield,
   Rocket,
-  MessageSquare
+  MessageSquare,
+  AlertTriangle,
+  Briefcase
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -39,10 +41,10 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
       ]
     },
     {
-      title: "Operaciones de Marca",
+      title: "Archivos y Bóvedas",
       items: [
-        { id: 'ignicion', label: 'Ignición Creativa', icon: Rocket },
-        { id: 'propulsion', label: 'Propulsión de Élite', icon: Layers },
+        { id: 'vault', label: 'Configuración de Marcas', icon: Briefcase },
+        { id: 'gallery', label: 'Bóveda de Entregables', icon: ImageIcon },
       ]
     },
     {
