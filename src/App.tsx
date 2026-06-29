@@ -1118,7 +1118,12 @@ function AppContent() {
 
           {/* ADMIN PANEL */}
           <div className={cn("w-full transition-all duration-150", activeTab === 'admin' ? "block opacity-100" : "hidden opacity-0")}>
-            <AdminPanel learnedProtocols={learnedProtocols} evolution={neuralEvolution} />
+            <AdminPanel 
+              learnedProtocols={learnedProtocols} 
+              evolution={neuralEvolution} 
+              profile={profile} 
+              onUpdateProfile={handleUpdateProfile} 
+            />
           </div>
 
           {/* DEV PANEL */}
@@ -1271,7 +1276,7 @@ function AppContent() {
   );
 }
 
-function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[], evolution: number }) {
+function AdminPanel({ learnedProtocols, evolution, profile, onUpdateProfile }: { learnedProtocols: string[], evolution: number, profile: any, onUpdateProfile: (p: any) => void }) {
   const { user, signIn } = useAuth();
   const [passcode, setPasscode] = React.useState('');
   const [isUnlocked, setIsUnlocked] = React.useState(() => {
@@ -2647,7 +2652,7 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
             exit={{ opacity: 0 }}
             className="space-y-6 text-left"
           >
-            <DevStation />
+            <DevStation profile={profile} onUpdateProfile={onUpdateProfile} />
           </motion.div>
         )}
       </AnimatePresence>

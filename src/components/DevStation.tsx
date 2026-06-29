@@ -84,13 +84,25 @@ function generateDiff(original: string, modified: string): DiffLine[] {
   return diff;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+interface DevStationProps {
+  profile?: any;
+  onUpdateProfile?: (p: any) => void;
+}
 
-export default function DevStation() {
+export default function DevStation({ profile, onUpdateProfile }: DevStationProps) {
   const [githubPat, setGithubPat] = useState(() => {
-    return localStorage.getItem('futura_github_pat') || '';
+    return profile?.githubPat || localStorage.getItem('futura_github_pat') || '';
   });
-  const [showTokenInput, setShowTokenInput] = useState(!localStorage.getItem('futura_github_pat'));
+  
+  useEffect(() => {
+    if (profile?.githubPat) {
+      setGithubPat(profile.githubPat);
+    }
+  }, [profile?.githubPat]);
+
+  const [showTokenInput, setShowTokenInput] = useState(() => {
+    return !(profile?.githubPat || localStorage.getItem('futura_github_pat'));
+  });
   const [prompt, setPrompt] = useState('');
   const [status, setStatus] = useState<'idle' | 'analyzing' | 'previewing' | 'ready_to_commit' | 'committing' | 'done' | 'error'>('idle');
   const [logMessages, setLogMessages] = useState<string[]>([]);
@@ -120,8 +132,14 @@ export default function DevStation() {
   const handleSaveToken = (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem('futura_github_pat', githubPat);
+    if (onUpdateProfile && profile) {
+      onUpdateProfile({
+        ...profile,
+        githubPat: githubPat
+      });
+    }
     setShowTokenInput(false);
-    addLog("✓ Token de acceso de GitHub guardado de forma segura en almacenamiento local.");
+    addLog("✓ Token de acceso de GitHub guardado de forma segura en tu perfil de administrador.");
   };
 
   // ── Step 1: Analyze instruction ──────────────────────────────────────────────

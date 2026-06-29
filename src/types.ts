@@ -57,6 +57,7 @@ export interface UserProfile {
   credits?: number;
   isPremium?: boolean;
   email?: string;
+  githubPat?: string;
   membershipMonths?: number;
   membershipExpiresAt?: string | null;
   pagoMovilRequest?: {
