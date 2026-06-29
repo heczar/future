@@ -7,12 +7,12 @@ import express from "express";
 import path from "path";
 import dotenv from "dotenv";
 
-import chatWithAdvisorHandler from "./server-api/chatWithAdvisor.js";
-import chatAboutPhaseHandler from "./server-api/chatAboutPhase.js";
-import generateContentStrategyHandler from "./server-api/generateContentStrategy.js";
-import generateCreativeImageHandler from "./server-api/generateCreativeImage.js";
-import generateSocialCopyHandler from "./server-api/generateSocialCopy.js";
-import refineSocialCopyHandler from "./server-api/refineSocialCopy.js";
+import chatWithAdvisorHandler from "./api/gemini/chatWithAdvisor.js";
+import chatAboutPhaseHandler from "./api/gemini/chatAboutPhase.js";
+import generateContentStrategyHandler from "./api/gemini/generateContentStrategy.js";
+import generateCreativeImageHandler from "./api/gemini/generateCreativeImage.js";
+import generateSocialCopyHandler from "./api/gemini/generateSocialCopy.js";
+import refineSocialCopyHandler from "./api/gemini/refineSocialCopy.js";
 
 dotenv.config();
 
