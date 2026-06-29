@@ -663,9 +663,7 @@ export default function OrchestratorHub({
       const response = await chatWithAdvisor(
         text,
         history,
-        brandCtx,
-        ['brainstorming', 'creative-director'],
-        'FUTURA Institucional'
+        brandCtx
       );
 
       const modelMsg: ChatMessage = {

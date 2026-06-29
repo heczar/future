@@ -17,6 +17,7 @@ import Profile from './components/Profile';
 import AuthWrapper from './components/AuthWrapper';
 import FuturaHub from './components/FuturaHub';
 import AccountAuthPortal from './components/AccountAuthPortal';
+import DevStation from './components/DevStation';
 import { UserProfile, ProjectContext } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -30,6 +31,7 @@ import {
   ShieldCheck,
   Layout,
   X,
+  Terminal,
   FileText,
   ChevronRight,
   Menu,
@@ -1291,7 +1293,7 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
   const [users, setUsers] = React.useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [adminActiveTab, setAdminActiveTab] = React.useState<'payment_reports' | 'member_console' | 'crm' | 'advisory' | 'metrics'>('payment_reports');
+  const [adminActiveTab, setAdminActiveTab] = React.useState<'payment_reports' | 'member_console' | 'crm' | 'advisory' | 'metrics' | 'dev_station'>('payment_reports');
   const [toastMsg, setToastMsg] = React.useState('');
   const [deleteConfirmUserId, setDeleteConfirmUserId] = React.useState<string | null>(null);
 
@@ -1750,7 +1752,7 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
       </div>
 
       {/* ADMIN TABS ROUTER */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 border-b border-white/5 gap-2 pb-2.5 pt-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 border-b border-white/5 gap-2 pb-2.5 pt-4">
         <button
           onClick={() => setAdminActiveTab('payment_reports')}
           className={`px-3 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
@@ -1802,6 +1804,18 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
         >
           <Sparkles className="w-3.5 h-3.5 text-brand-primary animate-pulse" />
           Hub Interno
+        </button>
+
+        <button
+          onClick={() => setAdminActiveTab('dev_station')}
+          className={`px-3 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            adminActiveTab === 'dev_station'
+              ? 'border-brand-primary text-brand-primary font-black bg-brand-primary/5 rounded-t-xl'
+              : 'border-transparent text-slate-400 hover:text-white hover:bg-white/[0.02] rounded-t-xl'
+          }`}
+        >
+          <Terminal className="w-3.5 h-3.5" />
+          Estación IA
         </button>
 
         <button
@@ -2622,6 +2636,18 @@ function AdminPanel({ learnedProtocols, evolution }: { learnedProtocols: string[
                 ))}
               </div>
             </div>
+          </motion.div>
+        )}
+
+        {adminActiveTab === 'dev_station' && (
+          <motion.div
+            key="dev_station_view"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="space-y-6 text-left"
+          >
+            <DevStation />
           </motion.div>
         )}
       </AnimatePresence>

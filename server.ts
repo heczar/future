@@ -16,6 +16,7 @@ import generateContentStrategyHandler from "./api/gemini/generateContentStrategy
 import generateCreativeImageHandler from "./api/gemini/generateCreativeImage.js";
 import generateSocialCopyHandler from "./api/gemini/generateSocialCopy.js";
 import refineSocialCopyHandler from "./api/gemini/refineSocialCopy.js";
+import devAgentHandler from "./api/admin/devAgent.js";
 
 dotenv.config();
 
@@ -83,6 +84,7 @@ app.post("/api/gemini/generateContentStrategy", wrapHandler(generateContentStrat
 app.post("/api/gemini/generateCreativeImage", wrapHandler(generateCreativeImageHandler));
 app.post("/api/gemini/generateSocialCopy", wrapHandler(generateSocialCopyHandler));
 app.post("/api/gemini/refineSocialCopy", wrapHandler(refineSocialCopyHandler));
+app.post("/api/admin/dev-agent", wrapHandler(devAgentHandler));
 
 // --- VITE DEV OR STATIC PROD SERVER ---
 
