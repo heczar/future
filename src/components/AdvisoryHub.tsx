@@ -278,7 +278,7 @@ export default function AdvisoryHub({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex flex-col h-[calc(100vh-270px)] min-h-[400px] bg-surface-900/20 border border-white/5 rounded-2xl overflow-hidden"
+              className="flex flex-col h-[calc(100vh-340px)] min-h-[300px] bg-surface-900/20 border border-white/5 rounded-2xl overflow-hidden"
             >
               {/* Chat messages */}
               <div 
@@ -432,7 +432,7 @@ export default function AdvisoryHub({
               </div>
 
               {/* Output Panel (3 cols) */}
-              <div className="lg:col-span-3 flex flex-col h-[calc(100vh-270px)] min-h-[400px] p-5 bg-surface-900/20 border border-white/5 rounded-2xl">
+              <div className="lg:col-span-3 flex flex-col h-[calc(100vh-340px)] min-h-[300px] p-5 bg-surface-900/20 border border-white/5 rounded-2xl">
                 <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-4">
                   <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-300">
                     2. Copy Producido
