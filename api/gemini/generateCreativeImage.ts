@@ -34,9 +34,9 @@ export default async function handler(req: any, res: any) {
     // Create an incredibly descriptive high-quality prompt wrapper
     let enhancedPrompt = "";
     if (isLogo) {
-      enhancedPrompt = `A high-quality, professional corporate brand logo isotype, flat vector design graphic, minimalist style. ${prompt}. Clean background, modern typography, symmetrical geometry, SVG sleek aesthetic, sharp edges, suitable for luxury and high-converting modern brands. NO blurry textures, NO generic placeholders.`;
+      enhancedPrompt = `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, sharp vector wireframe balance, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. Suitable for luxury and high-converting modern digital brands. Strictly NO blurry gradients, NO complex drop shadows.`;
     } else {
-      enhancedPrompt = `A high-resolution, premium editorial photograph of a business brand mockup context. ${prompt}. Cinematic lighting, 3D photorealistic studio design mockup, detailed, sharp focus, 8k resolution. Solid composition resembling premium marketing assets, realistic texture.`;
+      enhancedPrompt = `A high-resolution, premium editorial product photograph. ${prompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling.`;
     }
 
     // Prohibit unrequested texts or gibberish that image generators often output

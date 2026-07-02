@@ -623,10 +623,15 @@ export async function generateCreativeImage(
     // Instead we will try to make a safe call or trigger client SDK gemini-3.1-flash-image
     const ai = getClientAi();
     try {
+      const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo");
+      const clientPrompt = isLogo 
+        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. Strictly NO blurry gradients, NO complex drop shadows.`
+        : `A high-resolution, premium editorial product photograph. ${prompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling.`;
+
       const response = await ai.models.generateContent({
         model: "gemini-3.1-flash-image",
         contents: {
-          parts: [{ text: `${prompt}. Vector aesthetic, high contrast, clean minimalist. No written words.` }]
+          parts: [{ text: clientPrompt }]
         },
         config: {
           imageConfig: {
