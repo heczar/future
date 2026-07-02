@@ -21,6 +21,7 @@ import { db, auth } from '../lib/firebase';
 import { cn } from '../lib/utils';
 import { chatWithAdvisor, generateSocialCopy, refineSocialCopy } from '../services/geminiService';
 import { ProjectContext, UserProfile } from '../types';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface AdvisoryHubProps {
   profile: UserProfile;

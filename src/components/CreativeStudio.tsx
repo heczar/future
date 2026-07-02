@@ -30,6 +30,7 @@ import { fabric } from 'fabric';
 import { cn } from '../lib/utils';
 import { generateCreativeImage } from '../services/geminiService';
 import { ProjectContext, UserProfile } from '../types';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface CreativeStudioProps {
   profile: UserProfile;
