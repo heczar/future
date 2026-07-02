@@ -255,94 +255,202 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
               </p>
             </div>
 
-            {/* Structured Side-by-Side Comparison Tariffs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Structured 3-Tier Monthly Subscription Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
-              {/* Sencilla / Starter Card */}
+              {/* Starter Plan Card */}
               <div className="bg-[#0c0d11]/80 border border-white/5 rounded-2xl p-5 space-y-4 flex flex-col justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between border-b border-white/5 pb-2">
                     <div>
-                      <span className="text-[8px] font-mono font-black text-slate-500 uppercase tracking-wider block">PLAN INICIAL</span>
-                      <h4 className="text-sm font-black text-[#8b949e] uppercase tracking-wide">Membresía Sencilla</h4>
+                      <span className="text-[8px] font-mono font-black text-slate-400 uppercase tracking-wider block">PLAN INICIAL</span>
+                      <h4 className="text-sm font-black text-white uppercase tracking-wide">Starter Mensual</h4>
                     </div>
-                    <span className="text-base font-mono font-black text-slate-400">$0.00</span>
+                    <div className="text-right">
+                      <span className="text-base font-mono font-black text-slate-300">$29.00</span>
+                      <span className="text-[7px] text-slate-500 uppercase tracking-wide block">Al mes</span>
+                    </div>
                   </div>
-                  <p className="text-[10px] text-zinc-500 leading-normal">
-                    Acceso básico simulado perfecto para explorar el entorno funcional. Opera bajo restricciones de cuotas tácticas y datos volátiles local-cache.
+                  <p className="text-[10px] text-slate-400 leading-normal">
+                    Perfecto para emprendedores iniciando su marca. Incluye consultoría estratégica y control estricto de cuotas de diseño.
                   </p>
                 </div>
 
                 <ul className="space-y-2 text-[10px] text-slate-400 border-t border-white/5 pt-3">
                   <li className="flex items-start gap-1.5">
-                    <span className="text-red-500 font-bold shrink-0 text-xs">✕</span>
-                    <span>Análisis limitados de IA (Consumo lento Gemini 3.5-Flash compartido con topes diarios).</span>
+                    <Check className="w-3 h-3 text-brand-primary shrink-0 mt-0.5" />
+                    <span>Consultas de IA prioritarias.</span>
                   </li>
                   <li className="flex items-start gap-1.5">
-                    <span className="text-red-500 font-bold shrink-0 text-xs">✕</span>
-                    <span>Generador de marcas volátil: Logotipos limitados a simulación temporal con marca de agua.</span>
+                    <Check className="w-3 h-3 text-brand-primary shrink-0 mt-0.5" />
+                    <span><strong>50 Renders de Imagen / mes</strong>.</span>
                   </li>
                   <li className="flex items-start gap-1.5">
-                    <span className="text-red-500 font-bold shrink-0 text-xs">✕</span>
-                    <span>Motor creativo offline: No guarda activos perpetuos ni sincroniza campañas con el servidor.</span>
-                  </li>
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-red-500 font-bold shrink-0 text-xs">✕</span>
-                    <span>Guardado local transitorio: Tus marcas se borran si el usuario limpia el caché del navegador.</span>
+                    <Check className="w-3 h-3 text-brand-primary shrink-0 mt-0.5" />
+                    <span>Sincronización en la Nube.</span>
                   </li>
                 </ul>
 
                 <button
                   type="button"
-                  disabled
-                  className="w-full mt-3 py-2 bg-white/5 text-slate-500 rounded-xl text-[9px] font-mono uppercase font-black tracking-wider border border-white/5 cursor-not-allowed text-center"
+                  onClick={() => triggerToast("Redirigiendo a pasarela de pago para Plan Starter...")}
+                  className="w-full mt-3 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-[9px] font-mono uppercase font-black tracking-wider border border-white/5 cursor-pointer text-center transition-colors"
                 >
-                  LICENCIA SÓLO SANDBOX (ACTIVA)
+                  Adquirir Plan Starter
                 </button>
               </div>
 
-              {/* Elite PRO Card */}
-              <div className="bg-gradient-to-b from-[#0e1017] to-[#040508] border border-brand-primary/30 rounded-2xl p-5 space-y-4 flex flex-col justify-between shadow-2xl shadow-brand-primary/5 ring-1 ring-brand-primary/10">
+              {/* Growth Plan Card */}
+              <div className="bg-gradient-to-b from-[#0e1017] to-[#040508] border border-brand-primary/45 rounded-2xl p-5 space-y-4 flex flex-col justify-between shadow-2xl shadow-brand-primary/5 ring-1 ring-brand-primary/10 relative overflow-hidden">
+                <div className="absolute top-2 right-2 bg-brand-primary/20 text-brand-primary text-[8px] font-mono font-bold px-1.5 py-0.5 rounded border border-brand-primary/20">RECOMENDADO</div>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between border-b border-brand-primary/10 pb-2">
+                  <div className="flex items-center justify-between border-b border-brand-primary/15 pb-2">
                     <div>
-                      <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-widest block animate-pulse">ELITE PRO TIER</span>
-                      <h4 className="text-sm font-black text-white uppercase tracking-wide">Membresía Elite PRO</h4>
+                      <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-widest block">CRECIMIENTO</span>
+                      <h4 className="text-sm font-black text-white uppercase tracking-wide">Growth Mensual</h4>
                     </div>
                     <div className="text-right">
-                      <span className="text-base font-mono font-black text-brand-primary">$10.00</span>
-                      <span className="text-[7px] text-slate-500 uppercase tracking-wide block">Pago Único</span>
+                      <span className="text-base font-mono font-black text-brand-primary">$79.00</span>
+                      <span className="text-[7px] text-slate-500 uppercase tracking-wide block">Al mes</span>
                     </div>
                   </div>
                   <p className="text-[10px] text-slate-400 leading-normal">
-                    La bestia de cómputo comercial. Desbloquea el pipeline ilimitado con persistencia de grado militar en Firebase Nube. Diseñada para dominar la captación.
+                    La opción ideal para marcas y negocios activos que escalan su volumen de pautas publicitarias de alto calibre.
                   </p>
                 </div>
 
                 <ul className="space-y-2 text-[10px] text-white border-t border-brand-primary/10 pt-3">
                   <li className="flex items-start gap-1.5">
-                    <Check className="w-3 px-0 h-3 text-brand-primary shrink-0" />
-                    <span>Pipeline de IA de alta velocidad ILIMITADO (Usa Gemini 3.5-Flash sin límite de respuesta).</span>
+                    <Check className="w-3 h-3 text-brand-primary shrink-0 mt-0.5" />
+                    <span>Consultas de IA prioritarias dedicadas.</span>
                   </li>
                   <li className="flex items-start gap-1.5">
-                    <Check className="w-3 px-0 h-3 text-brand-primary shrink-0" />
-                    <span>Acceso libre al Estilógrafo de Identidad Vectorial (Estilos Neón, Brutalista, Tech, Retro).</span>
+                    <Check className="w-3 h-3 text-brand-primary shrink-0 mt-0.5" />
+                    <span><strong>150 Renders de Imagen / mes</strong>.</span>
                   </li>
                   <li className="flex items-start gap-1.5">
-                    <Check className="w-3 px-0 h-3 text-brand-primary shrink-0" />
-                    <span>Respaldo en Firebase Cloud Sync: Los datos de tu marca y activos nunca se pierden.</span>
-                  </li>
-                  <li className="flex items-start gap-1.5">
-                    <Check className="w-3 px-0 h-3 text-brand-primary shrink-0" />
-                    <span>Motor Creativo e Integración en Campaña Omnicanal 100% activa libre de restricciones de descarga.</span>
+                    <Check className="w-3 h-3 text-brand-primary shrink-0 mt-0.5" />
+                    <span>Acceso al Estilógrafo de logos de lujo.</span>
                   </li>
                 </ul>
 
-                <span className="text-[8px] font-mono text-center text-brand-primary font-black uppercase tracking-widest animate-pulse block">
-                  ✓ ACCESO PERPETUO DE POR VIDA
-                </span>
+                <button
+                  type="button"
+                  onClick={() => triggerToast("Redirigiendo a pasarela de pago para Plan Growth...")}
+                  className="w-full mt-3 py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-[9px] font-mono uppercase font-black tracking-wider cursor-pointer text-center transition-colors"
+                >
+                  Adquirir Plan Growth
+                </button>
               </div>
 
+              {/* Scale Plan Card */}
+              <div className="bg-[#0c0d11]/80 border border-white/5 rounded-2xl p-5 space-y-4 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                    <div>
+                      <span className="text-[8px] font-mono font-black text-slate-400 uppercase tracking-wider block">EMPRESARIAL</span>
+                      <h4 className="text-sm font-black text-white uppercase tracking-wide">Scale Mensual</h4>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-base font-mono font-black text-slate-300">$199.00</span>
+                      <span className="text-[7px] text-slate-500 uppercase tracking-wide block">Al mes</span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-normal">
+                    Máxima velocidad para agencias o equipos de mercadeo que administran múltiples cuentas de marca en paralelo.
+                  </p>
+                </div>
+
+                <ul className="space-y-2 text-[10px] text-slate-400 border-t border-white/5 pt-3">
+                  <li className="flex items-start gap-1.5">
+                    <Check className="w-3 h-3 text-brand-primary shrink-0 mt-0.5" />
+                    <span>Pipeline ilimitado multimarca.</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <Check className="w-3 h-3 text-brand-primary shrink-0 mt-0.5" />
+                    <span><strong>500 Renders de Imagen / mes</strong>.</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <Check className="w-3 h-3 text-brand-primary shrink-0 mt-0.5" />
+                    <span>Soporte prioritario 24/7.</span>
+                  </li>
+                </ul>
+
+                <button
+                  type="button"
+                  onClick={() => triggerToast("Redirigiendo a pasarela de pago para Plan Scale...")}
+                  className="w-full mt-3 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-[9px] font-mono uppercase font-black tracking-wider border border-white/5 cursor-pointer text-center transition-colors"
+                >
+                  Adquirir Plan Scale
+                </button>
+              </div>
+
+            </div>
+
+            {/* COMPRA DE RENDERS ADICIONALES (ADD-ONS) */}
+            <div className="bg-[#090a0f] border border-white/5 rounded-3xl p-5 mt-6 space-y-4">
+              <div>
+                <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-widest block mb-0.5">
+                  ADD-ONS DE COMPUTO
+                </span>
+                <h4 className="text-base font-display font-black text-white uppercase tracking-tight">
+                  Paquetes de Renders Adicionales
+                </h4>
+                <p className="text-[10px] text-slate-400 leading-relaxed mt-0.5">
+                  ¿Se agotaron tus créditos mensuales? Recarga saldo de renders para el motor de logos e imágenes al instante sin alterar tu suscripción actual. Tus créditos acumulados nunca vencen.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Pack 50 */}
+                <div className="p-4 bg-white/[0.01] border border-white/5 hover:border-brand-primary/30 rounded-xl flex items-center justify-between transition-colors">
+                  <div className="text-left space-y-0.5">
+                    <span className="text-[8px] font-mono font-bold text-slate-500 uppercase tracking-wide block">PACK STARTER</span>
+                    <strong className="text-xs text-white uppercase block">50 Renders Extra</strong>
+                    <span className="text-[9px] text-slate-400 font-mono">$4.99 USD</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => triggerToast("Comprando Pack 50 Renders Extra...")}
+                    className="p-2 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    Recargar
+                  </button>
+                </div>
+
+                {/* Pack 150 */}
+                <div className="p-4 bg-white/[0.01] border border-brand-primary/20 hover:border-brand-primary/40 rounded-xl flex items-center justify-between relative overflow-hidden transition-colors">
+                  <div className="absolute top-0 right-0 bg-brand-primary/10 text-brand-primary text-[6px] font-mono font-bold px-1.5 py-0.5 rounded-bl">Ahorro</div>
+                  <div className="text-left space-y-0.5">
+                    <span className="text-[8px] font-mono font-bold text-brand-primary uppercase tracking-wide block">PACK PRO</span>
+                    <strong className="text-xs text-white uppercase block">150 Renders Extra</strong>
+                    <span className="text-[9px] text-brand-primary font-mono font-bold">$12.99 USD</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => triggerToast("Comprando Pack 150 Renders Extra...")}
+                    className="p-2 bg-brand-primary text-white rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    Recargar
+                  </button>
+                </div>
+
+                {/* Pack 500 */}
+                <div className="p-4 bg-white/[0.01] border border-white/5 hover:border-brand-primary/30 rounded-xl flex items-center justify-between transition-colors">
+                  <div className="text-left space-y-0.5">
+                    <span className="text-[8px] font-mono font-bold text-slate-500 uppercase tracking-wide block">PACK SCALE</span>
+                    <strong className="text-xs text-white uppercase block">500 Renders Extra</strong>
+                    <span className="text-[9px] text-slate-400 font-mono">$34.99 USD</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => triggerToast("Comprando Pack 500 Renders Extra...")}
+                    className="p-2 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    Recargar
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Sincere SRE and Programming Audit Diagnostic (Requested by user) */}
