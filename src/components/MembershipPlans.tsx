@@ -649,7 +649,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                   <CreditCard className="w-4 h-4 text-amber-400" /> Canal de Pago Cripto (Binance / Bitcoin)
                 </h4>
                 <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
-                  Envía el monto equivalente de tu plan seleccionado (Pilot: <strong>$9</strong>, Starter: <strong>$29</strong>, Growth: <strong>$79</strong>, Scale: <strong>$199</strong>) de forma segura:
+                  Envía el monto equivalente de tu plan seleccionado (Copy & Chat: <strong>$4.99</strong>, Pilot: <strong>$9</strong>, Starter: <strong>$29</strong>, Growth: <strong>$79</strong>, Scale: <strong>$199</strong>) de forma segura:
                 </p>
               </div>
 
@@ -662,24 +662,9 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                     <span className="px-1.5 py-0.5 bg-amber-500/15 text-amber-500 text-[7px] font-mono font-black rounded uppercase tracking-wider border border-amber-500/10">
                       MÉTODO A: BINANCE PAY (USDT)
                     </span>
-                    <div className="flex gap-2">
-                      <a 
-                        href="https://s.binance.com/zqX4Rj6Q" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex-1 py-2 px-3 bg-amber-500 hover:bg-amber-400 text-black rounded-xl font-mono text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all hover:scale-[1.01] cursor-pointer"
-                      >
-                        Pagar Online <ExternalLink className="w-3 h-3" />
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => handleCopy('https://s.binance.com/zqX4Rj6Q', 'Enlace Binance Pay')}
-                        className="px-3 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl border border-white/5 transition-all cursor-pointer"
-                        title="Copiar Enlace de Pago"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <p className="text-slate-400 leading-normal font-sans text-[10px]">
+                      Realiza la transferencia desde la app de Binance utilizando el Pay ID oficial:
+                    </p>
                     <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex items-center justify-between gap-2 font-mono text-[10px]">
                       <span className="text-white font-bold leading-none">Pay ID: 39180442</span>
                       <button
