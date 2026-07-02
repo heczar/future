@@ -598,6 +598,36 @@ function AppContent() {
             </div>
           </div>
         </section>
+
+        {/* PROTOCOLO SPE EN EL INICIO */}
+        <section className="spe-section pt-4">
+          <div className="flex items-center gap-2.5 mb-8 text-left">
+            <Sparkles className="w-5 h-5 text-brand-primary animate-pulse" />
+            <h2 className="text-xl md:text-2xl font-bold font-display text-white">Sistema Pentagonal de Ejecución (SPE)</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 font-sans">
+            {spePhases.map((phase, i) => (
+              <div 
+                key={phase.name}
+                onClick={() => {
+                  setSelectedPhase(phase);
+                }}
+                className="glass-panel p-6 rounded-3xl hover:bg-white/5 cursor-pointer border border-white/5 hover:border-brand-primary/30 transition-all group text-left relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 p-2 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">0{i+1}</div>
+                <div className={cn("w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 transition-transform group-hover:scale-110", phase.color)}>
+                  <phase.icon className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-lg mb-1 text-white">{phase.name}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{phase.desc}</p>
+                <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-1 text-[10px] font-bold text-brand-primary opacity-90 transition-opacity">
+                  CONSULTAR FASE <ChevronRight className="w-3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     );
   };
@@ -818,18 +848,10 @@ function AppContent() {
 
                <div className="pt-2">
                  <button 
-                   onClick={() => {
-                     setSelectedPhase(null);
-                     setActiveTab('');
-                     setTimeout(() => {
-                        hubRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        handleHubConsult(selectedPhase.prompt);
-                      }, 100);
-                   }}
-                   className="w-full py-3 bg-brand-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-brand-primary/15 flex items-center justify-center gap-2 cursor-pointer"
+                   onClick={() => setSelectedPhase(null)}
+                   className="w-full py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white/10 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
                  >
-                   <Zap className="w-3.5 h-3.5" />
-                   Consultoría de Ejecución
+                   Entendido
                  </button>
                </div>
             </motion.div>
