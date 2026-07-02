@@ -11,7 +11,6 @@ import { ProjectContext, OperationType, UserProfile } from '../types';
 import { handleFirestoreError } from '../lib/firebaseUtils';
 import { motion, AnimatePresence } from 'motion/react';
 import { compressImage } from '../lib/imageUtils';
-import DrivePicker from './DrivePicker';
 import { cn } from '../lib/utils';
 
 const virtualFuturaBrand: ProjectContext = {
@@ -22,9 +21,6 @@ const virtualFuturaBrand: ProjectContext = {
   trainingMaterial: [
     'https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=200&auto=format&fit=crop',
     'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'
-  ],
-  driveContext: [
-    { name: 'Manual_SPE_Origen.pdf', content: 'Metodología Sistema Pentagonal de Ejecución. Resultados sobre estética.' }
   ],
   methodology: 'SPE',
   brandGuidelines: {
@@ -55,7 +51,6 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
   const [description, setDescription] = useState('');
   const [logos, setLogos] = useState<string[]>([]);
   const [trainingMaterial, setTrainingMaterial] = useState<string[]>([]);
-  const [driveContext, setDriveContext] = useState<{ name: string; content: string }[]>([]);
   
   // Form state for User Profile
   const [profileName, setProfileName] = useState(profile?.name || '');
@@ -91,7 +86,6 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
             description: 'Misión: Ser la referencia líder en nuestro nicho comercial.\nVisión: Multiplicar el alcance mediante canales inteligentes y contenidos automatizados.\nValores: Innovación, Calidad, Enfoque Centrado en Resultados.\nTono: Cercano, Directo, de Alto Impacto.',
             logos: [],
             trainingMaterial: [],
-            driveContext: [],
             methodology: 'SPE'
           };
           setProjects([fallbackProj]);
@@ -119,7 +113,6 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
       setDescription(virtualFuturaBrand.description);
       setLogos(virtualFuturaBrand.logos || []);
       setTrainingMaterial(virtualFuturaBrand.trainingMaterial || []);
-      setDriveContext(virtualFuturaBrand.driveContext || []);
       
       const timer = setTimeout(() => {
         setLoading(false);
@@ -144,7 +137,6 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
           description: 'Misión: Dominio absoluto de nuestro nicho de marketing.\nVisión: Sistema automatizado de conversión e impacto multicanal.\nValores: Autenticidad, Métricas Claras, Enfoque SPE.',
           logos: [],
           trainingMaterial: [],
-          driveContext: [],
           methodology: 'SPE',
           ownerId: auth.currentUser!.uid,
           createdAt: serverTimestamp(),
@@ -174,7 +166,6 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
       setDescription(p.description);
       setLogos(p.logos || []);
       setTrainingMaterial(p.trainingMaterial || []);
-      setDriveContext(p.driveContext || []);
       setLoading(false);
       setErrorMsg(null);
     }, (error) => {
@@ -200,7 +191,6 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
         description: 'Misión: Conectar con audiencias con alto valor.\nVisión: Ser líderes indiscutibles del nicho.\nValores: Autenticidad, Calidad, Innovación.\nTono: Cercano e Instructivo',
         logos: [],
         trainingMaterial: [],
-        driveContext: [],
         methodology: 'SPE',
         ownerId: auth.currentUser.uid,
         createdAt: serverTimestamp(),
@@ -367,10 +357,6 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
         description,
         logos,
         trainingMaterial,
-        driveContext: driveContext.map(doc => ({
-          name: doc.name,
-          content: doc.content.slice(0, 5000)
-        })),
         methodology: 'SPE',
         ownerId: auth.currentUser.uid,
         updatedAt: serverTimestamp(),
@@ -642,31 +628,10 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
                   </div>
 
                   <div className="space-y-8">
-                    <DrivePicker onFilesSelected={(newDocs) => setDriveContext(prev => [...prev, ...newDocs])} />
-                    
-                    {driveContext.length > 0 && (
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Documentos Estructurales</label>
-                        <div className="grid grid-cols-1 gap-2">
-                          {driveContext.map((doc, i) => (
-                            <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 group hover:border-brand-primary/30 transition-all">
-                              <div className="flex items-center gap-3 overflow-hidden">
-                                <FileText className="w-4 h-4 text-brand-primary" />
-                                <span className="text-xs text-white truncate font-medium">{doc.name}</span>
-                              </div>
-                              <button type="button" onClick={() => setDriveContext(d => d.filter((_, idx) => idx !== i))}>
-                                <X className="w-4 h-4 text-slate-500 hover:text-red-400 transition-colors" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-6 pt-6 border-t border-white/5">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em]">Logos del Sistema</label>
-                        <span className="text-[9px] font-bold text-slate-600 uppercase italic">Límite: 5/5</span>
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em]">Logos del Sistema</label>
+                          <span className="text-[9px] font-bold text-slate-600 uppercase italic">Límite: 5/5</span>
                       </div>
                       <div className="grid grid-cols-4 sm:grid-cols-5 gap-4">
                         {logos.length < 5 && (
@@ -721,11 +686,11 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
                   </div>
                 </div>
                 
-                <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row gap-4">
+                <div className="pt-8 border-t border-white/5">
                   <button 
                     type="submit"
                     disabled={isSubmitting || !name || !description}
-                    className="flex-1 py-6 bg-brand-primary text-white rounded-2xl font-black text-sm flex items-center justify-center gap-4 hover:scale-[1.01] shadow-2xl shadow-brand-primary/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed uppercase tracking-[0.2em]"
+                    className="w-full py-6 bg-brand-primary text-white rounded-2xl font-black text-sm flex items-center justify-center gap-4 hover:scale-[1.01] shadow-2xl shadow-brand-primary/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed uppercase tracking-[0.2em]"
                   >
                     {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : (
                       <>
@@ -734,17 +699,6 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
                       </>
                     )}
                   </button>
-
-                  {project?.id && onNavigateToEngine && (
-                    <button 
-                      type="button"
-                      onClick={onNavigateToEngine}
-                      className="px-8 py-6 bg-white/5 text-brand-primary border border-brand-primary/30 rounded-2xl font-black text-sm flex items-center justify-center gap-4 hover:bg-brand-primary/10 transition-all uppercase tracking-[0.2em]"
-                    >
-                      Lanzar Motor Principal
-                      <Plus className="w-5 h-5 rotate-45" />
-                    </button>
-                  )}
                 </div>
               </form>
             </motion.div>

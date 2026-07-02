@@ -7,15 +7,13 @@ import React, { useState } from 'react';
 import Markdown from 'react-markdown';
 import { chatWithAdvisor } from './services/geminiService';
 import Sidebar from './components/Sidebar';
-import CreativeEngine from './components/CreativeEngine';
 import ProjectManager from './components/ProjectManager';
 import MembershipPlans from './components/MembershipPlans';
 import Gallery from './components/Gallery';
-import ContentReady from './components/ContentReady';
-import MasterControlEpicenter from './components/MasterControlEpicenter';
 import Profile from './components/Profile';
 import AuthWrapper from './components/AuthWrapper';
-import FuturaHub from './components/FuturaHub';
+import AdvisoryHub from './components/AdvisoryHub';
+import CreativeStudio from './components/CreativeStudio';
 import AccountAuthPortal from './components/AccountAuthPortal';
 import DevStation from './components/DevStation';
 import { UserProfile, ProjectContext } from './types';
@@ -512,493 +510,98 @@ function AppContent() {
   ];
 
   const renderDashboardView = () => {
+    const brandsCount = projectsList.length > 1 ? projectsList.length - 1 : 0; // Exclude virtual brand
     return (
-      <div className="space-y-16 text-left">
-        {/* EXPLICACIÓN PRINCIPAL DE LA NUEVA MODALIDAD */}
-        <section className="mb-16">
-          <div className="glass-panel p-6 md:p-8 rounded-3xl border border-white/5 bg-surface-950/30 mb-8 space-y-4">
+      <div className="space-y-10 text-left max-w-5xl mx-auto">
+        {/* Welcome Section */}
+        <section className="p-8 md:p-10 bg-gradient-to-br from-brand-primary/10 via-surface-950/40 to-transparent border border-white/5 rounded-3xl backdrop-blur-md relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+            <Sparkles className="w-48 h-48 text-brand-primary" />
+          </div>
+          <div className="space-y-3 relative z-10">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-brand-primary animate-pulse" />
-              <span className="text-[10px] font-mono font-black text-brand-primary uppercase tracking-widest block font-bold">TU NUEVA OPERATIVA DE TRABAJO</span>
+              <span className="text-[10px] font-mono font-bold text-brand-primary uppercase tracking-widest">Panel de Control General</span>
             </div>
-            <h3 className="text-xl md:text-3xl font-display font-bold text-white tracking-tight leading-tight">¿Cómo operar FUTURA con comodidad absoluta?</h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-5xl">
-              Hemos simplificado tu ruta empresarial en dos perfiles de lanzamiento muy prácticos e intuitivos. 
-              No importa de dónde partas, tienes soporte completo y directo sin complicaciones técnicas:
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-white tracking-tight">
+              Bienvenido, <span className="text-brand-primary">{profile?.name || 'Líder'}</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
+              Accede de forma directa a tus herramientas de consultoría, redacción publicitaria y creación visual de alto rendimiento.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 font-sans mb-12">
-            {/* Camino 1: Nuevos Negocios (Ignición Creativa) */}
-            <div className="glass-panel p-8 rounded-3xl border border-white/5 hover:border-amber-500/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[290px] transition-all group hover:bg-surface-950/60 text-left">
-              <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-amber-500/5 transition-colors">IGNICIÓN</div>
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-                  <Rocket className="w-6 h-6 animate-pulse" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-white text-lg tracking-wide uppercase">1. Ignición Creativa (Nuevos Negocios)</h4>
-                  <p className="text-xs text-slate-300 leading-relaxed mt-2">
-                    Si estás comenzando de cero, no tienes marca formal ni material de diseño. Responde dos preguntas súper básicas sobre tu nicho y oferta, y FUTURA creará al instante tus slogans, copys persuasivos y un activo visual premium listo para lanzar.
-                  </p>
-                </div>
-              </div>
-              <button 
-                onClick={() => {
-                  setDashboardPrompt("Soy un nuevo negocio. Ayúdame a estructurar mi marca y diseñar mi campaña de marketing desde cero usando el sistema SPE.");
-                  setActiveTab('futura');
-                }}
-                className="mt-6 w-full py-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 hover:scale-[1.01]"
-              >
-                CREAR DESDE CERO AHORA <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+          {/* User Credits Status */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8 pt-8 border-t border-white/5 relative z-10">
+            <div className="bg-white/5 border border-white/5 p-4 rounded-2xl">
+              <span className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block">Créditos de IA</span>
+              <span className="text-xl font-bold text-white mt-1 block">
+                {profile?.credits === 999999 ? 'Ilimitados 👑' : `${profile?.credits || 0} Restantes`}
+              </span>
             </div>
-
-            {/* Camino 2: Negocios Constituidos (Propulsión de Élite) */}
-            <div className="glass-panel p-8 rounded-3xl border border-white/5 hover:border-brand-primary/20 bg-surface-950/40 relative overflow-hidden flex flex-col justify-between min-h-[290px] transition-all group hover:bg-surface-950/60 text-left">
-              <div className="absolute top-0 right-0 p-4 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors">PROPULSIÓN</div>
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
-                  <Layers className="w-6 h-6 animate-pulse" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-white text-lg tracking-wide uppercase">2. Propulsión de Élite (Marcas Constituidas)</h4>
-                  <p className="text-xs text-slate-300 leading-relaxed mt-2">
-                    Si ya tienes una empresa establecida con un tono y guías definidos en tu Baúl de Marca, conecta tu identidad directamente para extraer tu ADN corporativo y desplegar de forma coherente campañas persuasivas y creativos visuales.
-                  </p>
-                </div>
-              </div>
-              <button 
-                onClick={() => {
-                  setDashboardPrompt("Quiero propulsar y escalar mi marca existente. Ayúdame a analizar mis guías de marca y diseñar nuevas piezas publicitarias.");
-                  setActiveTab('futura');
-                }}
-                className="mt-6 w-full py-3 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-xl border border-brand-primary/30 text-[10px] font-mono uppercase font-black tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 hover:scale-[1.01]"
-              >
-                PROXIMAR BAÚL Y PROPULSAR <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+            <div className="bg-white/5 border border-white/5 p-4 rounded-2xl">
+              <span className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block">Marcas Registradas</span>
+              <span className="text-xl font-bold text-white mt-1 block">{brandsCount} Activas</span>
+            </div>
+            <div className="bg-white/5 border border-white/5 p-4 rounded-2xl col-span-2 md:col-span-1">
+              <span className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block">Nivel de Cuenta</span>
+              <span className="text-xl font-bold text-brand-primary mt-1 block">
+                {profile?.isPremium ? 'Acceso Premium' : 'Plan Básico'}
+              </span>
             </div>
           </div>
         </section>
 
-        {/* PROTOCOLO SPE EN EL INICIO */}
-        <section className="spe-section">
-          <div className="flex items-center gap-2.5 mb-8">
-            <Sparkles className="w-5 h-5 text-brand-primary" />
-            <h2 className="text-xl md:text-2xl font-bold font-display text-white">Sistema Pentagonal de Ejecución (SPE)</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 font-sans">
-            {spePhases.map((phase, i) => (
-              <div 
-                key={phase.name}
-                onClick={() => {
-                  setSelectedPhase(phase);
-                }}
-                className="glass-panel p-6 rounded-3xl hover:bg-white/5 cursor-pointer border border-white/5 hover:border-brand-primary/30 transition-all group text-left"
-              >
-                <div className={cn("w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 transition-transform group-hover:scale-110", phase.color)}>
-                  <phase.icon className="w-6 h-6" />
-                </div>
-                <h3 className="font-bold text-lg mb-1 text-white">{phase.name}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{phase.desc}</p>
-                <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-1 text-[10px] font-bold text-brand-primary opacity-90 transition-opacity">
-                  CONSULTAR FASE <ChevronRight className="w-3" />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-12 overflow-hidden bg-white/5 border-y border-white/5 py-4">
-            <motion.div 
-              animate={{ x: [0, -1000] }}
-              transition={{ 
-                repeat: Infinity, 
-                duration: 30, 
-                ease: "linear" 
-              }}
-              className="flex whitespace-nowrap gap-12 items-center"
-            >
-              {[
-                "Marketing honesto y sin complicaciones para el usuario.",
-                "Estrategia simple, crecimiento seguro.",
-                "La comodidad del cliente es nuestra prioridad operativa.",
-                "Protocolo SPE: El cimiento que conecta tu solución con el cliente ideal.",
-                "Lanzamiento express con diseño de alta conversión sin dolor de cabeza.",
-                "Marketing honesto y sin complicaciones para el usuario.",
-                "Estrategia simple, crecimiento seguro.",
-                "La comodidad del cliente es nuestra prioridad operativa.",
-                "Protocolo SPE: El cimiento que conecta tu solución con el cliente ideal.",
-                "Lanzamiento express con diseño de alta conversión sin dolor de cabeza."
-              ].map((phrase, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className="w-2 h-2 rounded-full bg-brand-primary" />
-                  <span className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">{phrase}</span>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        <section className="mb-16">
+        {/* Services / Consoles Grid */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 font-sans">
+          {/* Card 1: Advisory & Copy Hub */}
           <div 
-            ref={hubRef}
-            className={cn(
-              "glass-panel rounded-[2rem] sm:rounded-[3rem] border-brand-primary/20 bg-gradient-to-br from-brand-primary/5 via-surface-950/40 to-transparent relative overflow-hidden shadow-3xl transition-all duration-300",
-              hubMessages.length > 0 ? "p-4 sm:p-8" : "p-6 sm:p-10 md:p-16"
-            )}
+            onClick={() => setActiveTab('hub')}
+            className="group cursor-pointer p-8 bg-surface-900/30 border border-white/5 hover:border-brand-primary/30 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[250px] transition-all hover:bg-surface-900/50 hover:scale-[1.01]"
           >
-                <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-                  <Bot className="w-48 h-48 text-brand-primary" />
-                </div>
-                
-                <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6">
-                  {hubMessages.length === 0 ? (
-                    <div className="flex flex-col items-center gap-4 text-center">
-                      <div className="w-16 h-16 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary border border-brand-primary/20 shadow-2xl shadow-brand-primary/20">
-                        <Sparkles className="w-8 h-8 animate-pulse" />
-                      </div>
-                      <div className="space-y-2">
-                        <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.4em] block">PROTOCOLOS DE INTELIGENCIA CORPORATIVA</span>
-                        <h2 className="text-4xl md:text-5xl font-display font-bold text-white tracking-tighter leading-tight">
-                          CENTRO DE <span className="text-brand-primary">CONSULTORÍA</span>
-                        </h2>
-                      </div>
-                      <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-                        Nuestra IA está lista para procesar tus inquietudes estratégicas. Eleva tu marca al estándar <span className="text-white font-bold italic">profesional</span>.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-white/5 text-left">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary border border-brand-primary/20 shadow-lg shrink-0">
-                          <Sparkles className="w-5 h-5 animate-pulse" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h2 className="text-lg md:text-xl font-display font-bold text-white tracking-tight">Centro de Consultoría</h2>
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full text-[7px] font-black text-green-500 uppercase tracking-widest leading-none">
-                              <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
-                              Activo
-                            </div>
-                          </div>
-                          <p className="text-[9px] text-slate-500 font-mono tracking-wider uppercase">FUTURA ADVISOR EN LÍNEA</p>
-                        </div>
-                      </div>
-                      
-                      {learnedProtocols.length > 0 && (
-                        <div className="hidden sm:flex items-center gap-2 bg-white/5 border border-white/5 px-3 py-1.5 rounded-lg text-[9px] text-slate-400 font-mono text-left">
-                          <span className="text-brand-primary font-black">ADN SINCRO:</span>
-                          <span className="text-slate-500">{learnedProtocols[learnedProtocols.length - 1].substring(0, 20)}...</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <AnimatePresence>
-                    {hubMessages.length === 0 && learnedProtocols.length > 0 && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex flex-wrap justify-center gap-2"
-                      >
-                        {learnedProtocols.slice(-2).map((p, idx) => (
-                          <div key={idx} className="px-4 py-2 bg-brand-primary/10 border border-brand-primary/20 rounded-full flex items-center gap-2">
-                             <div className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
-                             <span className="text-[9px] font-black text-brand-primary uppercase tracking-[0.2em] leading-none">Sincronización: {p.substring(0, 15)}...</span>
-                          </div>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <AnimatePresence>
-                    {hubMessages.length > 0 && (
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.99 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="w-full max-w-4xl mx-auto space-y-4 relative text-left"
-                      >
-                        <div 
-                          ref={messagesContainerRef}
-                          onScroll={handleScroll}
-                          className="max-h-[440px] overflow-y-auto pr-2 custom-scrollbar space-y-4 text-left py-2 scroll-smooth flex flex-col"
-                        >
-                          {hubMessages.map((msg, i) => {
-                            const isLast = i === hubMessages.length - 1;
-                            const isUser = msg.role === 'user';
-                            return (
-                              <motion.div 
-                                key={i}
-                                ref={isLast ? lastMessageRef : null}
-                                initial={{ opacity: 0, scale: 0.98, y: 10 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                className={cn(
-                                  "p-4 md:p-5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-lg transition-all relative max-w-[85%] sm:max-w-[75%] border",
-                                  isUser 
-                                    ? "self-end ml-auto bg-white/5 text-slate-100 border-white/10 rounded-tr-none hover:bg-white/10" 
-                                    : "self-start mr-auto bg-brand-primary/10 text-slate-200 border-brand-primary/20 rounded-tl-none font-light"
-                                )}
-                              >
-                                {isUser ? (
-                                  <div className="flex items-center gap-1.5 mb-2 opacity-60">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">TU CONSULTA</span>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center gap-1.5 mb-2 text-brand-primary">
-                                    <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-                                    <span className="text-[9px] font-black uppercase tracking-widest">ESTRATEGIA FUTURA</span>
-                                  </div>
-                                )}
-                                <div className="markdown-body text-slate-300 text-xs sm:text-sm">
-                                  <Markdown>{msg.text}</Markdown>
-                                </div>
-                              </motion.div>
-                            );
-                          })}
-                          {isHubLoading && (
-                            <div className="self-start mr-auto max-w-[85%] sm:max-w-[75%] p-4 bg-brand-primary/5 border border-brand-primary/10 rounded-2xl rounded-tl-none flex items-center gap-4 shadow-xl">
-                              <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
-                              <div className="flex flex-col gap-0.5 text-left">
-                                <span className="text-[10px] text-brand-primary uppercase tracking-[0.2em] font-black animate-pulse">Escribiendo...</span>
-                                <span className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Analizando visión en tiempo de ejecución</span>
-                              </div>
-                            </div>
-                          )}
-                          <div ref={chatEndRef} />
-                        </div>
-                        
-                        <AnimatePresence>
-                          {showScrollDown && (
-                            <motion.button
-                              initial={{ opacity: 0, y: 10, x: "-50%" }}
-                              animate={{ opacity: 1, y: 0, x: "-50%" }}
-                              exit={{ opacity: 0, y: 10, x: "-50%" }}
-                              onClick={scrollToBottom}
-                              className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-brand-primary text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-2xl hover:scale-105 active:scale-95 transition-all z-30 whitespace-nowrap border border-white/10 cursor-pointer"
-                            >
-                              <ChevronDown className="w-4 h-4" />
-                              NUEVOS MENSAJES
-                            </motion.button>
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {user ? (
-                    <DashboardInput 
-                      value={dashboardPrompt}
-                      onSubmit={(text) => handleHubConsult(text)}
-                      isLoading={isHubLoading}
-                    />
-                  ) : (
-                    <div className="pt-6">
-                      <AccountAuthPortal />
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-center gap-8 text-[11px] font-black text-slate-600 uppercase tracking-[0.4em] pt-6">
-                    <div className="flex items-center gap-2">
-                       <Layout className="w-4 h-4 text-brand-primary/60" />
-                       Market Intelligence
-                    </div>
-                    <div className="flex items-center gap-2">
-                       <ShieldCheck className="w-4 h-4 text-brand-primary/60" />
-                       Client Capture
-                    </div>
-                  </div>
-                </div>
+            <div className="absolute top-0 right-0 p-4 font-mono text-5xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">CODELAB</div>
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform">
+                <MessageSquare className="w-6 h-6" />
               </div>
-        </section>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-                {/* DNA VAULT Section */}
-                <section className="space-y-6">
-                  <div className="flex items-center justify-between px-2 text-left">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-brand-primary/20 rounded-[1.25rem] flex items-center justify-center border border-brand-primary/20">
-                        <Layout className="w-6 h-6 text-brand-primary" />
-                      </div>
-                      <h2 className="text-2xl font-display font-bold text-white tracking-tight">DNA Vault</h2>
-                    </div>
-                    <button onClick={() => setActiveTab('vault')} className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] hover:tracking-[0.4em] transition-all cursor-pointer">CONFIGURAR BÓVEDA</button>
-                  </div>
-                  <motion.div 
-                    whileHover={{ scale: 1.01 }}
-                    onClick={() => setActiveTab('vault')}
-                    className="glass-panel p-6 sm:p-10 rounded-3xl sm:rounded-[3.5rem] bg-gradient-to-br from-brand-primary/5 via-surface-950/40 to-transparent border-white/5 hover:border-brand-primary/40 transition-all cursor-pointer group relative overflow-hidden h-[340px] flex flex-col justify-between text-left"
-                  >
-                    <div className="relative z-10">
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={vaultStep}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
-                          className="space-y-4"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20">
-                              {vaultStep === 0 ? <Zap className="w-4 h-4 text-brand-primary" /> : 
-                               vaultStep === 1 ? <Target className="w-4 h-4 text-brand-primary" /> : 
-                               <ShieldCheck className="w-4 h-4 text-brand-primary" />}
-                            </div>
-                            <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em]">
-                              {vaultStep === 0 ? 'Identidad de Marca' : 
-                               vaultStep === 1 ? 'Estrategia de Conversión' : 
-                               'Protocolos de Seguridad'}
-                            </span>
-                          </div>
-                          <h3 className="text-xl font-bold text-white tracking-tight">
-                            {vaultStep === 0 ? 'Resguarda tu esencia visual' : 
-                             vaultStep === 1 ? 'Activa el motor corporativo' : 
-                             'Blindaje de IP Corporativa'}
-                          </h3>
-                          <p className="text-sm text-slate-500 leading-relaxed italic">
-                            {vaultStep === 0 ? '"La estética no es el fin, es el vehículo para tu DNA de marca."' : 
-                             vaultStep === 1 ? '"Convertimos tu visión en un sistema repetible de resultados."' : 
-                             '"Tu ventaja competitiva es privada, segura y encriptada."'}
-                          </p>
-                        </motion.div>
-                      </AnimatePresence>
-                    </div>
-                    
-                    <div className="space-y-6 relative z-10">
-                      {[
-                        { label: 'Identidad Visual', progress: 85, color: 'bg-brand-primary' },
-                        { label: 'Activos de Conversión', progress: vaultStep > 0 ? 92 : 45, color: 'bg-purple-500' },
-                        { label: 'Protocolo de Marca', progress: vaultStep > 1 ? 88 : 65, color: 'bg-blue-500' }
-                      ].map((item, i) => (
-                        <div key={i} className="space-y-2">
-                          <div className="flex justify-between items-end">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{item.label}</span>
-                            <span className="text-[10px] font-mono text-brand-primary">{item.progress}%</span>
-                          </div>
-                          <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                            <motion.div 
-                              initial={{ width: 0 }}
-                              animate={{ width: `${item.progress}%` }}
-                              transition={{ duration: 1.5, delay: 0.2 }}
-                              className={cn("h-full rounded-full shadow-lg", item.color)}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                </section>
-
-                {/* SECURITY PROTOCOL Section */}
-                <section className="space-y-6">
-                  <div className="flex items-center justify-between px-2 text-left">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-brand-primary/20 rounded-[1.25rem] flex items-center justify-center border border-brand-primary/20">
-                        <ShieldCheck className="w-6 h-6 text-brand-primary" />
-                      </div>
-                      <h2 className="text-2xl font-display font-bold text-white tracking-tight">Ciberseguridad</h2>
-                    </div>
-                    <button onClick={() => setActiveTab('security')} className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] hover:tracking-[0.4em] transition-all cursor-pointer">VER PROTOCOLOS</button>
-                  </div>
-                  <motion.div 
-                    whileHover={{ scale: 1.01 }}
-                    onClick={() => setActiveTab('security')}
-                    className="glass-panel p-6 sm:p-10 rounded-3xl sm:rounded-[3.5rem] bg-surface-950 border-white/5 hover:border-brand-primary/40 transition-all cursor-pointer group relative overflow-hidden h-[340px] flex flex-col justify-between text-left"
-                  >
-                    {/* Animated background lines for security dynamism */}
-                    <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden text-left">
-                      <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(139,92,246,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-                      <motion.div 
-                        animate={{ y: [0, 340] }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                        className="w-full h-1 bg-gradient-to-r from-transparent via-brand-primary/40 to-transparent blur-sm"
-                      />
-                    </div>
-
-                    <div className="relative z-10 text-left">
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={securityStep}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
-                          className="space-y-4"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20">
-                              {securityStep === 0 ? <ShieldCheck className="w-4 h-4 text-brand-primary" /> : 
-                               securityStep === 1 ? <Search className="w-4 h-4 text-brand-primary" /> : 
-                               <Loader2 className="w-4 h-4 text-brand-primary" />}
-                            </div>
-                            <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em]">
-                              {securityStep === 0 ? 'Infraestructura Blindada' : 
-                               securityStep === 1 ? 'Monitoreo de Amenazas' : 
-                               'Protocolos de Acceso'}
-                            </span>
-                          </div>
-                          <h3 className="text-xl font-bold text-white tracking-tight">
-                            {securityStep === 0 ? 'Protección de IP nivel CERO' : 
-                             securityStep === 1 ? 'Vigilancia 24/7 de Activos' : 
-                             'Encriptación Avanzada Activa'}
-                          </h3>
-                          <p className="text-sm text-slate-400 leading-relaxed italic">
-                            {securityStep === 0 ? '"Toda tu data estratégica permanece encriptada y aislada en servidores independientes."' : 
-                             securityStep === 1 ? '"Detección proactiva de cualquier intento de intrusión mediante Redes Neuronales."' : 
-                             '"Protocolos bancarios para la total seguridad de tu información corporativa."'}
-                          </p>
-                        </motion.div>
-                      </AnimatePresence>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 relative z-10 text-left">
-                       <div className="bg-brand-primary/5 border border-brand-primary/10 p-4 rounded-2xl group-hover:border-brand-primary/30 transition-colors">
-                          <div className="flex items-center justify-between mb-1">
-                             <span className="text-[9px] font-black text-brand-primary uppercase tracking-widest">Escaneo Realtime</span>
-                             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-                          </div>
-                          <p className="text-[10px] font-bold text-white uppercase tracking-widest">{securityStep === 2 ? 'VERIFICANDO...' : 'ACTIVO / PROTEGIDO'}</p>
-                       </div>
-                       <div className="bg-white/5 border border-white/10 p-4 rounded-2xl group-hover:border-brand-primary/30 transition-colors">
-                          <div className="flex items-center justify-between mb-1">
-                             <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Aislamiento IP</span>
-                             <div className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
-                          </div>
-                          <p className="text-[10px] font-bold text-white uppercase tracking-widest">SINCRO TOTAL</p>
-                       </div>
-                    </div>
-                  </motion.div>
-                </section>
+              <div className="text-left">
+                <h3 className="font-bold text-white text-lg tracking-wide uppercase">Asesoría & Copys</h3>
+                <p className="text-xs text-slate-400 leading-relaxed mt-2.5">
+                  Conéctate con tu estratega corporativo de IA para analizar ideas de negocio, debatir enfoques comerciales y redactar copys persuasivos de ventas en segundos.
+                </p>
               </div>
-
-              {/* SYSTEM GUIDE Section */}
-              <section className="space-y-6">
-                <div className="flex items-center gap-3 px-2 text-left">
-                  <div className="w-12 h-12 bg-brand-primary/20 rounded-[1.25rem] flex items-center justify-center border border-brand-primary/20">
-                    <BookOpen className="w-6 h-6 text-brand-primary" />
-                  </div>
-                  <h2 className="text-2xl font-display font-bold text-white tracking-tight">Guía de Sistema</h2>
-                </div>
-                <div className="glass-panel p-6 md:p-12 rounded-3xl md:rounded-[4rem] bg-gradient-to-b from-white/5 to-transparent border-white/5 text-left">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                    {[
-                      { icon: Zap, label: "Fase 1: Eficiencia", desc: "Optimiza tus activos para máxima conversión." },
-                      { icon: Bot, label: "Fase 2: IA", desc: "Inyecta inteligencia en tu flujo de trabajo." },
-                      { icon: CheckCircle, label: "Fase 3: Escala", desc: "Domina tu nicho con volumen estratégico." }
-                    ].map((step, i) => (
-                      <div key={i} className="space-y-4">
-                        <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-brand-primary">
-                          <step.icon className="w-6 h-6" />
-                        </div>
-                        <h3 className="font-bold text-lg text-white">{step.label}</h3>
-                        <p className="text-sm text-slate-500 leading-relaxed">{step.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </section>
+            </div>
+            <div className="mt-6 flex items-center gap-2 text-[10px] font-mono uppercase font-bold text-brand-primary tracking-widest">
+              <span>Abrir Consola</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
-        );
+
+          {/* Card 2: Creative Studio */}
+          <div 
+            onClick={() => setActiveTab('studio')}
+            className="group cursor-pointer p-8 bg-surface-900/30 border border-white/5 hover:border-brand-primary/30 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[250px] transition-all hover:bg-surface-900/50 hover:scale-[1.01]"
+          >
+            <div className="absolute top-0 right-0 p-4 font-mono text-5xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">STUDIO</div>
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform">
+                <Sparkles className="w-6 h-6 animate-pulse" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold text-white text-lg tracking-wide uppercase">Estudio Creativo</h3>
+                <p className="text-xs text-slate-400 leading-relaxed mt-2.5">
+                  Genera logotipos vectoriales de gran diseño, ilustra imágenes promocionales hiper-realistas para tus redes sociales y edítalos con el lienzo de dibujo interactivo.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex items-center gap-2 text-[10px] font-mono uppercase font-bold text-brand-primary tracking-widest">
+              <span>Abrir Consola</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+        </section>
+      </div>
+    );
   };
 
   return (
@@ -1078,9 +681,9 @@ function AppContent() {
             {renderDashboardView()}
           </div>
 
-          {/* FUTURA HUB */}
-          <div className={cn("w-full transition-all duration-150", activeTab === 'futura' ? "block opacity-100" : "hidden opacity-0")}>
-            <FuturaHub 
+          {/* ASESORÍA & COPYS */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'hub' ? "block opacity-100" : "hidden opacity-0")}>
+            <AdvisoryHub 
               profile={profile} 
               projectsList={projectsList} 
               onUpdateProfile={handleUpdateProfile} 
@@ -1091,14 +694,13 @@ function AppContent() {
             />
           </div>
 
-          {/* CREATIVE ENGINE */}
-          <div className={cn("w-full transition-all duration-150", activeTab === 'engine' ? "block opacity-100" : "hidden opacity-0")}>
-            <CreativeEngine 
+          {/* ESTUDIO CREATIVO */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'studio' ? "block opacity-100" : "hidden opacity-0")}>
+            <CreativeStudio 
               profile={profile} 
+              projectsList={projectsList} 
               onUpdateProfile={handleUpdateProfile} 
-              onNavigateToVault={() => setActiveTab('vault')} 
-              initialPrompt={dashboardPrompt}
-              onPromptConsumed={() => setDashboardPrompt('')}
+              setActiveTab={setActiveTab}
             />
           </div>
 
@@ -1107,8 +709,17 @@ function AppContent() {
             <ProjectManager 
               profile={profile} 
               onUpdateProfile={handleUpdateProfile}
-              onNavigateToEngine={() => setActiveTab('engine')}
             />
+          </div>
+
+          {/* GALERÍA */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'gallery' ? "block opacity-100" : "hidden opacity-0")}>
+            <Gallery />
+          </div>
+
+          {/* MEMBERSHIP PLANS */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'pro' ? "block opacity-100" : "hidden opacity-0")}>
+            <MembershipPlans profile={profile} onUpdateProfile={handleUpdateProfile} />
           </div>
 
           {/* PROFILE */}
@@ -1137,51 +748,6 @@ function AppContent() {
             ) : (
               <DevPanel />
             )}
-          </div>
-
-          {/* SECURITY SECTION */}
-          <div className={cn("w-full transition-all duration-150", activeTab === 'security' ? "block opacity-100" : "hidden opacity-0")}>
-            <SecuritySection />
-          </div>
-
-          {/* GALLERY */}
-          <div className={cn("w-full transition-all duration-150", activeTab === 'gallery' ? "block opacity-100" : "hidden opacity-0")}>
-            <Gallery />
-          </div>
-
-          {/* IGNICIÓN CREATIVA (NUEVOS NEGOCIOS) */}
-          <div className={cn("w-full transition-all duration-150", activeTab === 'ignicion' ? "block opacity-100" : "hidden opacity-0")}>
-            <ContentReady initialProfile="ignicion" profile={profile} />
-          </div>
-
-          {/* PROPULSIÓN DE ÉLITE (NEGOCIOS CONSTITUIDOS) */}
-          <div className={cn("w-full transition-all duration-150", activeTab === 'propulsion' ? "block opacity-100" : "hidden opacity-0")}>
-            <ContentReady initialProfile="propulsion" profile={profile} />
-          </div>
-
-          {/* CONTENT READY FALLBACK */}
-          <div className={cn("w-full transition-all duration-150", activeTab === 'content' ? "block opacity-100" : "hidden opacity-0")}>
-            <ContentReady profile={profile} />
-          </div>
-
-          {/* MEMBERSHIP PLANS */}
-          <div className={cn("w-full transition-all duration-150", activeTab === 'pro' ? "block opacity-100" : "hidden opacity-0")}>
-            <MembershipPlans profile={profile} onUpdateProfile={handleUpdateProfile} />
-          </div>
-
-          {/* MASTER EPICENTER */}
-          <div className={cn("w-full transition-all duration-150", activeTab === 'epicenter' ? "block opacity-100" : "hidden opacity-0")}>
-            <MasterControlEpicenter 
-              profile={profile}
-              onUpdateProfile={handleUpdateProfile}
-              projectsList={projectsList}
-              setActiveTab={setActiveTab}
-              isSimplifiedMode={isSimplifiedMode}
-              onTriggerConsult={(text) => {
-                setDashboardPrompt(text);
-                handleHubConsult(text);
-              }}
-            />
           </div>
         </div>
       </main>

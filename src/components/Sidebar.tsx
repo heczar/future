@@ -1,22 +1,14 @@
 import React from 'react';
 import { 
   BarChart3, 
-  Layers, 
-  Calendar,
   Image as ImageIcon, 
   Settings, 
   User, 
-  PlusSquare, 
-  Zap,
-  Layout,
-  History,
   Crown,
   ShieldCheck,
-  Shield,
-  Rocket,
   MessageSquare,
-  AlertTriangle,
-  Briefcase
+  Briefcase,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -34,32 +26,32 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
 
   const menuGroups = [
     {
-      title: "Núcleo de Asesoría",
+      title: "Servicios",
       items: [
-        { id: 'dashboard', label: 'Inicio y Filosofía', icon: BarChart3 },
-        { id: 'futura', label: 'Consultor FUTURA', icon: MessageSquare },
+        { id: 'dashboard', label: 'Inicio', icon: BarChart3 },
+        { id: 'hub', label: 'Asesoría & Copys', icon: MessageSquare },
+        { id: 'studio', label: 'Estudio Creativo', icon: Sparkles },
       ]
     },
     {
-      title: "Archivos y Bóvedas",
+      title: "Mi Espacio",
       items: [
-        { id: 'vault', label: 'Configuración de Marcas', icon: Briefcase },
-        { id: 'gallery', label: 'Bóveda de Entregables', icon: ImageIcon },
+        { id: 'vault', label: 'Mis Marcas', icon: Briefcase },
+        { id: 'gallery', label: 'Galería', icon: ImageIcon },
       ]
     },
     {
-      title: "Planificación y Cifrado",
+      title: "Cuenta",
       items: [
-        { id: 'security', label: 'Seguridad y Cifrado', icon: Shield },
-        { id: 'pro', label: 'Membresías', icon: Crown },
+        { id: 'pro', label: 'Membresía', icon: Crown },
+        { id: 'profile', label: 'Mi Perfil', icon: User },
       ]
     },
     {
-      title: "Consola de Sistema",
+      title: "Sistema",
       items: [
         { id: 'admin', label: 'Administración', icon: ShieldCheck },
-        ...(isMaster ? [{ id: 'dev', label: 'Desarrollo API', icon: Settings }] : []),
-        { id: 'profile', label: 'Mi Perfil', icon: User },
+        ...(isMaster ? [{ id: 'dev', label: 'Estación IA', icon: Settings }] : []),
       ]
     }
   ];
