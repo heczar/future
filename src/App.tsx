@@ -63,9 +63,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { cn } from './lib/utils';
-import PhaseChat from './components/PhaseChat';
 import LandingOverlay from './components/LandingOverlay';
-import SecuritySection from './components/SecuritySection';
 import { useAuth } from './components/AuthWrapper';
 import { AccountProvider } from './components/AccountProvider';
 
