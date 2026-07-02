@@ -62,10 +62,25 @@ export default async function handler(req: any, res: any) {
       4. Conjunto de hashtags de nicho estratégicos y relevantes (máximo 5-6 hashtags efectivos)
     `;
 
+    const partsArray: any[] = [{ text: prompt }];
+
+    if (params.imageUrl) {
+      const partsArr = params.imageUrl.split(';base64,');
+      if (partsArr.length === 2) {
+        partsArray.push({ text: "[FOTOGRAFÍA DE APOYO ADJUNTA POR EL USUARIO] Analiza detalladamente esta fotografía e inspira/adapta el copy a sus elementos visuales:" });
+        partsArray.push({
+          inlineData: {
+            mimeType: partsArr[0].split(':')[1],
+            data: partsArr[1]
+          }
+        });
+      }
+    }
+
     const response = await generateContentWithRetry(
       customKey,
       model,
-      [{ parts: [{ text: prompt }] }],
+      [{ parts: partsArray }],
       {
         systemInstruction,
       }

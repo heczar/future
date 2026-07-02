@@ -15,7 +15,8 @@ import {
   Briefcase, 
   ArrowRight,
   RefreshCw,
-  Info
+  Info,
+  Image as ImageIcon
 } from 'lucide-react';
 import { db, auth } from '../lib/firebase';
 import { cn } from '../lib/utils';
@@ -160,8 +161,32 @@ export default function AdvisoryHub({
   // Refinement states
   const [refineInput, setRefineInput] = useState('');
   const [isRefiningCopy, setIsRefiningCopy] = useState(false);
-
   const [copiedText, setCopiedText] = useState(false);
+
+  // Multimodal image upload for Copywriting
+  const [copyImage, setCopyImage] = useState<string | null>(null);
+
+  const handleCopyImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Optional limit to 4MB for faster API transfers
+    if (file.size > 4 * 1024 * 1024) {
+      alert("La fotografía es demasiado pesada. Favor de subir una imagen menor a 4MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setCopyImage(reader.result);
+      }
+    };
+    reader.onerror = (err) => {
+      console.error("FileReader error:", err);
+    };
+  };
 
   const handleGenerateCopy = async () => {
     if (!copyTopic.trim() || isGeneratingCopy) return;
@@ -181,7 +206,8 @@ export default function AdvisoryHub({
         extraContext: activeBrand ? `Marca: ${activeBrand.name}. Pautas: ${activeBrand.description}` : '',
         language: 'es',
         projectName: brandName,
-        projectDescription: brandDesc
+        projectDescription: brandDesc,
+        imageUrl: copyImage || undefined // Pass image to Gemini API
       });
       setGeneratedCopy(result);
     } catch (err: any) {
@@ -385,8 +411,41 @@ export default function AdvisoryHub({
                     placeholder="Ejemplo: Lanzamiento de una oferta del 20% de descuento en limpiezas dentales sólo por este mes para eliminar el miedo a ir al dentista..."
                     value={copyTopic}
                     onChange={(e) => setCopyTopic(e.target.value)}
-                    className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors resize-none"
+                    className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors resize-none animate-none"
                   />
+                </div>
+
+                {/* Imagen del Copy (Fotografía de Apoyo) */}
+                <div className="space-y-1.5 pt-1">
+                  <label className="text-[11px] font-mono text-slate-400 flex items-center justify-between">
+                    <span>Fotografía de Apoyo (Opcional)</span>
+                    {copyImage && (
+                      <button 
+                        type="button" 
+                        onClick={() => setCopyImage(null)} 
+                        className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors cursor-pointer"
+                      >
+                        ELIMINAR
+                      </button>
+                    )}
+                  </label>
+                  
+                  {copyImage ? (
+                    <div className="relative rounded-xl border border-white/10 overflow-hidden bg-black/40 aspect-video max-h-[80px] flex items-center justify-center">
+                      <img src={copyImage} alt="Preview" className="h-full object-contain" />
+                    </div>
+                  ) : (
+                    <label className="flex items-center justify-center gap-2 p-3 border border-dashed border-white/10 hover:border-brand-primary/40 bg-white/[0.01] hover:bg-brand-primary/[0.02] rounded-xl cursor-pointer text-xs text-slate-400 hover:text-slate-300 transition-all select-none">
+                      <ImageIcon className="w-4 h-4 text-brand-primary" />
+                      <span>Subir foto para analizar...</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleCopyImageChange} 
+                        className="hidden" 
+                      />
+                    </label>
+                  )}
                 </div>
 
                 {/* Platform Selector */}
