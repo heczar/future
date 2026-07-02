@@ -510,40 +510,40 @@ function AppContent() {
   const renderDashboardView = () => {
     const brandsCount = projectsList.length > 1 ? projectsList.length - 1 : 0; // Exclude virtual brand
     return (
-      <div className="space-y-10 text-left max-w-5xl mx-auto">
+      <div className="space-y-6 text-left max-w-5xl mx-auto">
         {/* Welcome Section */}
-        <section className="p-8 md:p-10 bg-gradient-to-br from-brand-primary/10 via-surface-950/40 to-transparent border border-white/5 rounded-3xl backdrop-blur-md relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-            <Sparkles className="w-48 h-48 text-brand-primary" />
+        <section className="p-5 md:p-6 bg-gradient-to-br from-brand-primary/10 via-surface-950/40 to-transparent border border-white/5 rounded-3xl backdrop-blur-md relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+            <Sparkles className="w-32 h-32 text-brand-primary" />
           </div>
-          <div className="space-y-3 relative z-10">
+          <div className="space-y-2 relative z-10">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-brand-primary animate-pulse" />
-              <span className="text-[10px] font-mono font-bold text-brand-primary uppercase tracking-widest">Panel de Control General</span>
+              <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
+              <span className="text-[9px] font-mono font-bold text-brand-primary uppercase tracking-widest">Panel de Control General</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-white tracking-tight">
+            <h2 className="text-2xl md:text-3xl font-display font-bold text-white tracking-tight">
               Bienvenido, <span className="text-brand-primary">{profile?.name || 'Líder'}</span>
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
+            <p className="text-[11px] md:text-xs text-slate-300 leading-relaxed max-w-2xl">
               Accede de forma directa a tus herramientas de consultoría, redacción publicitaria y creación visual de alto rendimiento.
             </p>
           </div>
 
           {/* User Credits Status */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8 pt-8 border-t border-white/5 relative z-10">
-            <div className="bg-white/5 border border-white/5 p-4 rounded-2xl">
-              <span className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block">Créditos de IA</span>
-              <span className="text-xl font-bold text-white mt-1 block">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4 pt-4 border-t border-white/5 relative z-10">
+            <div className="bg-white/5 border border-white/5 p-3 rounded-xl">
+              <span className="text-[8px] font-mono text-slate-500 uppercase tracking-wider block">Créditos de IA</span>
+              <span className="text-base font-bold text-white mt-0.5 block">
                 {profile?.credits === 999999 ? 'Ilimitados 👑' : `${profile?.credits || 0} Restantes`}
               </span>
             </div>
-            <div className="bg-white/5 border border-white/5 p-4 rounded-2xl">
-              <span className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block">Marcas Registradas</span>
-              <span className="text-xl font-bold text-white mt-1 block">{brandsCount} Activas</span>
+            <div className="bg-white/5 border border-white/5 p-3 rounded-xl">
+              <span className="text-[8px] font-mono text-slate-500 uppercase tracking-wider block">Marcas Registradas</span>
+              <span className="text-base font-bold text-white mt-0.5 block">{brandsCount} Activas</span>
             </div>
-            <div className="bg-white/5 border border-white/5 p-4 rounded-2xl col-span-2 md:col-span-1">
-              <span className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block">Nivel de Cuenta</span>
-              <span className="text-xl font-bold text-brand-primary mt-1 block">
+            <div className="bg-white/5 border border-white/5 p-3 rounded-xl col-span-2 md:col-span-1">
+              <span className="text-[8px] font-mono text-slate-500 uppercase tracking-wider block">Nivel de Cuenta</span>
+              <span className="text-base font-bold text-brand-primary mt-0.5 block">
                 {profile?.isPremium ? 'Acceso Premium' : 'Plan Básico'}
               </span>
             </div>
@@ -551,78 +551,78 @@ function AppContent() {
         </section>
 
         {/* Services / Consoles Grid */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 font-sans">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 font-sans">
           {/* Card 1: Advisory & Copy Hub */}
           <div 
             onClick={() => setActiveTab('hub')}
-            className="group cursor-pointer p-8 bg-surface-900/30 border border-white/5 hover:border-brand-primary/30 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[250px] transition-all hover:bg-surface-900/50 hover:scale-[1.01]"
+            className="group cursor-pointer p-5 bg-surface-900/30 border border-white/5 hover:border-brand-primary/30 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[160px] transition-all hover:bg-surface-900/50 hover:scale-[1.01]"
           >
-            <div className="absolute top-0 right-0 p-4 font-mono text-5xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">CODELAB</div>
-            <div className="space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform">
-                <MessageSquare className="w-6 h-6" />
+            <div className="absolute top-0 right-0 p-3 font-mono text-4xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">CODELAB</div>
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:scale-105 transition-transform">
+                <MessageSquare className="w-5 h-5" />
               </div>
               <div className="text-left">
-                <h3 className="font-bold text-white text-lg tracking-wide uppercase">Asesoría & Copys</h3>
-                <p className="text-xs text-slate-400 leading-relaxed mt-2.5">
-                  Conéctate con tu estratega corporativo de IA para analizar ideas de negocio, debatir enfoques comerciales y redactar copys persuasivos de ventas en segundos.
+                <h3 className="font-bold text-white text-sm tracking-wide uppercase">Asesoría & Copys</h3>
+                <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
+                  Conéctate con tu estratega corporativo de IA para analizar ideas de negocio, debatir enfoques comerciales y redactar copys persuasivos en segundos.
                 </p>
               </div>
             </div>
-            <div className="mt-6 flex items-center gap-2 text-[10px] font-mono uppercase font-bold text-brand-primary tracking-widest">
+            <div className="mt-2.5 flex items-center gap-1.5 text-[9px] font-mono uppercase font-bold text-brand-primary tracking-widest">
               <span>Abrir Consola</span>
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
 
           {/* Card 2: Creative Studio */}
           <div 
             onClick={() => setActiveTab('studio')}
-            className="group cursor-pointer p-8 bg-surface-900/30 border border-white/5 hover:border-brand-primary/30 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[250px] transition-all hover:bg-surface-900/50 hover:scale-[1.01]"
+            className="group cursor-pointer p-5 bg-surface-900/30 border border-white/5 hover:border-brand-primary/30 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[160px] transition-all hover:bg-surface-900/50 hover:scale-[1.01]"
           >
-            <div className="absolute top-0 right-0 p-4 font-mono text-5xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">STUDIO</div>
-            <div className="space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform">
-                <Sparkles className="w-6 h-6 animate-pulse" />
+            <div className="absolute top-0 right-0 p-3 font-mono text-4xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">STUDIO</div>
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:scale-105 transition-transform">
+                <Sparkles className="w-5 h-5 animate-pulse" />
               </div>
               <div className="text-left">
-                <h3 className="font-bold text-white text-lg tracking-wide uppercase">Estudio Creativo</h3>
-                <p className="text-xs text-slate-400 leading-relaxed mt-2.5">
-                  Genera logotipos vectoriales de gran diseño, ilustra imágenes promocionales hiper-realistas para tus redes sociales y edítalos con el lienzo de dibujo interactivo.
+                <h3 className="font-bold text-white text-sm tracking-wide uppercase">Estudio Creativo</h3>
+                <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
+                  Genera logotipos vectoriales de gran diseño, ilustra imágenes promocionales hiper-realistas para tus redes sociales y edítalos con el lienzo de dibujo.
                 </p>
               </div>
             </div>
-            <div className="mt-6 flex items-center gap-2 text-[10px] font-mono uppercase font-bold text-brand-primary tracking-widest">
+            <div className="mt-2.5 flex items-center gap-1.5 text-[9px] font-mono uppercase font-bold text-brand-primary tracking-widest">
               <span>Abrir Consola</span>
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
         </section>
 
         {/* PROTOCOLO SPE EN EL INICIO */}
-        <section className="spe-section pt-4">
-          <div className="flex items-center gap-2.5 mb-8 text-left">
-            <Sparkles className="w-5 h-5 text-brand-primary animate-pulse" />
-            <h2 className="text-xl md:text-2xl font-bold font-display text-white">Sistema Pentagonal de Ejecución (SPE)</h2>
+        <section className="spe-section pt-1">
+          <div className="flex items-center gap-2 mb-4 text-left">
+            <Sparkles className="w-4 h-4 text-brand-primary animate-pulse" />
+            <h2 className="text-lg md:text-xl font-bold font-display text-white">Sistema Pentagonal de Ejecución (SPE)</h2>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 font-sans">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 font-sans">
             {spePhases.map((phase, i) => (
               <div 
                 key={phase.name}
                 onClick={() => {
                   setSelectedPhase(phase);
                 }}
-                className="glass-panel p-6 rounded-3xl hover:bg-white/5 cursor-pointer border border-white/5 hover:border-brand-primary/30 transition-all group text-left relative overflow-hidden"
+                className="glass-panel p-4 rounded-2xl hover:bg-white/5 cursor-pointer border border-white/5 hover:border-brand-primary/30 transition-all group text-left relative overflow-hidden"
               >
-                <div className="absolute top-0 right-0 p-2 font-mono text-3xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">0{i+1}</div>
-                <div className={cn("w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 transition-transform group-hover:scale-110", phase.color)}>
-                  <phase.icon className="w-6 h-6" />
+                <div className="absolute top-0 right-0 p-1.5 font-mono text-2xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">0{i+1}</div>
+                <div className={cn("w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-4 transition-transform group-hover:scale-105", phase.color)}>
+                  <phase.icon className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-lg mb-1 text-white">{phase.name}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{phase.desc}</p>
-                <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-1 text-[10px] font-bold text-brand-primary opacity-90 transition-opacity">
-                  CONSULTAR FASE <ChevronRight className="w-3" />
+                <h3 className="font-bold text-sm mb-0.5 text-white">{phase.name}</h3>
+                <p className="text-[10px] text-slate-400 leading-normal">{phase.desc}</p>
+                <div className="mt-3 pt-3 border-t border-white/5 flex items-center gap-1 text-[8.5px] font-bold text-brand-primary opacity-90 transition-opacity">
+                  VER MÁS <ChevronRight className="w-2.5" />
                 </div>
               </div>
             ))}

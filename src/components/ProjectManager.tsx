@@ -621,7 +621,7 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
                         required
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-5 text-white focus:border-brand-primary/50 outline-none min-h-[200px] transition-all placeholder:text-slate-700 resize-none text-sm leading-relaxed"
+                        className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-5 text-white focus:border-brand-primary/50 outline-none min-h-[120px] transition-all placeholder:text-slate-700 resize-none text-sm leading-relaxed"
                         placeholder="Describe el propósito, voz de marca y valores clave..."
                       />
                     </div>
@@ -743,7 +743,7 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
                       <textarea 
                         value={profileBio}
                         onChange={(e) => setProfileBio(e.target.value)}
-                        className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-5 text-white focus:border-brand-primary/50 outline-none min-h-[150px] transition-all resize-none"
+                        className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-5 text-white focus:border-brand-primary/50 outline-none min-h-[100px] transition-all resize-none"
                         placeholder="Define quién eres y tu experiencia..."
                       />
                     </div>
@@ -753,7 +753,7 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
                     <textarea 
                       value={profilePhilosophy}
                       onChange={(e) => setProfilePhilosophy(e.target.value)}
-                      className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-5 text-white focus:border-brand-primary/50 outline-none min-h-[268px] transition-all resize-none"
+                      className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-5 text-white focus:border-brand-primary/50 outline-none min-h-[120px] transition-all resize-none"
                       placeholder="¿Qué valores rigen tu ejecución? Ej: Resultados sobre estética..."
                     />
                   </div>

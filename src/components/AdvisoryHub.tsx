@@ -366,7 +366,7 @@ export default function AdvisoryHub({
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-mono text-slate-400">¿Qué quieres publicar?</label>
                   <textarea
-                    rows={4}
+                    rows={2}
                     placeholder="Ejemplo: Lanzamiento de una oferta del 20% de descuento en limpiezas dentales sólo por este mes para eliminar el miedo a ir al dentista..."
                     value={copyTopic}
                     onChange={(e) => setCopyTopic(e.target.value)}

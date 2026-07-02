@@ -457,7 +457,7 @@ export default function CreativeStudio({
 
       {isEditingInCanvas ? (
         /* CANVAS EDITOR WORKSPACE */
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-210px)] min-h-[500px]">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-340px)] min-h-[300px]">
           {/* Canvas workspace (3 cols) */}
           <div className="lg:col-span-3 flex flex-col bg-surface-950 border border-white/5 rounded-2xl overflow-hidden relative">
             <div className="flex items-center justify-between p-4 bg-[#0a0a0a] border-b border-white/5">
@@ -825,7 +825,7 @@ export default function CreativeStudio({
           </div>
 
           {/* Result view panel (3 cols) */}
-          <div className="lg:col-span-3 flex flex-col h-[calc(100vh-270px)] min-h-[400px] p-5 bg-surface-900/20 border border-white/5 rounded-2xl relative overflow-hidden">
+          <div className="lg:col-span-3 flex flex-col h-[calc(100vh-340px)] min-h-[300px] p-5 bg-surface-900/20 border border-white/5 rounded-2xl relative overflow-hidden">
             <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-300 border-b border-white/5 pb-2 mb-4 shrink-0">
               Visual Producido
             </h3>
