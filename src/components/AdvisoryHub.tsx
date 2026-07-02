@@ -42,6 +42,21 @@ export default function AdvisoryHub({
   initialPrompt,
   onPromptConsumed
 }: AdvisoryHubProps) {
+  const renderFormattedChatMessage = (text: string) => {
+    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        const word = part.slice(2, -2);
+        return (
+          <span key={index} className="text-[#c084fc] font-bold">
+            {word}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
   const [activeSubTab, setActiveSubTab] = useState<'consultation' | 'copys'>('consultation');
   const [selectedBrandId, setSelectedBrandId] = useState<string>(() => {
     return localStorage.getItem('activeConsultBrandId') || '';
@@ -307,7 +322,7 @@ export default function AdvisoryHub({
                         : "bg-white/5 border border-white/5 text-slate-300 mr-auto rounded-tl-none"
                     )}
                   >
-                    {msg.text}
+                    {renderFormattedChatMessage(msg.text)}
                   </div>
                 ))}
 
