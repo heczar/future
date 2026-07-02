@@ -22,7 +22,8 @@ import {
   Briefcase,
   Layers,
   ChevronRight,
-  Maximize2
+  Maximize2,
+  Info
 } from 'lucide-react';
 import { db, auth } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -840,6 +841,12 @@ export default function CreativeStudio({
               </div>
             ) : generatedResult ? (
               <div className="flex-1 flex flex-col min-h-0">
+                {generatedResult.startsWith('data:image/svg+xml;base64,') && (
+                  <div className="mb-3 p-3 bg-brand-primary/10 border border-brand-primary/20 rounded-xl text-[10px] text-brand-primary font-bold uppercase tracking-wider flex items-center justify-center gap-2 text-center">
+                    <Info className="w-4 h-4 shrink-0" />
+                    <span>Clave de API sin acceso a Imagen 3.0 en Google AI Studio. Visualizando diseño de resguardo local.</span>
+                  </div>
+                )}
                 {/* Image Display */}
                 <div className="flex-1 bg-[#090909] border border-white/10 rounded-xl overflow-hidden flex items-center justify-center p-3 relative group">
                   <img

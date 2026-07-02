@@ -141,70 +141,80 @@ export function generateAdvancedDynamicSVG(
   const getNicheVectorArtwork = (strokeId: string): string => {
     if (lowerNiche.includes("dental") || lowerNiche.includes("dentis") || lowerNiche.includes("odonto") || lowerNiche.includes("diente") || lowerNiche.includes("dent")) {
       return `
-        <!-- High-fidelity Dental / Molar artwork -->
-        <path d="M185,145 C185,123 200,123 200,145 C200,123 215,123 215,145 C215,180 200,210 200,220 C200,210 185,180 185,145 Z" fill="none" stroke="url(#${strokeId})" stroke-width="4" stroke-linejoin="round" />
-        <path d="M191,145 C191,133 200,133 200,145 C200,133 209,133 209,145 C209,173 200,195 200,205 C200,195 191,173 191,145 Z" fill="url(#${strokeId})" opacity="0.35" />
-        <circle cx="200" cy="142" r="3.5" fill="#FFFFFF" />
-        <path d="M175,175 H225 M200,150 V200" stroke="${hex1}" stroke-width="0.75" stroke-dasharray="3,3" />
+        <!-- High-fidelity Sacred Geometry Dental / Molar artwork -->
+        <circle cx="200" cy="165" r="55" fill="none" stroke="url(#${strokeId})" stroke-width="1.5" stroke-dasharray="3,6" opacity="0.4" />
+        <path d="M190,135 C190,115 200,115 200,135 C200,115 210,115 210,135 C210,170 200,200 200,210 C200,200 190,170 190,135 Z" fill="none" stroke="url(#${strokeId})" stroke-width="4.5" stroke-linejoin="round" />
+        <path d="M195,140 C195,128 200,128 200,140 C200,128 205,128 205,140 C205,165 200,190 200,198 C200,190 195,165 195,140 Z" fill="url(#${strokeId})" opacity="0.3" />
+        <circle cx="200" cy="132" r="3.5" fill="#FFFFFF" />
+        <path d="M170,170 C185,155 215,155 230,170" fill="none" stroke="${hex1}" stroke-width="2.5" stroke-linecap="round" />
       `;
     }
     if (lowerNiche.includes("cafe") || lowerNiche.includes("coff") || lowerNiche.includes("gourmet") || lowerNiche.includes("rest") || lowerNiche.includes("food") || lowerNiche.includes("comid") || lowerNiche.includes("bakery") || lowerNiche.includes("panad") || lowerNiche.includes("hamburgu")) {
       return `
-        <!-- High-fidelity Gourmet / Café element -->
-        <ellipse cx="200" cy="180" rx="35" ry="18" fill="none" stroke="url(#${strokeId})" stroke-width="4.5" />
-        <path d="M172,165 C172,130 228,130 228,165" fill="none" stroke="url(#${strokeId})" stroke-width="4" />
-        <rect x="165" y="180" width="70" height="5" fill="#FFFFFF" rx="2.5" />
-        <path d="M190,125 C191,118 195,116 195,108 M200,125 C201,118 205,116 205,108 M210,125 C211,118 215,116 215,108" fill="none" stroke="${hex1}" stroke-width="2.5" stroke-linecap="round" />
+        <!-- High-fidelity Coffee Bean / Luxury Gourmet artwork -->
+        <circle cx="200" cy="165" r="50" fill="none" stroke="url(#${strokeId})" stroke-width="2.5" />
+        <ellipse cx="200" cy="165" rx="28" ry="40" fill="none" stroke="url(#${strokeId})" stroke-width="4" transform="rotate(30, 200, 165)" />
+        <path d="M185,190 Q200,165 215,140" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
+        <circle cx="200" cy="120" r="3" fill="${hex1}" />
+        <circle cx="200" cy="210" r="3" fill="${hex1}" />
+        <path d="M165,130 L169,136 L175,138 L169,140 L167,146 L165,140 L159,138 L165,136 Z" fill="${hex1}" />
+        <path d="M235,190 L239,196 L245,198 L239,200 L237,206 L235,200 L229,198 L235,196 Z" fill="${hex1}" />
       `;
     }
     if (lowerNiche.includes("soft") || lowerNiche.includes("tech") || lowerNiche.includes("saas") || lowerNiche.includes("ia") || lowerNiche.includes("ai") || lowerNiche.includes("app") || lowerNiche.includes("cyber") || lowerNiche.includes("digital") || lowerNiche.includes("web") || lowerNiche.includes("code")) {
       return `
-        <!-- High-fidelity Tech / Software Code Loop -->
-        <path d="M165,175 L180,160 L165,145 M235,175 L220,160 L235,145" fill="none" stroke="url(#${strokeId})" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M191,185 L209,135" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
-        <circle cx="200" cy="160" r="44" fill="none" stroke="url(#${strokeId})" stroke-width="1.2" stroke-dasharray="6,8" />
-        <circle cx="160" cy="160" r="3" fill="${hex1}" />
-        <circle cx="240" cy="160" r="3" fill="${hex2}" />
+        <!-- High-fidelity Isometric Tech Cube -->
+        <polygon points="200,110 245,132 245,190 200,212 155,190 155,132" fill="none" stroke="url(#${strokeId})" stroke-width="3.5" stroke-linejoin="round" />
+        <polygon points="200,110 200,212 M200,161 L245,132 M200,161 L155,132" stroke="url(#${strokeId})" stroke-width="1.5" opacity="0.6" />
+        <circle cx="200" cy="110" r="4.5" fill="#FFFFFF" />
+        <circle cx="245" cy="132" r="4.5" fill="${hex1}" />
+        <circle cx="245" cy="190" r="4.5" fill="${hex2}" />
+        <circle cx="200" cy="212" r="4.5" fill="#FFFFFF" />
+        <circle cx="155" cy="190" r="4.5" fill="${hex2}" />
+        <circle cx="155" cy="132" r="4.5" fill="${hex1}" />
+        <circle cx="200" cy="161" r="28" fill="none" stroke="url(#${strokeId})" stroke-width="1" stroke-dasharray="4,4" />
       `;
     }
     if (lowerNiche.includes("fit") || lowerNiche.includes("gym") || lowerNiche.includes("sport") || lowerNiche.includes("wellness") || lowerNiche.includes("yoga") || lowerNiche.includes("pilates") || lowerNiche.includes("salud") || lowerNiche.includes("entrena")) {
       return `
-        <!-- High-fidelity Athletic / Energy Lotus artwork -->
-        <path d="M160,175 C160,150 182,140 200,175 C218,140 240,150 240,175 C240,200 218,210 200,175 C182,210 160,200 160,175 Z" fill="none" stroke="url(#${strokeId})" stroke-width="4.5" />
-        <circle cx="200" cy="175" r="15" fill="none" stroke="#FFFFFF" stroke-width="1.5" />
-        <line x1="200" y1="135" x2="200" y2="215" stroke="${hex1}" stroke-width="2" stroke-linecap="round" />
-        <circle cx="200" cy="135" r="4.5" fill="${hex2}" />
-        <circle cx="200" cy="215" r="4.5" fill="${hex2}" />
+        <!-- High-fidelity Athletic / Lotus Energy -->
+        <path d="M165,175 C165,150 185,138 200,175 C215,138 235,150 235,175 C235,200 215,212 200,175 C185,212 165,200 165,175 Z" fill="none" stroke="url(#${strokeId})" stroke-width="4.5" />
+        <circle cx="200" cy="175" r="14" fill="none" stroke="#FFFFFF" stroke-width="1.5" />
+        <circle cx="200" cy="175" r="30" fill="none" stroke="url(#${strokeId})" stroke-width="1" stroke-dasharray="4,8" />
+        <path d="M200,125 V225" stroke="${hex1}" stroke-width="2" stroke-linecap="round" />
+        <circle cx="200" cy="125" r="4" fill="${hex2}" />
+        <circle cx="200" cy="225" r="4" fill="${hex2}" />
       `;
     }
     if (lowerNiche.includes("bell") || lowerNiche.includes("beaut") || lowerNiche.includes("spa") || lowerNiche.includes("cosmet") || lowerNiche.includes("barber") || lowerNiche.includes("peluq") || lowerNiche.includes("moda") || lowerNiche.includes("fashion") || lowerNiche.includes("clot") || lowerNiche.includes("joya") || lowerNiche.includes("estet")) {
       return `
-        <!-- High-fidelity Beauty / Organic Laurel Sparkle -->
-        <path d="M168,145 C158,178 178,215 200,215 C222,215 242,178 232,145" fill="none" stroke="url(#${strokeId})" stroke-width="4.5" stroke-linecap="round" />
-        <path d="M200,130 L204,142 L216,142 L206,150 L210,162 L200,154 L190,162 L194,150 L184,142 L196,142 Z" fill="#FFFFFF" />
-        <circle cx="166" cy="142" r="4.5" fill="${hex1}" />
-        <circle cx="234" cy="142" r="4.5" fill="${hex2}" />
-        <path d="M180,185 C188,195 212,195 220,185" fill="none" stroke="url(#${strokeId})" stroke-width="1.5" />
+        <!-- High-fidelity Beauty / Organic Laurel Badge -->
+        <path d="M165,145 C155,180 175,218 200,218 C225,218 245,180 235,145" fill="none" stroke="url(#${strokeId})" stroke-width="4" stroke-linecap="round" />
+        <path d="M200,128 L204,138 L215,138 L206,145 L209,156 L200,149 L191,156 L194,145 L185,138 L196,138 Z" fill="#FFFFFF" />
+        <circle cx="163" cy="142" r="4" fill="${hex1}" />
+        <circle cx="237" cy="142" r="4" fill="${hex2}" />
+        <path d="M180,185 C190,192 210,192 220,185" fill="none" stroke="url(#${strokeId})" stroke-width="1.5" />
       `;
     }
     if (lowerNiche.includes("arch") || lowerNiche.includes("const") || lowerNiche.includes("real") || lowerNiche.includes("estate") || lowerNiche.includes("hogar") || lowerNiche.includes("casa") || lowerNiche.includes("build") || lowerNiche.includes("prop")) {
       return `
         <!-- High-fidelity Architectonic blueprint geometry -->
-        <path d="M155,185 L200,135 L245,185 L155,185 Z" fill="none" stroke="url(#${strokeId})" stroke-width="5" stroke-linejoin="round" />
-        <rect x="175" y="185" width="50" height="40" fill="none" stroke="#FFFFFF" stroke-width="3" />
-        <line x1="200" y1="185" x2="200" y2="225" stroke="url(#${strokeId})" stroke-width="2.5" />
-        <line x1="150" y1="225" x2="250" y2="225" stroke="url(#${strokeId})" stroke-width="4" stroke-linecap="round" />
+        <path d="M160,180 L200,130 L240,180 Z" fill="none" stroke="url(#${strokeId})" stroke-width="5" stroke-linejoin="round" />
+        <rect x="175" y="180" width="50" height="40" fill="none" stroke="#FFFFFF" stroke-width="2.5" />
+        <line x1="200" y1="180" x2="200" y2="220" stroke="url(#${strokeId})" stroke-width="2" />
+        <line x1="145" y1="220" x2="255" y2="220" stroke="url(#${strokeId})" stroke-width="3" stroke-linecap="round" />
+        <circle cx="200" cy="115" r="5" fill="${hex1}" />
       `;
     }
     if (lowerNiche.includes("law") || lowerNiche.includes("abog") || lowerNiche.includes("finan") || lowerNiche.includes("money") || lowerNiche.includes("consult") || lowerNiche.includes("corret") || lowerNiche.includes("segur") || lowerNiche.includes("bank")) {
       return `
-        <!-- High-fidelity Pillar of Trust / Heraldry Scale -->
-        <rect x="165" y="212" width="70" height="10" fill="url(#${strokeId})" rx="2" />
-        <rect x="172" y="145" width="56" height="8" fill="url(#${strokeId})" rx="2" />
-        <line x1="180" y1="153" x2="180" y2="212" stroke="#FFFFFF" stroke-width="4.5" />
-        <line x1="200" y1="153" x2="200" y2="212" stroke="#FFFFFF" stroke-width="4.5" />
-        <line x1="220" y1="153" x2="220" y2="212" stroke="#FFFFFF" stroke-width="4.5" />
-        <polygon points="200,125 215,140 185,140" fill="${hex1}" />
+        <!-- High-fidelity Pillar of Trust / Balance Scale -->
+        <rect x="160" y="210" width="80" height="8" fill="url(#${strokeId})" rx="2" />
+        <line x1="200" y1="135" x2="200" y2="210" stroke="#FFFFFF" stroke-width="5" />
+        <line x1="165" y1="150" x2="235" y2="150" stroke="url(#${strokeId})" stroke-width="4.5" stroke-linecap="round" />
+        <circle cx="165" cy="165" r="8" fill="none" stroke="${hex1}" stroke-width="2" />
+        <circle cx="235" cy="165" r="8" fill="none" stroke="${hex1}" stroke-width="2" />
+        <polygon points="200,120 212,135 188,135" fill="${hex2}" />
       `;
     }
     return ""; // Will fallback to style-only default graphic paths
