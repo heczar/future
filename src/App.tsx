@@ -632,6 +632,40 @@ function AppContent() {
     );
   };
 
+  // START MODIFICATION: Render AccountAuthPortal prominently if user is not logged in.
+  // The LandingOverlay is controlled by `showLanding` state within the main return,
+  // allowing it to overlay either the login portal or the app content.
+  if (!user) {
+    return (
+      <div className="flex min-h-screen bg-[#050505] border-t border-white/5 relative w-full max-w-full overflow-x-hidden items-center justify-center p-4">
+        {/* Dynamic Absolute Background-Glows to eliminate black vacuums and scroll blackouts */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 h-full w-full bg-[#050505]">
+          {/* Ambient grids / dot matrix background for ultra-modern digital depth */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+          
+          {/* Soft glowing ambient orbs */}
+          <div className="absolute top-[-5%] left-[-10%] w-[60%] h-[30%] rounded-full bg-brand-primary/8 blur-[130px] opacity-70" />
+          <div className="absolute bottom-[5%] right-[-10%] w-[60%] h-[30%] rounded-full bg-brand-secondary/4 blur-[150px] opacity-60" />
+          <div className="absolute top-[35%] right-[15%] w-[40%] h-[30%] rounded-full bg-[#8B5CF6]/5 blur-[120px] opacity-50" />
+          <div className="absolute bottom-[25%] left-[10%] w-[50%] h-[25%] rounded-full bg-brand-primary/4 blur-[140px] opacity-40" />
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="relative z-10 max-w-md w-full mx-auto"
+        >
+          <AccountAuthPortal />
+        </motion.div>
+        {/* If LandingOverlay is meant to show before login, ensure showLanding is true initially */}
+        <AnimatePresence>
+          {showLanding && <LandingOverlay onClose={() => setShowLanding(false)} />}
+        </AnimatePresence>
+      </div>
+    );
+  }
+  // END MODIFICATION
+
   return (
     <div className="flex min-h-screen bg-[#050505] border-t border-white/5 relative w-full max-w-full overflow-x-hidden">
       {/* Dynamic Absolute Background-Glows to eliminate black vacuums and scroll blackouts */}
@@ -708,17 +742,7 @@ function AppContent() {
           <div className={cn("w-full transition-all duration-150", (activeTab === '' || activeTab === 'dashboard') ? "block opacity-100" : "hidden opacity-0")}>
             {renderDashboardView()}
 
-            {/* Panel para nuevos usuarios (inicio de sesión) */}
-            {!user && (activeTab === '' || activeTab === 'dashboard') && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="mt-12 max-w-3xl mx-auto"
-              >
-                <AccountAuthPortal />
-              </motion.div>
-            )}
+            {/* Panel para nuevos usuarios (inicio de sesión) - REMOVED: Now handled by top-level AppContent conditional rendering */}
           </div>
 
           {/* ASESORÍA & COPYS */}
