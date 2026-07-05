@@ -707,6 +707,18 @@ function AppContent() {
           {/* HOME / DASHBOARD */}
           <div className={cn("w-full transition-all duration-150", (activeTab === '' || activeTab === 'dashboard') ? "block opacity-100" : "hidden opacity-0")}>
             {renderDashboardView()}
+
+            {/* Panel para nuevos usuarios (inicio de sesión) */}
+            {!user && (activeTab === '' || activeTab === 'dashboard') && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="mt-12 max-w-3xl mx-auto"
+              >
+                <AccountAuthPortal />
+              </motion.div>
+            )}
           </div>
 
           {/* ASESORÍA & COPYS */}
