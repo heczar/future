@@ -253,22 +253,22 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-stretch">
           
           {/* Copy & Chat Economy Plan */}
-          <div className="bg-[#0c0d11]/90 border border-[#f59e0b]/20 hover:border-[#f59e0b]/40 rounded-2xl p-5 flex flex-col justify-between transition-all hover:scale-[1.01] shadow-lg h-full">
+          <div className="bg-[#0c0d11]/90 border border-[#f59e0b]/20 hover:border-[#f59e0b]/40 rounded-2xl p-6 flex flex-col justify-between transition-all hover:scale-[1.01] shadow-lg h-full">
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b border-white/5 pb-2">
                 <div>
-                  <span className="text-[8px] font-mono font-black text-[#f59e0b] uppercase tracking-wider block">ECONÓMICO TEXTO</span>
-                  <h4 className="text-[11px] font-black text-white uppercase tracking-wide">Copy & Chat</h4>
+                  <span className="text-[9px] font-mono font-black text-[#f59e0b] uppercase tracking-wider block">ECONÓMICO TEXTO</span>
+                  <h4 className="text-sm font-black text-white uppercase tracking-wide">Copy & Chat</h4>
                 </div>
                 <div className="text-right text-[#f59e0b]">
                   <span className="text-sm font-mono font-black">$4.99</span>
-                  <span className="text-[7px] text-slate-500 uppercase tracking-wide block">Al mes</span>
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wide block">Al mes</span>
                 </div>
               </div>
-              <p className="text-[10px] text-slate-400 leading-relaxed font-sans">
+              <p className="text-xs text-slate-400 leading-relaxed font-sans">
                 Plan súper accesible enfocado únicamente en la generación de copys y asesoría de IA.
               </p>
-              <ul className="space-y-2 text-[10px] text-slate-400 border-t border-white/5 pt-3 font-sans">
+              <ul className="space-y-2 text-xs text-slate-400 border-t border-white/5 pt-3 font-sans">
                 <li className="flex items-start gap-1.5">
                   <Check className="w-3.5 h-3.5 text-[#f59e0b] shrink-0 mt-0.5" />
                   <span><strong>100 Consultas IA / mes</strong>.</span>
@@ -287,29 +287,29 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
             <button
               type="button"
               onClick={() => triggerToast("Redirigiendo a pasarela de pago para Plan Copy & Chat...")}
-              className="w-full mt-4 py-2.5 bg-[#f59e0b]/10 hover:bg-[#f59e0b]/20 text-[#f59e0b] rounded-xl text-[9px] font-mono uppercase font-black tracking-wider border border-[#f59e0b]/20 cursor-pointer text-center transition-all"
+              className="w-full mt-4 py-2.5 bg-[#f59e0b]/10 hover:bg-[#f59e0b]/20 text-[#f59e0b] rounded-xl text-xs font-mono uppercase font-black tracking-wider border border-[#f59e0b]/20 cursor-pointer text-center transition-all"
             >
               Adquirir $4.99
             </button>
           </div>
 
           {/* Pilot Plan Card (Prueba) */}
-          <div className="bg-[#0c0d11]/80 border border-white/5 rounded-2xl p-5 flex flex-col justify-between transition-all hover:scale-[1.01] shadow-lg h-full">
+          <div className="bg-[#0c0d11]/80 border border-white/5 rounded-2xl p-6 flex flex-col justify-between transition-all hover:scale-[1.01] shadow-lg h-full">
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b border-white/5 pb-2">
                 <div>
-                  <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-wider block">PLAN PILOTO</span>
-                  <h4 className="text-xs font-black text-white uppercase tracking-wide">Pilot (Prueba)</h4>
+                  <span className="text-[9px] font-mono font-black text-brand-primary uppercase tracking-wider block">PLAN PILOTO</span>
+                  <h4 className="text-sm font-black text-white uppercase tracking-wide">Pilot (Prueba)</h4>
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-mono font-black text-slate-300">$9.00</span>
-                  <span className="text-[7px] text-slate-500 uppercase tracking-wide block">Al mes</span>
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wide block">Al mes</span>
                 </div>
               </div>
-              <p className="text-[10px] text-slate-400 leading-relaxed font-sans">
+              <p className="text-xs text-slate-400 leading-relaxed font-sans">
                 Excelente micro-plan inicial para probar la potencia y velocidad de la plataforma de diseño.
               </p>
-              <ul className="space-y-2 text-[10px] text-slate-400 border-t border-white/5 pt-3 font-sans">
+              <ul className="space-y-2 text-xs text-slate-400 border-t border-white/5 pt-3 font-sans">
                 <li className="flex items-start gap-1.5">
                   <Check className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
                   <span><strong>50 Consultas IA / mes</strong>.</span>
@@ -324,29 +324,29 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
             <button
               type="button"
               onClick={() => triggerToast("Redirigiendo a pasarela de pago para Plan Pilot...")}
-              className="w-full mt-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-[9px] font-mono uppercase font-black tracking-wider border border-white/5 cursor-pointer text-center transition-all"
+              className="w-full mt-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-mono uppercase font-black tracking-wider border border-white/5 cursor-pointer text-center transition-all"
             >
               Probar Plan Pilot
             </button>
           </div>
 
           {/* Starter Plan Card */}
-          <div className="bg-[#0c0d11]/80 border border-white/5 rounded-2xl p-5 flex flex-col justify-between transition-all hover:scale-[1.01] shadow-lg h-full">
+          <div className="bg-[#0c0d11]/80 border border-white/5 rounded-2xl p-6 flex flex-col justify-between transition-all hover:scale-[1.01] shadow-lg h-full">
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b border-white/5 pb-2">
                 <div>
-                  <span className="text-[8px] font-mono font-black text-slate-400 uppercase tracking-wider block">PLAN INICIAL</span>
-                  <h4 className="text-xs font-black text-white uppercase tracking-wide">Starter Mensual</h4>
+                  <span className="text-[9px] font-mono font-black text-slate-400 uppercase tracking-wider block">PLAN INICIAL</span>
+                  <h4 className="text-sm font-black text-white uppercase tracking-wide">Starter Mensual</h4>
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-mono font-black text-slate-300">$29.00</span>
-                  <span className="text-[7px] text-slate-500 uppercase tracking-wide block">Al mes</span>
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wide block">Al mes</span>
                 </div>
               </div>
-              <p className="text-[10px] text-slate-400 leading-relaxed font-sans">
+              <p className="text-xs text-slate-400 leading-relaxed font-sans">
                 Perfecto para emprendedores iniciando su marca. Incluye consultoría estratégica y cuotas de diseño moderadas.
               </p>
-              <ul className="space-y-2 text-[10px] text-slate-400 border-t border-white/5 pt-3 font-sans">
+              <ul className="space-y-2 text-xs text-slate-400 border-t border-white/5 pt-3 font-sans">
                 <li className="flex items-start gap-1.5">
                   <Check className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
                   <span><strong>250 Consultas IA / mes</strong>.</span>
@@ -365,30 +365,30 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
             <button
               type="button"
               onClick={() => triggerToast("Redirigiendo a pasarela de pago para Plan Starter...")}
-              className="w-full mt-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-[9px] font-mono uppercase font-black tracking-wider border border-white/5 cursor-pointer text-center transition-all"
+              className="w-full mt-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-mono uppercase font-black tracking-wider border border-white/5 cursor-pointer text-center transition-all"
             >
               Adquirir Starter
             </button>
           </div>
 
           {/* Growth Plan Card */}
-          <div className="bg-gradient-to-b from-[#0e1017] to-[#040508] border border-brand-primary/45 rounded-2xl p-5 flex flex-col justify-between transition-all hover:scale-[1.02] shadow-2xl shadow-brand-primary/10 ring-1 ring-brand-primary/20 relative overflow-hidden h-full">
+          <div className="bg-gradient-to-b from-[#0e1017] to-[#040508] border border-brand-primary/45 rounded-2xl p-6 flex flex-col justify-between transition-all hover:scale-[1.02] shadow-2xl shadow-brand-primary/10 ring-1 ring-brand-primary/20 relative overflow-hidden h-full">
             <div className="absolute top-2 right-2 bg-brand-primary/20 text-brand-primary text-[6px] font-mono font-bold px-1.5 py-0.5 rounded border border-brand-primary/20">POPULAR</div>
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b border-brand-primary/15 pb-2">
                 <div>
-                  <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-widest block">CRECIMIENTO</span>
-                  <h4 className="text-xs font-black text-white uppercase tracking-wide">Growth Mensual</h4>
+                  <span className="text-[9px] font-mono font-black text-brand-primary uppercase tracking-widest block">CRECIMIENTO</span>
+                  <h4 className="text-sm font-black text-white uppercase tracking-wide">Growth Mensual</h4>
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-mono font-black text-brand-primary">$79.00</span>
-                  <span className="text-[7px] text-slate-500 uppercase tracking-wide block">Al mes</span>
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wide block">Al mes</span>
                 </div>
               </div>
-              <p className="text-[10px] text-slate-400 leading-relaxed font-sans">
+              <p className="text-xs text-slate-400 leading-relaxed font-sans">
                 La opción ideal para marcas y negocios activos que escalan su volumen de pautas publicitarias y copys.
               </p>
-              <ul className="space-y-2 text-[10px] text-white border-t border-brand-primary/10 pt-3 font-sans">
+              <ul className="space-y-2 text-xs text-white border-t border-brand-primary/10 pt-3 font-sans">
                 <li className="flex items-start gap-1.5">
                   <Check className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
                   <span><strong>1,000 Consultas IA / mes</strong>.</span>
@@ -407,29 +407,29 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
             <button
               type="button"
               onClick={() => triggerToast("Redirigiendo a pasarela de pago para Plan Growth...")}
-              className="w-full mt-4 py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-[9px] font-mono uppercase font-black tracking-wider cursor-pointer text-center transition-all"
+              className="w-full mt-4 py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-xs font-mono uppercase font-black tracking-wider cursor-pointer text-center transition-all"
             >
               Adquirir Growth
             </button>
           </div>
 
           {/* Scale Plan Card */}
-          <div className="bg-[#0c0d11]/80 border border-white/5 rounded-2xl p-5 flex flex-col justify-between transition-all hover:scale-[1.01] shadow-lg h-full">
+          <div className="bg-[#0c0d11]/80 border border-white/5 rounded-2xl p-6 flex flex-col justify-between transition-all hover:scale-[1.01] shadow-lg h-full">
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b border-white/5 pb-2">
                 <div>
-                  <span className="text-[8px] font-mono font-black text-slate-400 uppercase tracking-wider block">EMPRESARIAL</span>
-                  <h4 className="text-xs font-black text-white uppercase tracking-wide">Scale Mensual</h4>
+                  <span className="text-[9px] font-mono font-black text-slate-400 uppercase tracking-wider block">EMPRESARIAL</span>
+                  <h4 className="text-sm font-black text-white uppercase tracking-wide">Scale Mensual</h4>
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-mono font-black text-slate-300">$199.00</span>
-                  <span className="text-[7px] text-slate-500 uppercase tracking-wide block">Al mes</span>
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wide block">Al mes</span>
                 </div>
               </div>
-              <p className="text-[10px] text-slate-400 leading-relaxed font-sans">
+              <p className="text-xs text-slate-400 leading-relaxed font-sans">
                 Máxima velocidad para agencias o equipos de mercadeo que administran múltiples cuentas de marca en paralelo.
               </p>
-              <ul className="space-y-2 text-[10px] text-slate-400 border-t border-white/5 pt-3 font-sans">
+              <ul className="space-y-2 text-xs text-slate-400 border-t border-white/5 pt-3 font-sans">
                 <li className="flex items-start gap-1.5">
                   <Check className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
                   <span><strong>Consultas IA ILIMITADAS</strong>.</span>
@@ -448,7 +448,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
             <button
               type="button"
               onClick={() => triggerToast("Redirigiendo a pasarela de pago para Plan Scale...")}
-              className="w-full mt-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-[9px] font-mono uppercase font-black tracking-wider border border-white/5 cursor-pointer text-center transition-all"
+              className="w-full mt-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-mono uppercase font-black tracking-wider border border-white/5 cursor-pointer text-center transition-all"
             >
               Adquirir Scale
             </button>
