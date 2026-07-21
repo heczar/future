@@ -626,7 +626,7 @@ function AppContent() {
         <section className="spe-section pt-1">
           <div className="flex items-center gap-2 mb-4 text-left">
             <Sparkles className="w-4 h-4 text-brand-primary animate-pulse" />
-            <h2 className="text-lg md:text-xl font-bold font-display text-white">Tu Proceso de Trabajo</h2>
+            <h2 className="text-lg md:text-xl font-bold font-display text-white">Sistema Pentagonal de Ejecución (SPE)</h2>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 font-sans">
