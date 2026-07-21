@@ -46,18 +46,7 @@ export default function AdvisoryHub({
   mode
 }: AdvisoryHubProps) {
   const renderFormattedChatMessage = (text: string) => {
-    const parts = text.split(/(\*\*[^*]+\*\*)/g);
-    return parts.map((part, index) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        const word = part.slice(2, -2);
-        return (
-          <span key={index} className="text-[#c084fc] font-bold">
-            {word}
-          </span>
-        );
-      }
-      return <span key={index}>{part}</span>;
-    });
+    return <span className="whitespace-pre-wrap">{text}</span>;
   };
 
   // Mode is now controlled by the parent via props — no more internal sub-tab state
@@ -358,11 +347,9 @@ export default function AdvisoryHub({
                 <div className="flex items-center gap-2.5 p-3.5 bg-white/5 border border-white/5 rounded-xl text-slate-400 text-xs">
                   <Info className="w-4 h-4 text-brand-primary shrink-0" />
                   <span className="leading-relaxed">
-                    {activeBrand ? (
-                      <>Conversando usando el contexto de la marca <strong>{activeBrand.name}</strong>. Para cambiar de contexto selecciona otra marca arriba.</>
-                    ) : (
-                      <>Conversación general. Puedes conectar una marca en la esquina superior para adaptar las respuestas automáticamente.</>
-                    )}
+                    {activeBrand 
+                      ? `Conversando usando el contexto de la marca: ${activeBrand.name}. Para cambiar de contexto selecciona otra marca arriba.`
+                      : "Conversación general. Puedes conectar una marca en la esquina superior para adaptar las respuestas automáticamente."}
                   </span>
                 </div>
 
