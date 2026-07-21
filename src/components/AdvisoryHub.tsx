@@ -56,7 +56,7 @@ export default function AdvisoryHub({
           </span>
         );
       }
-      return part;
+      return <span key={index}>{part}</span>;
     });
   };
 
