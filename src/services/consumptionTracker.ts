@@ -20,40 +20,28 @@ export interface ApiConsumption {
 
 export const LIMITS = {
   free: {
-    dailyConsultsLimit: 5,
+    dailyConsultsLimit: 10,
     monthlyConsultsLimit: 150,
-    monthlyTokensLimit: 25000,
+    monthlyTokensLimit: 50000,
     monthlyImagesLimit: 3,
   },
-  copy_chat: {
-    dailyConsultsLimit: 15,
-    monthlyConsultsLimit: 100,
-    monthlyTokensLimit: 150000,
-    monthlyImagesLimit: 0,
+  pilot: { // FUTURA Pilot - $10 USD (Chats gratis/ilimitados, 25 renders)
+    dailyConsultsLimit: 999999,
+    monthlyConsultsLimit: 999999,
+    monthlyTokensLimit: 999999999,
+    monthlyImagesLimit: 25,
   },
-  pilot: {
-    dailyConsultsLimit: 10,
-    monthlyConsultsLimit: 50,
-    monthlyTokensLimit: 100000,
-    monthlyImagesLimit: 10,
+  pro: { // FUTURA Pro - $29 USD (Chats gratis/ilimitados, 100 renders)
+    dailyConsultsLimit: 999999,
+    monthlyConsultsLimit: 999999,
+    monthlyTokensLimit: 999999999,
+    monthlyImagesLimit: 100,
   },
-  starter: {
-    dailyConsultsLimit: 30,
-    monthlyConsultsLimit: 250,
-    monthlyTokensLimit: 500000,
-    monthlyImagesLimit: 50,
-  },
-  growth: {
-    dailyConsultsLimit: 100,
-    monthlyConsultsLimit: 1000,
-    monthlyTokensLimit: 2000000,
-    monthlyImagesLimit: 150,
-  },
-  scale: {
-    dailyConsultsLimit: 1000,
-    monthlyConsultsLimit: 999999, // Ilimitado en la práctica
-    monthlyTokensLimit: 15000000, // 15M Tokens
-    monthlyImagesLimit: 500,
+  agency: { // FUTURA Agency - $79 USD (Chats gratis/ilimitados, 350 renders)
+    dailyConsultsLimit: 999999,
+    monthlyConsultsLimit: 999999,
+    monthlyTokensLimit: 999999999,
+    monthlyImagesLimit: 350,
   }
 };
 
@@ -67,8 +55,14 @@ export async function getUserConsumption(userId: string, isPremium: boolean): Pr
   const todayStr = new Date().toISOString().split('T')[0];
   const userData = snap.exists() ? snap.data() : null;
   
-  // Resolve plan based on Firestore property activePlan, falling back to isPremium logic
-  const activePlan = userData?.activePlan || (isPremium ? 'scale' : 'free');
+  // Resolve plan based on Firestore property activePlan
+  let activePlan = userData?.activePlan || (isPremium ? 'agency' : 'free');
+  
+  // Normalise obsolete plans for total database compatibility
+  if (activePlan === 'copy_chat') activePlan = 'pilot';
+  if (activePlan === 'starter' || activePlan === 'growth') activePlan = 'pro';
+  if (activePlan === 'scale') activePlan = 'agency';
+  
   const activeLimits = LIMITS[activePlan as keyof typeof LIMITS] || LIMITS.free;
 
   const defaultConsumption: ApiConsumption = {
