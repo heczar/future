@@ -551,49 +551,72 @@ function AppContent() {
         </section>
 
         {/* Services / Consoles Grid */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 font-sans">
-          {/* Card 1: Advisory & Copy Hub */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 font-sans">
+          {/* Card 1: Asesoría */}
           <div 
-            onClick={() => setActiveTab('hub')}
+            onClick={() => setActiveTab('advisory')}
             className="group cursor-pointer p-5 bg-surface-900/30 border border-white/5 hover:border-brand-primary/30 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[160px] transition-all hover:bg-surface-900/50 hover:scale-[1.01]"
           >
-            <div className="absolute top-0 right-0 p-3 font-mono text-4xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">CODELAB</div>
+            <div className="absolute top-0 right-0 p-3 font-mono text-4xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">CHAT</div>
             <div className="space-y-2">
               <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:scale-105 transition-transform">
                 <MessageSquare className="w-5 h-5" />
               </div>
               <div className="text-left">
-                <h3 className="font-bold text-white text-sm tracking-wide uppercase">Asesoría & Copys</h3>
+                <h3 className="font-bold text-white text-sm tracking-wide uppercase">Asesoría</h3>
                 <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
-                  Conéctate con tu estratega corporativo de IA para analizar ideas de negocio, debatir enfoques comerciales y redactar copys persuasivos en segundos.
+                  Tu consultor estratégico de IA para analizar ideas de negocio y debatir enfoques comerciales.
                 </p>
               </div>
             </div>
             <div className="mt-2.5 flex items-center gap-1.5 text-[9px] font-mono uppercase font-bold text-brand-primary tracking-widest">
-              <span>Abrir Consola</span>
+              <span>Abrir Chat</span>
               <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
 
-          {/* Card 2: Creative Studio */}
+          {/* Card 2: Copys */}
           <div 
-            onClick={() => setActiveTab('studio')}
+            onClick={() => setActiveTab('copys')}
             className="group cursor-pointer p-5 bg-surface-900/30 border border-white/5 hover:border-brand-primary/30 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[160px] transition-all hover:bg-surface-900/50 hover:scale-[1.01]"
           >
-            <div className="absolute top-0 right-0 p-3 font-mono text-4xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">STUDIO</div>
+            <div className="absolute top-0 right-0 p-3 font-mono text-4xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">COPYS</div>
             <div className="space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:scale-105 transition-transform">
-                <Sparkles className="w-5 h-5 animate-pulse" />
+              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-105 transition-transform">
+                <Bot className="w-5 h-5" />
               </div>
               <div className="text-left">
-                <h3 className="font-bold text-white text-sm tracking-wide uppercase">Estudio Creativo</h3>
+                <h3 className="font-bold text-white text-sm tracking-wide uppercase">Copys</h3>
                 <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
-                  Genera logotipos vectoriales de gran diseño, ilustra imágenes promocionales hiper-realistas para tus redes sociales y edítalos con el lienzo de dibujo.
+                  Redacta textos persuasivos para Instagram, LinkedIn, Facebook, TikTok y WhatsApp en segundos.
                 </p>
               </div>
             </div>
             <div className="mt-2.5 flex items-center gap-1.5 text-[9px] font-mono uppercase font-bold text-brand-primary tracking-widest">
-              <span>Abrir Consola</span>
+              <span>Generar Copy</span>
+              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Card 3: Imágenes */}
+          <div 
+            onClick={() => setActiveTab('images')}
+            className="group cursor-pointer p-5 bg-surface-900/30 border border-white/5 hover:border-brand-primary/30 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[160px] transition-all hover:bg-surface-900/50 hover:scale-[1.01]"
+          >
+            <div className="absolute top-0 right-0 p-3 font-mono text-4xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">STUDIO</div>
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform">
+                <Sparkles className="w-5 h-5 animate-pulse" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold text-white text-sm tracking-wide uppercase">Imágenes</h3>
+                <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
+                  Genera logotipos vectoriales e imágenes fotorrealistas para tus campañas con el motor Imagen 3.0.
+                </p>
+              </div>
+            </div>
+            <div className="mt-2.5 flex items-center gap-1.5 text-[9px] font-mono uppercase font-bold text-brand-primary tracking-widest">
+              <span>Crear Visual</span>
               <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
@@ -745,21 +768,36 @@ function AppContent() {
             {/* Panel para nuevos usuarios (inicio de sesión) - REMOVED: Now handled by top-level AppContent conditional rendering */}
           </div>
 
-          {/* ASESORÍA & COPYS */}
-          <div className={cn("w-full transition-all duration-150", activeTab === 'hub' ? "block opacity-100" : "hidden opacity-0")}>
+          {/* ASESORÍA */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'advisory' ? "block opacity-100" : "hidden opacity-0")}>
             <AdvisoryHub 
+              mode="consultation"
               profile={profile} 
               projectsList={projectsList} 
               onUpdateProfile={handleUpdateProfile} 
               setActiveTab={setActiveTab}
               setDashboardPrompt={setDashboardPrompt}
-              initialPrompt={dashboardPrompt}
+              initialPrompt={activeTab === 'advisory' ? dashboardPrompt : ''}
               onPromptConsumed={() => setDashboardPrompt('')}
             />
           </div>
 
-          {/* ESTUDIO CREATIVO */}
-          <div className={cn("w-full transition-all duration-150", activeTab === 'studio' ? "block opacity-100" : "hidden opacity-0")}>
+          {/* COPYS */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'copys' ? "block opacity-100" : "hidden opacity-0")}>
+            <AdvisoryHub 
+              mode="copys"
+              profile={profile} 
+              projectsList={projectsList} 
+              onUpdateProfile={handleUpdateProfile} 
+              setActiveTab={setActiveTab}
+              setDashboardPrompt={setDashboardPrompt}
+              initialPrompt={activeTab === 'copys' ? dashboardPrompt : ''}
+              onPromptConsumed={() => setDashboardPrompt('')}
+            />
+          </div>
+
+          {/* IMÁGENES */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'images' ? "block opacity-100" : "hidden opacity-0")}>
             <CreativeStudio 
               profile={profile} 
               projectsList={projectsList} 
@@ -768,17 +806,15 @@ function AppContent() {
             />
           </div>
 
-          {/* BAÚL DE MARCA / PROJECT MANAGER */}
-          <div className={cn("w-full transition-all duration-150", activeTab === 'vault' ? "block opacity-100" : "hidden opacity-0")}>
+          {/* MARCAS & GALERÍA */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'brands' ? "block opacity-100" : "hidden opacity-0")}>
             <ProjectManager 
               profile={profile} 
               onUpdateProfile={handleUpdateProfile}
             />
-          </div>
-
-          {/* GALERÍA */}
-          <div className={cn("w-full transition-all duration-150", activeTab === 'gallery' ? "block opacity-100" : "hidden opacity-0")}>
-            <Gallery />
+            <div className="mt-8">
+              <Gallery />
+            </div>
           </div>
 
           {/* MEMBERSHIP PLANS */}

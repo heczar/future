@@ -8,7 +8,8 @@ import {
   ShieldCheck,
   MessageSquare,
   Briefcase,
-  Sparkles
+  Sparkles,
+  FileText
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -29,15 +30,15 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
       title: "Servicios",
       items: [
         { id: 'dashboard', label: 'Inicio', icon: BarChart3 },
-        { id: 'hub', label: 'Asesoría & Copys', icon: MessageSquare },
-        { id: 'studio', label: 'Estudio Creativo', icon: Sparkles },
+        { id: 'advisory', label: 'Asesoría', icon: MessageSquare },
+        { id: 'copys', label: 'Copys', icon: FileText },
+        { id: 'images', label: 'Imágenes', icon: Sparkles },
       ]
     },
     {
       title: "Mi Espacio",
       items: [
-        { id: 'vault', label: 'Mis Marcas', icon: Briefcase },
-        { id: 'gallery', label: 'Galería', icon: ImageIcon },
+        { id: 'brands', label: 'Marcas & Galería', icon: Briefcase },
       ]
     },
     {

@@ -32,7 +32,6 @@ import { cn } from '../lib/utils';
 import { generateCreativeImage } from '../services/geminiService';
 import { assertHasQuota, trackActionConsumption, getUserConsumption } from '../services/consumptionTracker';
 import { ProjectContext, UserProfile } from '../types';
-import { motion, AnimatePresence } from 'motion/react';
 
 interface CreativeStudioProps {
   profile: UserProfile;
@@ -47,7 +46,7 @@ export default function CreativeStudio({
   onUpdateProfile,
   setActiveTab
 }: CreativeStudioProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'logos' | 'images'>('logos');
+  const [generationType, setGenerationType] = useState<'logos' | 'images'>('logos');
   const [selectedBrandId, setSelectedBrandId] = useState<string>(() => {
     return localStorage.getItem('activeConsultBrandId') || '';
   });
@@ -210,11 +209,11 @@ export default function CreativeStudio({
       await addDoc(collection(db, 'saved_assets'), {
         ownerId: auth.currentUser.uid,
         imageUrl: generatedResult,
-        strategy: activeSubTab === 'logos' 
+        strategy: generationType === 'logos' 
           ? `Logotipo generado para: ${logoDescription}. Estilo: ${selectedLogoStyle}.`
           : `Imagen ilustrativa generada para: ${imagePrompt}. Formato: ${selectedFormat}.`,
-        format: activeSubTab === 'logos' ? 'Logotipo' : selectedFormat,
-        style: activeSubTab === 'logos' ? selectedLogoStyle : selectedImageStyle,
+        format: generationType === 'logos' ? 'Logotipo' : selectedFormat,
+        style: generationType === 'logos' ? selectedLogoStyle : selectedImageStyle,
         brandName: activeBrand?.name || 'Marca General',
         createdAt: serverTimestamp()
       });
@@ -466,10 +465,10 @@ export default function CreativeStudio({
         <div>
           <h1 className="text-xl sm:text-2xl font-display font-bold text-white flex items-center gap-2.5">
             <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6 text-brand-primary" />
-            Estudio Creativo
+            Generador de Imágenes
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Genera logos, visuales para tus campañas e introduce personalizaciones de diseño sin complicaciones.
+            Crea logos vectoriales e imágenes fotorrealistas para tus campañas y personalízalas con el editor de lienzo.
           </p>
         </div>
 
@@ -692,46 +691,35 @@ export default function CreativeStudio({
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Settings panel (2 cols) */}
           <div className="lg:col-span-2 space-y-4 p-5 bg-surface-900/20 border border-white/5 rounded-2xl">
-            {/* Sub-tab Selection */}
+            {/* Type Selector - simple toggle */}
             <div className="flex bg-black/40 p-1.5 rounded-xl border border-white/5">
               <button
-                onClick={() => {
-                  setActiveSubTab('logos');
-                  setGeneratedResult(null);
-                }}
+                onClick={() => setGenerationType('logos')}
                 className={cn(
                   "flex-1 py-2 text-xs font-mono font-bold uppercase rounded-lg transition-all cursor-pointer",
-                  activeSubTab === 'logos'
+                  generationType === 'logos'
                     ? "bg-brand-primary text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-300"
                 )}
               >
-                1. Crear Logos
+                Crear Logos
               </button>
               <button
-                onClick={() => {
-                  setActiveSubTab('images');
-                  setGeneratedResult(null);
-                }}
+                onClick={() => setGenerationType('images')}
                 className={cn(
                   "flex-1 py-2 text-xs font-mono font-bold uppercase rounded-lg transition-all cursor-pointer",
-                  activeSubTab === 'images'
+                  generationType === 'images'
                     ? "bg-brand-primary text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-300"
                 )}
               >
-                2. Crear Imágenes
+                Crear Imágenes
               </button>
             </div>
 
-            <AnimatePresence mode="wait">
-              {activeSubTab === 'logos' ? (
+              {generationType === 'logos' ? (
                 /* LOGO BUILDER FORM */
-                <motion.div
-                  key="form-logos"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
+                <div
                   className="space-y-4 pt-2"
                 >
                   {/* Brand Description */}
@@ -778,14 +766,10 @@ export default function CreativeStudio({
                       </>
                     )}
                   </button>
-                </motion.div>
+                </div>
               ) : (
                 /* IMAGE BUILDER FORM */
-                <motion.div
-                  key="form-images"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
+                <div
                   className="space-y-4 pt-2"
                 >
                   {/* Prompt Text */}
@@ -855,9 +839,8 @@ export default function CreativeStudio({
                       </>
                     )}
                   </button>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
           </div>
 
           {/* Result view panel (3 cols) */}

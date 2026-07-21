@@ -23,7 +23,6 @@ import { cn } from '../lib/utils';
 import { chatWithAdvisor, generateSocialCopy, refineSocialCopy } from '../services/geminiService';
 import { assertHasQuota, trackActionConsumption, getUserConsumption } from '../services/consumptionTracker';
 import { ProjectContext, UserProfile } from '../types';
-import { motion, AnimatePresence } from 'motion/react';
 
 interface AdvisoryHubProps {
   profile: UserProfile;
@@ -33,6 +32,7 @@ interface AdvisoryHubProps {
   setDashboardPrompt: (prompt: string) => void;
   initialPrompt?: string;
   onPromptConsumed?: () => void;
+  mode: 'consultation' | 'copys';
 }
 
 export default function AdvisoryHub({
@@ -42,7 +42,8 @@ export default function AdvisoryHub({
   setActiveTab,
   setDashboardPrompt,
   initialPrompt,
-  onPromptConsumed
+  onPromptConsumed,
+  mode
 }: AdvisoryHubProps) {
   const renderFormattedChatMessage = (text: string) => {
     const parts = text.split(/(\*\*[^*]+\*\*)/g);
@@ -59,7 +60,7 @@ export default function AdvisoryHub({
     });
   };
 
-  const [activeSubTab, setActiveSubTab] = useState<'consultation' | 'copys'>('consultation');
+  // Mode is now controlled by the parent via props — no more internal sub-tab state
   const [selectedBrandId, setSelectedBrandId] = useState<string>(() => {
     return localStorage.getItem('activeConsultBrandId') || '';
   });
@@ -78,11 +79,9 @@ export default function AdvisoryHub({
   // Handle initial prompt from dashboard
   useEffect(() => {
     if (initialPrompt && initialPrompt.trim()) {
-      if (initialPrompt.toLowerCase().includes('copy') || initialPrompt.toLowerCase().includes('redact')) {
-        setActiveSubTab('copys');
+      if (mode === 'copys') {
         setCopyTopic(initialPrompt);
       } else {
-        setActiveSubTab('consultation');
         // Trigger chat message
         handleSendChatMessage(undefined, initialPrompt);
       }
@@ -310,11 +309,16 @@ export default function AdvisoryHub({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 bg-surface-900/40 border border-white/5 rounded-2xl backdrop-blur-md">
         <div>
           <h1 className="text-xl sm:text-2xl font-display font-bold text-white flex items-center gap-2.5">
-            <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-brand-primary" />
-            Asesoría & Copys
+            {mode === 'consultation' ? (
+              <><MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-brand-primary" /> Asesoría Estratégica</>
+            ) : (
+              <><FileText className="w-5 h-5 sm:w-6 sm:h-6 text-brand-primary" /> Generador de Copys</>
+            )}
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Diseña campañas y redacta anuncios persuasivos listos para vender.
+            {mode === 'consultation'
+              ? 'Tu consultor estratégico de IA. Pregunta lo que sea sobre tu negocio, marketing o campañas.'
+              : 'Redacta anuncios persuasivos para redes sociales listos para vender.'}
           </p>
         </div>
 
@@ -336,44 +340,12 @@ export default function AdvisoryHub({
         </div>
       </div>
 
-      {/* Tabs Menu */}
-      <div className="flex border-b border-white/5">
-        <button
-          onClick={() => setActiveSubTab('consultation')}
-          className={cn(
-            "px-6 py-3 text-xs uppercase font-mono font-bold tracking-wider border-b-2 transition-all flex items-center gap-2 cursor-pointer",
-            activeSubTab === 'consultation'
-              ? "border-brand-primary text-white"
-              : "border-transparent text-slate-500 hover:text-slate-300"
-          )}
-        >
-          <MessageSquare className="w-4 h-4" />
-          Chat Consultoría IA
-        </button>
-        <button
-          onClick={() => setActiveSubTab('copys')}
-          className={cn(
-            "px-6 py-3 text-xs uppercase font-mono font-bold tracking-wider border-b-2 transition-all flex items-center gap-2 cursor-pointer",
-            activeSubTab === 'copys'
-              ? "border-brand-primary text-white"
-              : "border-transparent text-slate-500 hover:text-slate-300"
-          )}
-        >
-          <FileText className="w-4 h-4" />
-          Generador de Copys
-        </button>
-      </div>
-
-      {/* Sub-tab Content Area */}
+      {/* Content Area */}
       <div className="flex-1 min-h-0">
-        <AnimatePresence mode="wait">
-          {activeSubTab === 'consultation' ? (
-            <motion.div
+          {mode === 'consultation' ? (
+            <div
               key="chat-panel"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="flex flex-col h-[calc(100vh-340px)] min-h-[300px] bg-surface-900/20 border border-white/5 rounded-2xl overflow-hidden"
+              className="flex flex-col h-[calc(100vh-280px)] min-h-[300px] bg-surface-900/20 border border-white/5 rounded-2xl overflow-hidden"
             >
               {/* Chat messages */}
               <div 
@@ -442,13 +414,9 @@ export default function AdvisoryHub({
                   </button>
                 </form>
               </div>
-            </motion.div>
+            </div>
           ) : (
-            <motion.div
-              key="copys-panel"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+            <div
               className="grid grid-cols-1 lg:grid-cols-5 gap-6"
             >
               {/* Settings Panel (2 cols) */}
@@ -560,7 +528,7 @@ export default function AdvisoryHub({
               </div>
 
               {/* Output Panel (3 cols) */}
-              <div className="lg:col-span-3 flex flex-col h-[calc(100vh-340px)] min-h-[300px] p-5 bg-surface-900/20 border border-white/5 rounded-2xl">
+              <div className="lg:col-span-3 flex flex-col h-[calc(100vh-280px)] min-h-[300px] p-5 bg-surface-900/20 border border-white/5 rounded-2xl">
                 <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-4">
                   <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-300">
                     2. Copy Producido
@@ -627,9 +595,8 @@ export default function AdvisoryHub({
                   </form>
                 )}
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
       </div>
     </div>
   );
