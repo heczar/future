@@ -382,13 +382,14 @@ export default function AdvisoryHub({
                   ))}
                 </div>
 
-                <div className="w-full flex justify-start">
-                  {isChatLoading && (
-                    <div className="bg-white/5 border border-white/5 text-slate-400 mr-auto rounded-tl-none p-4 rounded-2xl max-w-[70%] flex items-center gap-3 animate-pulse">
-                      <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
-                      <span className="text-[10px] text-brand-primary uppercase tracking-[0.25em] font-black">FUTURA está analizando...</span>
-                    </div>
-                  )}
+                <div className={cn(
+                  "w-full flex justify-start transition-all duration-300 overflow-hidden",
+                  isChatLoading ? "opacity-100 h-auto py-2" : "opacity-0 h-0 pointer-events-none"
+                )}>
+                  <div className="bg-white/5 border border-white/5 text-slate-400 mr-auto rounded-tl-none p-4 rounded-2xl max-w-[70%] flex items-center gap-3 animate-pulse">
+                    <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
+                    <span className="text-[10px] text-brand-primary uppercase tracking-[0.25em] font-black">FUTURA está analizando...</span>
+                  </div>
                 </div>
               </div>
 
