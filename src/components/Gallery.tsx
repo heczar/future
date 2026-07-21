@@ -75,7 +75,7 @@ const defaultFuturaAssets: SavedAsset[] = [
     brandName: 'FUTURA (Auto-Marketing SPE)',
     format: 'Logotipo / Isotipo',
     style: 'Cyber Slate Geometric',
-    strategy: 'Isotipo fucsia y negro de alta conversión. Representa el núcleo del Hub: Resultados sobre Estética.',
+    strategy: 'Isotipo fucsia y negro de alta conversión. Representa el núcleo del Hub: Resultados y Estética.',
     createdAt: { toDate: () => new Date() }
   },
   {
@@ -102,7 +102,7 @@ const defaultFuturaPublications: Publication[] = [
   {
     id: 'pub_futura_1',
     title: 'Likes vs Nóminas: La Dura Realidad',
-    copy: '🚨 DEJA DE CREAR CONTENIDO QUE SÓLO LE GUSTA A TU MAMÁ.\n\nLos likes no pagan las nóminas. Las métricas de vanidad no sostienen un negocio.\n\nEn FUTURA operamos bajo un mantra único: Resultados sobre Estética.\n\nEscribe \"SPE\" abajo para auditar tu marca hoy. No hacemos arte, hacemos ingeniería de ventas.',
+    copy: '🚨 EL EQUILIBRIO PERFECTO EN TU ESTRATEGIA DIGITAL.\n\nEl diseño sin estrategia no vende, pero la estrategia sin diseño no atrae.\n\nEn FUTURA operamos bajo un mantra claro: Resultados y Estética.\n\nEscribe \"SPE\" abajo para auditar tu marca hoy. Unimos creatividad visual con ingeniería de ventas.',
     scheduledTime: new Date(Date.now() + 18000000).toISOString(),
     channels: ['instagram', 'linkedin'],
     imageUrl: 'https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=400&auto=format&fit=crop',
@@ -123,7 +123,7 @@ const defaultFuturaBrands: BrandVault[] = [
   {
     id: 'futura_brand_vault',
     name: 'FUTURA (Auto-Marketing SPE)',
-    description: 'Misión: Ser la suite de IA y consultora de conversión que domina el mercado hispano.\nMantra: Resultados sobre Estética. Conversión agresiva con copys destructores de objeciones.',
+    description: 'Misión: Ser la suite de IA y consultora de conversión que domina el mercado hispano.\nMantra: Resultados y Estética. Conversión agresiva con diseño visual de alto impacto.',
     logos: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'],
     methodology: 'SPE'
   }

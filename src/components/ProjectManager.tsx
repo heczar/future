@@ -16,7 +16,7 @@ import { cn } from '../lib/utils';
 const virtualFuturaBrand: ProjectContext = {
   id: 'futura_brand_vault',
   name: 'FUTURA (Auto-Marketing SPE)',
-  description: 'Misión: Ser la consultora y suite de IA avanzada enfocada en "Resultados sobre Estética" que domina el mercado hispanohablante.\n\nVisión: Capturar clientes de alta rentabilidad listos para pagar reduciendo el ego visual tradicional de las agencias de marketing.\n\nValores: Autenticidad cruda, Conversión extrema, Sistema SPE.\n\nTono: Persuasivo brutal de alta conversión, de élite educadora y analítico pragmático.',
+  description: 'Misión: Ser la consultora y suite de IA avanzada enfocada en "Resultados y Estética" que domina el mercado hispanohablante.\n\nVisión: Capturar clientes de alta rentabilidad equilibrando la máxima belleza visual con conversión estratégica.\n\nValores: Autenticidad, Estética de Élite, Conversión y Sistema SPE.\n\nTono: Persuasivo de alta conversión, de élite educadora y analítico pragmático.',
   logos: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'],
   trainingMaterial: [
     'https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=200&auto=format&fit=crop',

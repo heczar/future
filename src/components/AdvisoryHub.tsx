@@ -96,7 +96,7 @@ export default function AdvisoryHub({
     return [
       {
         role: 'model',
-        text: '¡Hola! Soy tu Consultor Estratégico FUTURA. Estoy aquí para simplificar tu marketing y ayudarte a tomar mejores decisiones comerciales bajo el método SPE (Resultados sobre Estética).\n\n¿De qué negocio o idea de producto te gustaría conversar hoy?'
+        text: '¡Hola! Soy tu Consultor Estratégico FUTURA. Estoy aquí para simplificar tu marketing y ayudarte a tomar mejores decisiones comerciales bajo el método SPE (Resultados y Estética).\n\n¿De qué negocio o idea de producto te gustaría conversar hoy?'
       }
     ];
   });
