@@ -257,8 +257,22 @@ function getDeterministicSimulationResponse(apiEndpoint: string, payload: any): 
     ]
   };
 
-  const getSpecificSectorTips = () => sectorTips[sectorCode] || sectorTips.general;
-  const getSpecificIntentTips = () => intentTips[intentCode] || intentTips.default;
+  const getSpecificSectorTips = (): string[] => {
+    const list = sectorTips[sectorCode] || sectorTips.general || [];
+    if (list.length >= 2) return list;
+    return [
+      "**Recomendación de Sector:** Analiza detenidamente las necesidades clave de tu público objetivo.",
+      "**Estrategia Comercial:** Diseña una propuesta de valor clara e indestructible para tus clientes."
+    ];
+  };
+
+  const getSpecificIntentTips = (): string[] => {
+    const list = intentTips[intentCode] || intentTips.default || [];
+    if (list.length >= 1) return list;
+    return [
+      "**Enfoque de Ejecución:** Estructura pasos de acción medibles y haz seguimiento periódico."
+    ];
+  };
 
   // --- PATH A: chatAboutPhase (SPE PHASE STRATEGIST) ---
   if (apiEndpoint.includes("chatAboutPhase")) {

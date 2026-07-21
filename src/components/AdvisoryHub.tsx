@@ -147,12 +147,14 @@ export default function AdvisoryHub({
       }
     } catch (err: any) {
       console.error("Chat Error:", err);
-      // Friendly message showing quota exhaustion or connection error
+      const rawErrorMsg = typeof err === 'string' ? err : (err?.message || (typeof err === 'object' ? JSON.stringify(err) : String(err)));
+      const isCritical = rawErrorMsg.includes("CRÍTICO");
+      
       setChatMessages(prev => [...prev, {
         role: 'model',
-        text: err.message?.includes("CRÍTICO") 
-          ? `⚠️ **Límite Alcanzado:** ${err.message}`
-          : `⚠️ **Error de conexión:** ${err.message || err}. Favor de intentar de nuevo.`
+        text: isCritical 
+          ? `⚠️ **Límite Alcanzado:** ${rawErrorMsg}`
+          : `⚠️ **Error de conexión:** No se pudo completar la respuesta (${rawErrorMsg}). Por favor reintenta.`
       }]);
     } finally {
       setIsChatLoading(false);
