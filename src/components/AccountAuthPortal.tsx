@@ -41,7 +41,7 @@ export default function AccountAuthPortal() {
       // Give extremely precise and descriptive error assistance
       if (err.code === 'auth/operation-not-allowed') {
         setErrorMsg(
-          'El proveedor de Correo/Contraseña está desactivado en la consola de Firebase. Actívalo en "Authentication -> Sign-in method" de Firebase para habilitar el login directo por correo.'
+          'El inicio de sesión por correo no está disponible en este momento. Intenta con Google o como invitado.'
         );
       } else if (err.code === 'auth/email-already-in-use') {
         setErrorMsg('Este correo ya está registrado. Intenta iniciar sesión con él.');
@@ -155,7 +155,7 @@ export default function AccountAuthPortal() {
               </>
             ) : (
               <>
-                INICIAR MICUENTA INDIVIDUAL <ArrowRight className="w-3.5 h-3.5" />
+                INICIAR MI CUENTA <ArrowRight className="w-3.5 h-3.5" />
               </>
             )}
           </button>
@@ -180,10 +180,10 @@ export default function AccountAuthPortal() {
               } catch (err: any) {
                 if (err && (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user' || err.message?.includes('popup-closed-by-user'))) {
                   console.warn("Google Sign-In caught cancellation warning:", err);
-                  setErrorMsg('La conexión con Google se detuvo o fue bloqueada. Si estás en AI Studio, usa el botón "Open in new tab" (Abrir en pestaña nueva) arriba a la derecha para evitar bloqueos del iframe del navegador.');
+                  setErrorMsg('La conexión con Google fue interrumpida. Intenta de nuevo o abre la aplicación en una pestaña nueva del navegador.');
                 } else if (err.code === 'auth/popup-blocked') {
                   console.warn("Google Sign-In caught blocked popup warning:", err);
-                  setErrorMsg('El navegador bloqueó la ventana emergente de Google. Habilita las ventanas emergentes o usa "Open in new tab" para continuar.');
+                  setErrorMsg('Tu navegador bloqueó la ventana de Google. Permite las ventanas emergentes e intenta de nuevo.');
                 } else {
                   console.error("Google Sign-In caught error:", err);
                   setErrorMsg(err.message || 'Error al iniciar sesión con tu cuenta de Google.');
@@ -227,7 +227,7 @@ export default function AccountAuthPortal() {
                 setSuccessMsg('¡Ingreso como Invitado exitoso! Iniciando entorno...');
               } catch (err: any) {
                 console.error("Anonymous Sign-In caught error:", err);
-                setErrorMsg('El acceso de invitado directo no está activo en Firebase. Por favor regístrate como usuario o utiliza correo electrónico.');
+                setErrorMsg('El acceso de invitado no está disponible en este momento. Regístrate con tu correo o usa Google.');
               } finally {
                 setLoading(false);
               }

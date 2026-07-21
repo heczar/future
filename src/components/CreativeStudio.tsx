@@ -94,7 +94,7 @@ export default function CreativeStudio({
     'Simétrico y Geométrico de Lujo',
     'Monograma / Siglas Elegantes',
     'Orgánico y Natural (Botánico)',
-    'Tecnológico / SaaS Moderno',
+    'Tecnológico Moderno',
     'Heráldico / Emblema Corporativo',
     'Modern Bold Streetwear (Urbano)',
     'Vintage / Industrial Rústico'
@@ -104,7 +104,7 @@ export default function CreativeStudio({
     'Fotorrealista Premium',
     'Ilustración 3D Moderna',
     'Arte Abstracto de Lujo',
-    'Brutalismo Obsidian y Neón',
+    'Oscuro con Neón',
     'Estilo Vectorial Limpio'
   ];
 
@@ -757,12 +757,12 @@ export default function CreativeStudio({
                     {isGenerating ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Esbozando tu logotipo...</span>
+                        <span>Diseñando tu logotipo...</span>
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4" />
-                        <span>Generar Logotipo Vectorial</span>
+                        <span>Crear Logotipo</span>
                       </>
                     )}
                   </button>
@@ -786,7 +786,7 @@ export default function CreativeStudio({
 
                   {/* Format Selector */}
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-mono text-slate-400">Relación de Aspecto / Formato</label>
+                    <label className="text-[11px] font-mono text-slate-400">Tamaño de la Imagen</label>
                     <div className="grid grid-cols-3 gap-1.5">
                       {formats.map((fmt) => (
                         <button
@@ -830,12 +830,12 @@ export default function CreativeStudio({
                     {isGenerating ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Renderizando escena IA...</span>
+                        <span>Creando tu imagen...</span>
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4" />
-                        <span>Generar Escena de Campaña</span>
+                        <span>Crear Imagen</span>
                       </>
                     )}
                   </button>
@@ -846,15 +846,15 @@ export default function CreativeStudio({
           {/* Result view panel (3 cols) */}
           <div className="lg:col-span-3 flex flex-col h-[calc(100vh-340px)] min-h-[300px] p-5 bg-surface-900/20 border border-white/5 rounded-2xl relative overflow-hidden">
             <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-300 border-b border-white/5 pb-2 mb-4 shrink-0">
-              Visual Producido
+              Resultado
             </h3>
 
             {isGenerating ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
                 <Loader2 className="w-10 h-10 animate-spin text-brand-primary" />
                 <div>
-                  <p className="text-xs text-white font-mono font-bold uppercase tracking-wider">Generando Activo Creativo...</p>
-                  <p className="text-[10px] text-slate-500 mt-1">El motor híbrido de Gemini está procesando los vectores de tu diseño.</p>
+                  <p className="text-xs text-white font-mono font-bold uppercase tracking-wider">Generando tu diseño...</p>
+                  <p className="text-[10px] text-slate-500 mt-1">Estamos creando tu diseño. Esto puede tomar unos segundos.</p>
                 </div>
               </div>
             ) : generatedResult ? (
@@ -862,7 +862,7 @@ export default function CreativeStudio({
                 {generatedResult.startsWith('data:image/svg+xml;base64,') && (
                   <div className="mb-3 p-3 bg-brand-primary/10 border border-brand-primary/20 rounded-xl text-[10px] text-brand-primary font-bold uppercase tracking-wider flex items-center justify-center gap-2 text-center">
                     <Info className="w-4 h-4 shrink-0" />
-                    <span>Clave de API sin acceso a Imagen 3.0 en Google AI Studio. Visualizando diseño de resguardo local.</span>
+                    <span>Tu cuenta no tiene acceso al generador de imágenes avanzado. Se muestra un diseño de ejemplo.</span>
                   </div>
                 )}
                 {/* Image Display */}
@@ -881,7 +881,7 @@ export default function CreativeStudio({
                     className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 border border-white/5 cursor-pointer"
                   >
                     <Edit3 className="w-4 h-4 text-brand-primary" />
-                    <span>Personalizar (Canvas)</span>
+                    <span>Editar Diseño</span>
                   </button>
                   <button
                     onClick={handleSaveToGallery}
@@ -900,7 +900,7 @@ export default function CreativeStudio({
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-center text-slate-500 space-y-2">
                 <ImageIcon className="w-10 h-10 text-slate-600 animate-pulse" />
-                <p className="text-xs">Usa el formulario a la izquierda para formular tu prompt.</p>
+                <p className="text-xs">Describe lo que quieres crear usando el formulario de la izquierda.</p>
               </div>
             )}
           </div>

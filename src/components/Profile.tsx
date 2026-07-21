@@ -63,7 +63,7 @@ export default function Profile() {
                {user?.photoURL ? <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" /> : (user?.email?.[0].toUpperCase() || 'U')}
             </div>
             <h3 className="font-bold text-white text-lg truncate w-full">{user?.displayName || 'Estratega Profesional'}</h3>
-            <p className="text-xs text-brand-primary font-mono font-bold mt-1 uppercase tracking-widest">Plan Pro 4.5 Activo</p>
+            <p className="text-xs text-brand-primary font-mono font-bold mt-1 uppercase tracking-widest">Plan Activo</p>
             
             <div className="w-full mt-8 pt-8 border-t border-white/5 space-y-4">
               <button className="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
@@ -99,13 +99,13 @@ export default function Profile() {
                   <p className="text-sm text-white font-mono break-all">{user?.email || 'e-correo'}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">UID Sistema</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">ID de Cuenta</p>
                   <p className="text-[10px] text-slate-400 font-mono truncate select-all">{user?.uid}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Método de Auth</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Método de Acceso</p>
                   <p className="text-sm text-white">
-                    {user?.providerData?.[0]?.providerId === 'password' ? 'Email & Contraseña' : 'Google OAuth 2.0'}
+                    {user?.providerData?.[0]?.providerId === 'password' ? 'Email & Contraseña' : 'Cuenta de Google'}
                   </p>
                 </div>
                 <div>
@@ -123,9 +123,9 @@ export default function Profile() {
                  <Shield className="w-5 h-5" />
                </div>
                <div className="space-y-1 text-left">
-                 <h4 className="text-xs font-black text-white uppercase tracking-wider">Administración Individual de Cuentas</h4>
+                 <h4 className="text-xs font-black text-white uppercase tracking-wider">Tu Espacio Privado</h4>
                  <p className="text-[11px] text-slate-400 leading-normal">
-                   Tu sesión de correo actual tiene una base de datos <b>única de administración</b> en Firestore. Los proyectos de tu baúl de marcas, la galería de diseños y los calendarios programados se guardan de forma exclusiva para tu email.
+                   Todos tus proyectos, marcas, imágenes y configuraciones se guardan de forma segura y privada en tu cuenta.
                  </p>
                </div>
              </div>
@@ -144,8 +144,8 @@ export default function Profile() {
                     <Key className="w-5 h-5 animate-pulse" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-white text-sm">Motor de IA Gemini de Respaldo</h3>
-                    <p className="text-[11px] text-slate-400">Inserta tu llave de API gratuita de Google para omitir límites de cuota.</p>
+                    <h3 className="font-bold text-white text-sm">Configuración Avanzada (Opcional)</h3>
+                    <p className="text-[11px] text-slate-400">Si tienes una clave personal de Google AI, puedes usarla aquí para obtener más generaciones.</p>
                   </div>
                 </div>
                 
@@ -166,7 +166,7 @@ export default function Profile() {
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-mono font-black text-slate-500 uppercase tracking-widest block">
-                    LLAVE DE API GEMINI PERSONAL
+                    CLAVE PERSONAL DE GOOGLE AI
                   </label>
                   <div className="relative">
                     <input
@@ -197,7 +197,7 @@ export default function Profile() {
                       </>
                     ) : (
                       <>
-                        <Save className="w-4 h-4" /> GUARDAR EN NAVEGADOR
+                        <Save className="w-4 h-4" /> GUARDAR CLAVE
                       </>
                     )}
                   </button>

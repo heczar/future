@@ -519,13 +519,13 @@ function AppContent() {
           <div className="space-y-2 relative z-10">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
-              <span className="text-[9px] font-mono font-bold text-brand-primary uppercase tracking-widest">Panel de Control General</span>
+              <span className="text-[9px] font-mono font-bold text-brand-primary uppercase tracking-widest">Tu Centro de Control</span>
             </div>
             <h2 className="text-2xl md:text-3xl font-display font-bold text-white tracking-tight">
               Bienvenido, <span className="text-brand-primary">{profile?.name || 'Líder'}</span>
             </h2>
             <p className="text-[11px] md:text-xs text-slate-300 leading-relaxed max-w-2xl">
-              Accede de forma directa a tus herramientas de consultoría, redacción publicitaria y creación visual de alto rendimiento.
+              Desde aquí puedes acceder a todas tus herramientas: consultas, textos publicitarios y creación de imágenes.
             </p>
           </div>
 
@@ -611,7 +611,7 @@ function AppContent() {
               <div className="text-left">
                 <h3 className="font-bold text-white text-sm tracking-wide uppercase">Imágenes</h3>
                 <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
-                  Genera logotipos vectoriales e imágenes fotorrealistas para tus campañas con el motor Imagen 3.0.
+                  Genera logotipos e imágenes profesionales para tus redes sociales y campañas.
                 </p>
               </div>
             </div>
@@ -626,7 +626,7 @@ function AppContent() {
         <section className="spe-section pt-1">
           <div className="flex items-center gap-2 mb-4 text-left">
             <Sparkles className="w-4 h-4 text-brand-primary animate-pulse" />
-            <h2 className="text-lg md:text-xl font-bold font-display text-white">Sistema Pentagonal de Ejecución (SPE)</h2>
+            <h2 className="text-lg md:text-xl font-bold font-display text-white">Tu Proceso de Trabajo</h2>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 font-sans">

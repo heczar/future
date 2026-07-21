@@ -167,17 +167,17 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
           <div>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></span>
-              <span className="text-[10px] font-mono font-bold text-brand-primary uppercase tracking-widest">SISTEMA APIS DE COCO</span>
+              <span className="text-[10px] font-mono font-bold text-brand-primary uppercase tracking-widest">ESTADO DE TU CUENTA</span>
             </div>
             <h3 className="text-lg font-display font-black text-white uppercase tracking-tight mt-1 flex items-center gap-1.5">
-              <Sliders className="w-5 h-5 text-brand-primary" /> Consola de Carga de Cómputo
+              <Sliders className="w-5 h-5 text-brand-primary" /> Tu Uso de la Plataforma
             </h3>
             <p className="text-[11px] text-slate-400 mt-1">
-              Monitoreo analítico del consumo de tokens y llamadas de IA para tu rango: <strong className="text-white uppercase">{profile?.isPremium ? 'Membresía Elite PRO' : 'Membresía Sencilla'}</strong>
+              Monitoreo analítico del uso de consultas e imágenes generadas para tu rango: <strong className="text-white uppercase">{profile?.isPremium ? 'Membresía Elite PRO' : 'Membresía Sencilla'}</strong>
             </p>
           </div>
           <div className="px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 text-[10px] font-mono whitespace-nowrap">
-            Límite Diario: <strong className="text-brand-primary">{profile?.isPremium ? 'Ilimitado con SRE' : '5 Consultas / Día'}</strong>
+            Límite Diario: <strong className="text-brand-primary">{profile?.isPremium ? 'Ilimitado' : '5 Consultas / Día'}</strong>
           </div>
         </div>
 
@@ -186,7 +186,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
           {/* DAILY QUERIES */}
           <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl space-y-3">
             <div className="flex justify-between items-center text-xs">
-              <span className="text-slate-400 flex items-center gap-1.5"><Activity className="w-4 h-4 text-brand-primary" /> Consultas Diarias de IA</span>
+              <span className="text-slate-400 flex items-center gap-1.5"><Activity className="w-4 h-4 text-brand-primary" /> Consultas Realizadas Hoy</span>
               <span className="font-mono font-bold text-white">
                 {profile?.apiConsumption?.dailyConsultsUsed ?? (profile?.isPremium ? 7 : 1)} / {profile?.apiConsumption?.dailyConsultsLimit ?? (profile?.isPremium ? 250 : 5)}
               </span>

@@ -422,7 +422,7 @@ export default function AdvisoryHub({
               {/* Settings Panel (2 cols) */}
               <div className="lg:col-span-2 space-y-4 p-5 bg-surface-900/20 border border-white/5 rounded-2xl">
                 <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-300 border-b border-white/5 pb-2">
-                  1. Configuración del Copy
+                  1. Configura tu anuncio
                 </h3>
                 
                 {/* Topic / Offer Input */}
@@ -521,7 +521,7 @@ export default function AdvisoryHub({
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4" />
-                      <span>Generar Copy de Alta Conversión</span>
+                      <span>Generar Texto Publicitario</span>
                     </>
                   )}
                 </button>
@@ -531,7 +531,7 @@ export default function AdvisoryHub({
               <div className="lg:col-span-3 flex flex-col h-[calc(100vh-280px)] min-h-[300px] p-5 bg-surface-900/20 border border-white/5 rounded-2xl">
                 <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-4">
                   <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-300">
-                    2. Copy Producido
+                    2. Texto Generado
                   </h3>
 
                   {generatedCopy && (
@@ -562,7 +562,7 @@ export default function AdvisoryHub({
                   ) : (
                     <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 space-y-2">
                       <FileText className="w-8 h-8 text-slate-600 animate-pulse" />
-                      <p className="text-xs">Configura los parámetros a la izquierda y presiona el botón para generar el texto comercial.</p>
+                      <p className="text-xs">Configura las opciones a la izquierda y presiona el botón para crear tu texto publicitario.</p>
                     </div>
                   )}
                 </div>

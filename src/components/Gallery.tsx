@@ -295,11 +295,11 @@ export default function Gallery() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="text-left">
           <span className="text-[10px] font-black tracking-[0.3em] text-brand-primary uppercase font-mono block mb-1">
-            BIBLIOTECA GENERAL FUTURA
+            TUS ARCHIVOS GUARDADOS
           </span>
           <h2 className="text-3xl sm:text-4xl font-display font-bold text-white tracking-tight">Galería de Activos</h2>
           <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-xl">
-            Todo tu material corporativo unificado en un solo almacén: imágenes renderizadas, textos estrategizados y pautas de marca listas para descargar y usar.
+            Aquí se guardan todas tus imágenes, textos y marcas. Puedes buscar, filtrar y descargar lo que necesites.
           </p>
         </div>
 
@@ -308,7 +308,7 @@ export default function Gallery() {
           <Search className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
           <input 
             type="text" 
-            placeholder="Buscar en tu inventario..." 
+            placeholder="Buscar..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="bg-black/40 border border-white/5 rounded-2xl py-3 pl-11 pr-5 text-xs text-white placeholder-slate-500 focus:border-brand-primary outline-none w-full transition-all"
@@ -327,7 +327,7 @@ export default function Gallery() {
           }`}
         >
           <ImageIcon className="w-4 h-4" />
-          Diseños y Renders ({assets.length})
+          Imágenes ({assets.length})
         </button>
 
         <button
@@ -339,7 +339,7 @@ export default function Gallery() {
           }`}
         >
           <MessageSquare className="w-4 h-4" />
-          Agenda y Copys ({publications.length})
+          Textos y Copys ({publications.length})
         </button>
 
         <button
@@ -351,7 +351,7 @@ export default function Gallery() {
           }`}
         >
           <Briefcase className="w-4 h-4" />
-          Bóveda De Marcas ({brands.length})
+          Mis Marcas ({brands.length})
         </button>
       </div>
 
@@ -364,8 +364,8 @@ export default function Gallery() {
             <Bot className="absolute inset-x-0 inset-y-0 m-auto w-6 h-6 text-brand-primary animate-pulse" />
           </div>
           <div className="space-y-2">
-            <p className="text-xs font-black text-white uppercase tracking-[0.4em]">Sincronizando Biblioteca</p>
-            <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Descubriendo activos del usuario...</p>
+            <p className="text-xs font-black text-white uppercase tracking-[0.4em]">Cargando tu galería</p>
+            <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Un momento...</p>
           </div>
         </div>
       ) : (
@@ -374,7 +374,7 @@ export default function Gallery() {
           <div className="lg:col-span-1 space-y-6">
             {/* PANEL DE MANDO LATERAL / ESTADÍSTICAS */}
             <div className="glass-panel p-6 rounded-3xl space-y-6 text-left border border-white/5 bg-surface-950/40">
-              <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-mono">Consola de Control</h3>
+              <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-mono">Resumen</h3>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 bg-white/5 rounded-2xl border border-white/5">
