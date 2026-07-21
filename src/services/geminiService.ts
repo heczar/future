@@ -361,6 +361,17 @@ Yo soy tu **Compañero y Asesor Estratégico**. Mi mayor deseo es simplificarte 
 Cuéntame, por favor, ¿qué idea, proyecto, servicio o desafío tienes en mente hoy para que lo repasemos juntos con total calma y sentido común? Me encantaría ayudarte a darle forma.`;
     }
 
+    const s0 = (sTips && sTips[0]) || "**Recomendación Principal:** Analiza las necesidades clave de tu público objetivo.";
+    const i0 = (iTips && iTips[0]) || "**Enfoque Práctico:** Estructura una propuesta clara de valor para tu oferta.";
+    const s1 = (sTips && sTips[1]) || "**Siguiente Paso:** Implementa cambios progresivos y mide los resultados.";
+
+    const s0Title = s0.includes(':') ? s0.split(':')[0] : s0;
+    const s0Body = s0.includes(':') ? s0.substring(s0.indexOf(':') + 1) : '';
+    const i0Title = i0.includes(':') ? i0.split(':')[0] : i0;
+    const i0Body = i0.includes(':') ? i0.substring(i0.indexOf(':') + 1) : '';
+    const s1Title = s1.includes(':') ? s1.split(':')[0] : s1;
+    const s1Body = s1.includes(':') ? s1.substring(s1.indexOf(':') + 1) : '';
+
     return `### ⚡ TU ASESOR DE CONFIANZA FUTURA™
 *Mentoría Directa y Sencilla para el Crecimiento de tu Negocio*
 
@@ -372,9 +383,9 @@ Vamos a simplificar las cosas y concentrarnos en lo que realmente genera resulta
 
 #### 💡 RECOMENDACIONES CLAVE PARA FACILITAR TU DÍA:
 
-* **${sTips[0].split(':')[0]}:** ${sTips[0].substring(sTips[0].indexOf(':') + 1 || 0)}
-* **${iTips[0].split(':')[0]}:** ${iTips[0].substring(iTips[0].indexOf(':') + 1 || 0)}
-* **${sTips[1].split(':')[0]}:** ${sTips[1].substring(sTips[1].indexOf(':') + 1 || 0)}
+* **${s0Title}:** ${s0Body}
+* **${i0Title}:** ${i0Body}
+* **${s1Title}:** ${s1Body}
 
 #### ⚙️ CÓMO SEGUIR TRABAJANDO CÓMODAMENTE:
 * **Si estás iniciando un Nuevo Negocio**: Ve a la sección de **Ignición Creativa** para idear slogans, blueprints e imágenes instantáneas sin dolor de cabeza.
