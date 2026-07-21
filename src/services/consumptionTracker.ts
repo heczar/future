@@ -4,11 +4,13 @@
  */
 
 import { db } from '../lib/firebase';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 export interface ApiConsumption {
   dailyConsultsUsed: number;
   dailyConsultsLimit: number;
+  monthlyConsultsUsed?: number;
+  monthlyConsultsLimit?: number;
   monthlyTokensUsed: number;
   monthlyTokensLimit: number;
   monthlyImagesUsed: number;
@@ -17,13 +19,39 @@ export interface ApiConsumption {
 }
 
 export const LIMITS = {
-  sencilla: {
+  free: {
     dailyConsultsLimit: 5,
+    monthlyConsultsLimit: 150,
     monthlyTokensLimit: 25000,
     monthlyImagesLimit: 3,
   },
-  elitePro: {
-    dailyConsultsLimit: 250,
+  copy_chat: {
+    dailyConsultsLimit: 15,
+    monthlyConsultsLimit: 100,
+    monthlyTokensLimit: 150000,
+    monthlyImagesLimit: 0,
+  },
+  pilot: {
+    dailyConsultsLimit: 10,
+    monthlyConsultsLimit: 50,
+    monthlyTokensLimit: 100000,
+    monthlyImagesLimit: 10,
+  },
+  starter: {
+    dailyConsultsLimit: 30,
+    monthlyConsultsLimit: 250,
+    monthlyTokensLimit: 500000,
+    monthlyImagesLimit: 50,
+  },
+  growth: {
+    dailyConsultsLimit: 100,
+    monthlyConsultsLimit: 1000,
+    monthlyTokensLimit: 2000000,
+    monthlyImagesLimit: 150,
+  },
+  scale: {
+    dailyConsultsLimit: 1000,
+    monthlyConsultsLimit: 999999, // Ilimitado en la práctica
     monthlyTokensLimit: 15000000, // 15M Tokens
     monthlyImagesLimit: 500,
   }
@@ -37,11 +65,17 @@ export async function getUserConsumption(userId: string, isPremium: boolean): Pr
   const snap = await getDoc(docRef);
   
   const todayStr = new Date().toISOString().split('T')[0];
-  const activeLimits = isPremium ? LIMITS.elitePro : LIMITS.sencilla;
+  const userData = snap.exists() ? snap.data() : null;
+  
+  // Resolve plan based on Firestore property activePlan, falling back to isPremium logic
+  const activePlan = userData?.activePlan || (isPremium ? 'scale' : 'free');
+  const activeLimits = LIMITS[activePlan as keyof typeof LIMITS] || LIMITS.free;
 
   const defaultConsumption: ApiConsumption = {
     dailyConsultsUsed: 0,
     dailyConsultsLimit: activeLimits.dailyConsultsLimit,
+    monthlyConsultsUsed: 0,
+    monthlyConsultsLimit: activeLimits.monthlyConsultsLimit,
     monthlyTokensUsed: 0,
     monthlyTokensLimit: activeLimits.monthlyTokensLimit,
     monthlyImagesUsed: 0,
@@ -53,22 +87,25 @@ export async function getUserConsumption(userId: string, isPremium: boolean): Pr
     return defaultConsumption;
   }
 
-  const userData = snap.data();
   let cons: ApiConsumption = userData.apiConsumption || { ...defaultConsumption };
 
   // Sync limits to match membership tier changes dynamically
   cons.dailyConsultsLimit = activeLimits.dailyConsultsLimit;
+  cons.monthlyConsultsLimit = activeLimits.monthlyConsultsLimit;
   cons.monthlyTokensLimit = activeLimits.monthlyTokensLimit;
   cons.monthlyImagesLimit = activeLimits.monthlyImagesLimit;
+
+  // Initialize monthly consult properties if they don't exist
+  if (cons.monthlyConsultsUsed === undefined) cons.monthlyConsultsUsed = 0;
+  if (cons.monthlyConsultsLimit === undefined) cons.monthlyConsultsLimit = activeLimits.monthlyConsultsLimit;
 
   // Check if daily reset is needed
   if (cons.lastResetDate !== todayStr) {
     cons.dailyConsultsUsed = 0;
     cons.lastResetDate = todayStr;
     
-    // Also reset monthly token limit and images periodically if empty / fallback (every 30 days)
-    // Simply reset with today's reset for smooth sandbox operation, keeping months alive
-    if (Math.random() < 0.05) { // 5% chance of checking if we should do a monthly refresh
+    // Periodically prune tokens slightly as dynamic simulator cleanup
+    if (Math.random() < 0.05) {
       cons.monthlyTokensUsed = Math.max(0, cons.monthlyTokensUsed - 3000);
       cons.monthlyImagesUsed = Math.max(0, cons.monthlyImagesUsed - 1);
     }
@@ -85,15 +122,21 @@ export async function assertHasQuota(userId: string, isPremium: boolean, actionT
   
   if (actionType === 'consult' || actionType === 'strategy') {
     if (cons.dailyConsultsUsed >= cons.dailyConsultsLimit) {
-      throw new Error(`CRÍTICO: Límite de consultas diario alcanzado (${cons.dailyConsultsUsed}/${cons.dailyConsultsLimit}). Sube a Elite PRO para habilitar análisis premium ilimitados.`);
+      throw new Error(`CRÍTICO: Límite de consultas diario alcanzado (${cons.dailyConsultsUsed}/${cons.dailyConsultsLimit}). Sube de nivel en la pestaña de Membresías para reactivar tu capacidad.`);
+    }
+    if ((cons.monthlyConsultsUsed || 0) >= (cons.monthlyConsultsLimit || 0)) {
+      throw new Error(`CRÍTICO: Límite de consultas mensual alcanzado (${cons.monthlyConsultsUsed}/${cons.monthlyConsultsLimit}). Actualiza tu membresía para expandir tu capacidad.`);
     }
     const tokenEst = actionType === 'strategy' ? 4500 : 1500;
     if (cons.monthlyTokensUsed + tokenEst > cons.monthlyTokensLimit) {
-      throw new Error(`CRÍTICO: Carga de tokens excedida (${cons.monthlyTokensUsed}/${cons.monthlyTokensLimit}). Actualiza tu membresía para expandir infinitamente tu capacidad.`);
+      throw new Error(`CRÍTICO: Carga de tokens excedida (${cons.monthlyTokensUsed}/${cons.monthlyTokensLimit}). Actualiza tu membresía para expandir tu capacidad.`);
     }
   } else if (actionType === 'image') {
+    if (cons.monthlyImagesLimit === 0) {
+      throw new Error("CRÍTICO: Tu plan actual (Copy & Chat) no incluye renders de diseño. Adquiere un plan que contenga imágenes o recarga un pack adicional de renders.");
+    }
     if (cons.monthlyImagesUsed >= cons.monthlyImagesLimit) {
-      throw new Error(`CRÍTICO: Límite de generación de imágenes alcanzado (${cons.monthlyImagesUsed}/${cons.monthlyImagesLimit}). Desbloquea Elite PRO para renderizar activos publicitarios reales.`);
+      throw new Error(`CRÍTICO: Límite de renders mensuales alcanzado (${cons.monthlyImagesUsed}/${cons.monthlyImagesLimit}). Desbloquea un nivel superior o recarga un pack de renders.`);
     }
   }
   
@@ -110,14 +153,17 @@ export async function trackActionConsumption(userId: string, isPremium: boolean,
     
     if (actionType === 'consult') {
       cons.dailyConsultsUsed += 1;
+      cons.monthlyConsultsUsed = (cons.monthlyConsultsUsed || 0) + 1;
       cons.monthlyTokensUsed += Math.floor(1200 + Math.random() * 800); // 1200 - 2000 random token estimation
     } else if (actionType === 'strategy') {
       cons.dailyConsultsUsed += 1;
+      cons.monthlyConsultsUsed = (cons.monthlyConsultsUsed || 0) + 1;
       cons.monthlyTokensUsed += Math.floor(3800 + Math.random() * 1500); // 3800 - 5300 token estimation
     } else if (actionType === 'image') {
       cons.monthlyImagesUsed += 1;
     } else if (actionType === 'ignition_brand') {
       cons.dailyConsultsUsed += 1;
+      cons.monthlyConsultsUsed = (cons.monthlyConsultsUsed || 0) + 1;
       cons.monthlyTokensUsed += 3500; // heavier brand structure calculation
     }
 

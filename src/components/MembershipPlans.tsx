@@ -41,11 +41,27 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  
+  // Selected subscription plan for checkout
+  const [selectedPlan, setSelectedPlan] = useState<{ id: string; name: string; price: number } | null>(null);
 
   // Trigger toast indicator
   const triggerToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 4000);
+  };
+
+  // Select a plan and smooth scroll to checkout section
+  const handleSelectPlan = (planId: string, planName: string, price: number) => {
+    setSelectedPlan({ id: planId, name: planName, price });
+    triggerToast(`🛒 Plan ${planName} seleccionado. Envía el pago correspondiente.`);
+    
+    setTimeout(() => {
+      const element = document.getElementById("crypto-checkout-section");
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   // Clipboard Copier
@@ -66,16 +82,20 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
 
     setIsSubmittingReport(true);
     try {
+      const planPrice = selectedPlan ? selectedPlan.price : 10;
+      const planId = selectedPlan ? selectedPlan.id : 'scale'; // Fallback to scale if manual default
+
       const updatedPM = {
         bank: 'Binance Pay',
         phone: senderAccount,
         id: senderAccount,
         reference: txReference.toUpperCase(),
-        amountUsd: 10,
+        amountUsd: planPrice,
         amountBs: 0,
         timestamp: new Date().toISOString(),
         status: 'pending' as const,
-        paymentType: 'binance_eth' as const
+        paymentType: 'binance_eth' as const,
+        requestedPlan: planId
       };
 
       if (onUpdateProfile) {
@@ -289,7 +309,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
 
             <button
               type="button"
-              onClick={() => triggerToast("Redirigiendo a pasarela de pago para Plan Copy & Chat...")}
+              onClick={() => handleSelectPlan('copy_chat', 'Copy & Chat', 4.99)}
               className="w-full mt-4 py-2.5 bg-[#f59e0b]/10 hover:bg-[#f59e0b]/20 text-[#f59e0b] rounded-xl text-xs font-mono uppercase font-black tracking-wider border border-[#f59e0b]/20 cursor-pointer text-center transition-all"
             >
               Adquirir $4.99
@@ -326,7 +346,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
 
             <button
               type="button"
-              onClick={() => triggerToast("Redirigiendo a pasarela de pago para Plan Pilot...")}
+              onClick={() => handleSelectPlan('pilot', 'Pilot (Prueba)', 9.00)}
               className="w-full mt-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-mono uppercase font-black tracking-wider border border-white/5 cursor-pointer text-center transition-all"
             >
               Probar Plan Pilot
@@ -367,7 +387,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
 
             <button
               type="button"
-              onClick={() => triggerToast("Redirigiendo a pasarela de pago para Plan Starter...")}
+              onClick={() => handleSelectPlan('starter', 'Starter Mensual', 29.00)}
               className="w-full mt-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-mono uppercase font-black tracking-wider border border-white/5 cursor-pointer text-center transition-all"
             >
               Adquirir Starter
@@ -409,7 +429,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
 
             <button
               type="button"
-              onClick={() => triggerToast("Redirigiendo a pasarela de pago para Plan Growth...")}
+              onClick={() => handleSelectPlan('growth', 'Growth Mensual', 79.00)}
               className="w-full mt-4 py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-xs font-mono uppercase font-black tracking-wider cursor-pointer text-center transition-all"
             >
               Adquirir Growth
@@ -450,7 +470,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
 
             <button
               type="button"
-              onClick={() => triggerToast("Redirigiendo a pasarela de pago para Plan Scale...")}
+              onClick={() => handleSelectPlan('scale', 'Scale Mensual', 199.00)}
               className="w-full mt-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-mono uppercase font-black tracking-wider border border-white/5 cursor-pointer text-center transition-all"
             >
               Adquirir Scale
@@ -487,7 +507,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                 </div>
                 <button
                   type="button"
-                  onClick={() => triggerToast("Comprando Pack 50 Renders Extra...")}
+                  onClick={() => handleSelectPlan('addon_50', 'Pack 50 Renders Extra', 4.99)}
                   className="p-2 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Recargar
@@ -504,7 +524,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                 </div>
                 <button
                   type="button"
-                  onClick={() => triggerToast("Comprando Pack 150 Renders Extra...")}
+                  onClick={() => handleSelectPlan('addon_150', 'Pack 150 Renders Extra', 12.99)}
                   className="p-2 bg-brand-primary text-white rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Recargar
@@ -520,7 +540,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                 </div>
                 <button
                   type="button"
-                  onClick={() => triggerToast("Comprando Pack 500 Renders Extra...")}
+                  onClick={() => handleSelectPlan('addon_500', 'Pack 500 Renders Extra', 34.99)}
                   className="p-2 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Recargar
@@ -637,13 +657,43 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
               </div>
             </div>
           ) : (
-            <div className="bg-surface-950 border border-white/10 rounded-3xl p-6 space-y-5">
+            <div id="crypto-checkout-section" className="bg-surface-950 border border-white/10 rounded-3xl p-6 space-y-5">
               <div className="space-y-1">
                 <h4 className="text-[11px] font-black text-amber-400 uppercase tracking-widest font-mono flex items-center gap-1.5 align-middle">
                   <CreditCard className="w-4 h-4 text-amber-400" /> Canal de Pago Cripto (Binance / Bitcoin)
                 </h4>
-                <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
-                  Envía el monto equivalente de tu plan seleccionado (Copy & Chat: <strong>$4.99</strong>, Pilot: <strong>$9</strong>, Starter: <strong>$29</strong>, Growth: <strong>$79</strong>, Scale: <strong>$199</strong>) de forma segura:
+                
+                {selectedPlan ? (
+                  <div className="bg-brand-primary/10 border border-brand-primary/20 p-4 rounded-2xl flex items-center justify-between text-left animate-fadeIn mt-2">
+                    <div className="space-y-0.5">
+                      <span className="text-[8px] font-mono font-bold text-brand-primary uppercase tracking-widest block">ORDEN DE PAGO ACTIVA</span>
+                      <strong className="text-sm text-white uppercase block font-display">{selectedPlan.name}</strong>
+                      <span className="text-[11px] text-slate-300 font-sans block">
+                        Transfiere exactamente: <strong className="text-brand-primary font-mono text-sm">${selectedPlan.price} USD</strong>
+                      </span>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => setSelectedPlan(null)} 
+                      className="px-2.5 py-1 bg-white/5 hover:bg-red-500/10 hover:text-red-400 text-slate-400 rounded-lg text-[9px] font-mono uppercase font-black tracking-wider transition-all border border-white/5 cursor-pointer"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-white/[0.01] border border-white/5 p-3 rounded-2xl text-center mt-2">
+                    <span className="text-[10px] text-slate-400 font-sans block">
+                      ⚠️ Selecciona una membresía o paquete de recarga arriba para iniciar tu orden de pago.
+                    </span>
+                  </div>
+                )}
+
+                <p className="text-[11px] text-slate-400 font-sans leading-relaxed pt-1">
+                  {selectedPlan ? (
+                    <span>Envía el monto equivalente de tu plan seleccionado (<strong className="text-white">{selectedPlan.name}</strong>) que corresponde a <strong className="text-brand-primary font-mono">${selectedPlan.price} USD</strong> de forma segura:</span>
+                  ) : (
+                    <span>Envía el monto equivalente de tu plan seleccionado (Copy & Chat: <strong>$4.99</strong>, Pilot: <strong>$9</strong>, Starter: <strong>$29</strong>, Growth: <strong>$79</strong>, Scale: <strong>$199</strong>) de forma segura:</span>
+                  )}
                 </p>
               </div>
 

@@ -30,6 +30,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { fabric } from 'fabric';
 import { cn } from '../lib/utils';
 import { generateCreativeImage } from '../services/geminiService';
+import { assertHasQuota, trackActionConsumption, getUserConsumption } from '../services/consumptionTracker';
 import { ProjectContext, UserProfile } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -113,20 +114,23 @@ export default function CreativeStudio({
   // ==========================================
   const handleGenerateLogo = async () => {
     if (!logoDescription.trim() || isGenerating) return;
-    setIsGenerating(true);
     setGeneratedResult(null);
 
-    const brandName = activeBrand ? activeBrand.name : 'Mi Negocio';
-    const colors = activeBrand?.brandGuidelines 
-      ? [
-          { hex: activeBrand.brandGuidelines.primaryColor, name: 'Primario' },
-          { hex: activeBrand.brandGuidelines.secondaryColor, name: 'Secundario' }
-        ]
-      : undefined;
-
-    const fullPrompt = `Crea un diseño de logotipo profesional para la marca llamada "${brandName}". Concepto y nicho: ${logoDescription}. Estilo: ${selectedLogoStyle}. Simple, limpio, fondo oscuro.`;
-
     try {
+      // Validate image quota first
+      await assertHasQuota(profile.id, profile.isPremium, 'image');
+
+      setIsGenerating(true);
+      const brandName = activeBrand ? activeBrand.name : 'Mi Negocio';
+      const colors = activeBrand?.brandGuidelines 
+        ? [
+            { hex: activeBrand.brandGuidelines.primaryColor, name: 'Primario' },
+            { hex: activeBrand.brandGuidelines.secondaryColor, name: 'Secundario' }
+          ]
+        : undefined;
+
+      const fullPrompt = `Crea un diseño de logotipo profesional para la marca llamada "${brandName}". Concepto y nicho: ${logoDescription}. Estilo: ${selectedLogoStyle}. Simple, limpio, fondo oscuro.`;
+
       const result = await generateCreativeImage(fullPrompt, '1:1', undefined, {
         brandName,
         logoStyle: selectedLogoStyle,
@@ -134,9 +138,23 @@ export default function CreativeStudio({
         colors
       });
       setGeneratedResult(result);
+
+      // Track successful design render consumption
+      await trackActionConsumption(profile.id, profile.isPremium, 'image');
+
+      // Sync local profile state to update dashboard progress bars
+      const newCons = await getUserConsumption(profile.id, profile.isPremium);
+      if (onUpdateProfile) {
+        onUpdateProfile({
+          ...profile,
+          apiConsumption: newCons
+        });
+      }
     } catch (err: any) {
       console.error(err);
-      alert('Error al generar el logo. Favor de intentar nuevamente.');
+      alert(err.message?.includes("CRÍTICO") 
+        ? err.message 
+        : 'Error al generar el logo. Favor de intentar nuevamente.');
     } finally {
       setIsGenerating(false);
     }
@@ -144,21 +162,38 @@ export default function CreativeStudio({
 
   const handleGenerateImage = async () => {
     if (!imagePrompt.trim() || isGenerating) return;
-    setIsGenerating(true);
     setGeneratedResult(null);
 
-    const brandContext = activeBrand 
-      ? `Mantén coherencia con la identidad de ${activeBrand.name}. Guías de marca: ${activeBrand.description}.`
-      : '';
-
-    const fullPrompt = `${imagePrompt}. Estilo visual: ${selectedImageStyle}. ${brandContext} Alta resolución, sin textos escritos.`;
-
     try {
+      // Validate image quota first
+      await assertHasQuota(profile.id, profile.isPremium, 'image');
+
+      setIsGenerating(true);
+      const brandContext = activeBrand 
+        ? `Mantén coherencia con la identidad de ${activeBrand.name}. Guías de marca: ${activeBrand.description}.`
+        : '';
+
+      const fullPrompt = `${imagePrompt}. Estilo visual: ${selectedImageStyle}. ${brandContext} Alta resolución, sin textos escritos.`;
+
       const result = await generateCreativeImage(fullPrompt, selectedFormat);
       setGeneratedResult(result);
+
+      // Track successful design render consumption
+      await trackActionConsumption(profile.id, profile.isPremium, 'image');
+
+      // Sync local profile state to update dashboard progress bars
+      const newCons = await getUserConsumption(profile.id, profile.isPremium);
+      if (onUpdateProfile) {
+        onUpdateProfile({
+          ...profile,
+          apiConsumption: newCons
+        });
+      }
     } catch (err: any) {
       console.error(err);
-      alert('Error al generar la imagen. Favor de intentar nuevamente.');
+      alert(err.message?.includes("CRÍTICO") 
+        ? err.message 
+        : 'Error al generar la imagen. Favor de intentar nuevamente.');
     } finally {
       setIsGenerating(false);
     }

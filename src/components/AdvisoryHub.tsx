@@ -21,6 +21,7 @@ import {
 import { db, auth } from '../lib/firebase';
 import { cn } from '../lib/utils';
 import { chatWithAdvisor, generateSocialCopy, refineSocialCopy } from '../services/geminiService';
+import { assertHasQuota, trackActionConsumption, getUserConsumption } from '../services/consumptionTracker';
 import { ProjectContext, UserProfile } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -117,23 +118,42 @@ export default function AdvisoryHub({
 
     if (!forceText) setChatInput('');
 
-    // Add user message
-    const updatedMessages = [...chatMessages, { role: 'user' as const, text: promptText }];
-    setChatMessages(updatedMessages);
     setIsChatLoading(true);
 
-    const brandCtx = activeBrand
-      ? `MARCA ACTIVA CONECTADA: ${activeBrand.name}. ADN/DESCRIPCIÓN: ${activeBrand.description}`
-      : "No hay marca conectada en esta sesión.";
-
     try {
+      // Validate quota before calling the Gemini AI models
+      await assertHasQuota(profile.id, profile.isPremium, 'consult');
+
+      // Add user message to history
+      const updatedMessages = [...chatMessages, { role: 'user' as const, text: promptText }];
+      setChatMessages(updatedMessages);
+
+      const brandCtx = activeBrand
+        ? `MARCA ACTIVA CONECTADA: ${activeBrand.name}. ADN/DESCRIPCIÓN: ${activeBrand.description}`
+        : "No hay marca conectada en esta sesión.";
+
       const response = await chatWithAdvisor(promptText, chatMessages, brandCtx);
       setChatMessages(prev => [...prev, { role: 'model', text: response }]);
+
+      // Record consumption on database
+      await trackActionConsumption(profile.id, profile.isPremium, 'consult');
+
+      // Sync local profile state to update dashboard progress bars
+      const newCons = await getUserConsumption(profile.id, profile.isPremium);
+      if (onUpdateProfile) {
+        onUpdateProfile({
+          ...profile,
+          apiConsumption: newCons
+        });
+      }
     } catch (err: any) {
       console.error("Chat Error:", err);
+      // Friendly message showing quota exhaustion or connection error
       setChatMessages(prev => [...prev, {
         role: 'model',
-        text: `⚠️ Error de conexión: **${err.message || err}**. Favor de intentar de nuevo.`
+        text: err.message?.includes("CRÍTICO") 
+          ? `⚠️ **Límite Alcanzado:** ${err.message}`
+          : `⚠️ **Error de conexión:** ${err.message || err}. Favor de intentar de nuevo.`
       }]);
     } finally {
       setIsChatLoading(false);
@@ -198,6 +218,9 @@ export default function AdvisoryHub({
     const brandDesc = activeBrand ? activeBrand.description : 'Marketing inteligente centrado en resultados.';
 
     try {
+      // Validate quota before calling the Gemini AI models
+      await assertHasQuota(profile.id, profile.isPremium, 'consult');
+
       const result = await generateSocialCopy({
         copyType: 'advertising',
         platform: selectedPlatform,
@@ -207,12 +230,26 @@ export default function AdvisoryHub({
         language: 'es',
         projectName: brandName,
         projectDescription: brandDesc,
-        imageUrl: copyImage || undefined // Pass image to Gemini API
+        imageUrl: copyImage || undefined
       });
       setGeneratedCopy(result);
+
+      // Record consumption on database
+      await trackActionConsumption(profile.id, profile.isPremium, 'consult');
+
+      // Sync local profile state to update dashboard progress bars
+      const newCons = await getUserConsumption(profile.id, profile.isPremium);
+      if (onUpdateProfile) {
+        onUpdateProfile({
+          ...profile,
+          apiConsumption: newCons
+        });
+      }
     } catch (err: any) {
       console.error("Copy generation error:", err);
-      setGeneratedCopy(`⚠️ Error al generar copy: ${err.message || err}`);
+      setGeneratedCopy(err.message?.includes("CRÍTICO")
+        ? `⚠️ **Límite Alcanzado:** ${err.message}`
+        : `⚠️ **Error al generar copy:** ${err.message || err}`);
     } finally {
       setIsGeneratingCopy(false);
     }
@@ -226,11 +263,28 @@ export default function AdvisoryHub({
     setRefineInput('');
 
     try {
+      // Validate quota before calling the Gemini AI models
+      await assertHasQuota(profile.id, profile.isPremium, 'consult');
+
       const refined = await refineSocialCopy(generatedCopy, instruction);
       setGeneratedCopy(refined);
+
+      // Record consumption on database
+      await trackActionConsumption(profile.id, profile.isPremium, 'consult');
+
+      // Sync local profile state to update dashboard progress bars
+      const newCons = await getUserConsumption(profile.id, profile.isPremium);
+      if (onUpdateProfile) {
+        onUpdateProfile({
+          ...profile,
+          apiConsumption: newCons
+        });
+      }
     } catch (err: any) {
       console.error("Copy refinement error:", err);
-      alert("Hubo un error al refinar el copy: " + (err.message || err));
+      alert(err.message?.includes("CRÍTICO") 
+        ? err.message 
+        : "Hubo un error al refinar el copy: " + (err.message || err));
     } finally {
       setIsRefiningCopy(false);
     }
