@@ -709,37 +709,18 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                       MÉTODO A: BINANCE PAY (USDT)
                     </span>
                     <p className="text-slate-400 leading-normal font-sans text-[10px]">
-                      Puedes pagar online el monto fijo de **$10 USD** (Plan Pilot) con el enlace directo, o usar nuestro **Pay ID** para cualquier monto personalizado (Starter, Growth, etc.):
+                      Realiza la transferencia desde la app de Binance utilizando nuestro Pay ID oficial por el monto que desees:
                     </p>
-                    
-                    <div className="flex gap-2">
-                      <a 
-                        href="https://s.binance.com/zqX4Rj6Q" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex-1 py-2 px-3 bg-amber-500 hover:bg-amber-400 text-black rounded-xl font-mono text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all hover:scale-[1.01] cursor-pointer"
-                      >
-                        Pagar Online ($10 Fijos) <ExternalLink className="w-3 h-3" />
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => handleCopy('https://s.binance.com/zqX4Rj6Q', 'Enlace Binance Pay')}
-                        className="px-3 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl border border-white/5 transition-all cursor-pointer"
-                        title="Copiar Enlace de Pago"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </button>
-                    </div>
 
-                    <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex items-center justify-between gap-2 font-mono text-[10px] mt-2">
-                      <span className="text-white font-bold leading-none">Pay ID (Montos Libres): 39180442</span>
+                    <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex items-center justify-between gap-2 font-mono text-[10px] mt-1">
+                      <span className="text-white font-bold leading-none">Pay ID: 39180442</span>
                       <button
                         type="button"
                         onClick={() => handleCopy('39180442', 'ID de Binance Pay')}
                         className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all shrink-0 cursor-pointer"
                         title="Copiar ID de Binance Pay"
                       >
-                        <Copy className="w-3 h-3" />
+                        <Copy className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
