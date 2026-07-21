@@ -292,22 +292,31 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
               <p className="text-xs text-slate-400 leading-relaxed font-sans">
                 Excelente micro-plan inicial para probar la potencia y velocidad de la plataforma de diseño e IA.
               </p>
-              <ul className="space-y-2 text-xs text-slate-400 border-t border-white/5 pt-4 font-sans">
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-[#f59e0b] shrink-0 mt-0.5" />
-                  <span className="text-slate-200">💬 **Consultas de Chat e IA**: **¡GRATIS E ILIMITADAS!**</span>
+              <ul className="space-y-2.5 text-xs text-slate-400 border-t border-white/5 pt-4 font-sans">
+                <li className="flex items-center justify-between gap-2 bg-white/[0.03] p-2 rounded-xl border border-white/5">
+                  <span className="flex items-center gap-1.5 text-slate-200">
+                    <Check className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
+                    <span>Consultas de Chat e IA</span>
+                  </span>
+                  <span className="px-2 py-0.5 bg-[#f59e0b]/15 text-[#f59e0b] text-[9px] font-black uppercase rounded-lg border border-[#f59e0b]/20">GRATIS E ILIMITADO</span>
                 </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-[#f59e0b] shrink-0 mt-0.5" />
-                  <span className="text-slate-200">✍️ **Generación de Copys**: **¡Gratis e Ilimitado!**</span>
+                <li className="flex items-center justify-between gap-2 bg-white/[0.03] p-2 rounded-xl border border-white/5">
+                  <span className="flex items-center gap-1.5 text-slate-200">
+                    <Check className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
+                    <span>Generación de Copys</span>
+                  </span>
+                  <span className="px-2 py-0.5 bg-[#f59e0b]/15 text-[#f59e0b] text-[9px] font-black uppercase rounded-lg border border-[#f59e0b]/20">GRATIS E ILIMITADO</span>
                 </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-[#f59e0b] shrink-0 mt-0.5" />
-                  <span>🎨 **Estudio Creativo**: **25 Renders** de Logos/Imágenes al mes.</span>
+                <li className="flex items-center justify-between gap-2 bg-white/[0.03] p-2 rounded-xl border border-white/5">
+                  <span className="flex items-center gap-1.5 text-slate-200">
+                    <Check className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
+                    <span>Estudio Creativo (Renders)</span>
+                  </span>
+                  <span className="font-mono font-bold text-white text-[11px]">25 / mes</span>
                 </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
-                  <span>Soporta Add-ons de diseño.</span>
+                <li className="flex items-center gap-1.5 pt-1 text-slate-400">
+                  <Check className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                  <span>Soporta Add-ons de diseño adicional</span>
                 </li>
               </ul>
             </div>
@@ -338,22 +347,31 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
               <p className="text-xs text-slate-400 leading-relaxed font-sans">
                 La opción ideal para marcas y negocios activos que escalan su volumen de pautas publicitarias y copys.
               </p>
-              <ul className="space-y-2 text-xs text-white border-t border-brand-primary/10 pt-4 font-sans">
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
-                  <span className="text-white">💬 **Consultas de Chat e IA**: **¡GRATIS E ILIMITADAS!**</span>
+              <ul className="space-y-2.5 text-xs text-white border-t border-brand-primary/15 pt-4 font-sans">
+                <li className="flex items-center justify-between gap-2 bg-brand-primary/10 p-2 rounded-xl border border-brand-primary/20">
+                  <span className="flex items-center gap-1.5 text-white">
+                    <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                    <span>Consultas de Chat e IA</span>
+                  </span>
+                  <span className="px-2 py-0.5 bg-brand-primary text-white text-[9px] font-black uppercase rounded-lg shadow-sm">GRATIS E ILIMITADO</span>
                 </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
-                  <span className="text-white">✍️ **Generación de Copys**: **¡Gratis e Ilimitado!**</span>
+                <li className="flex items-center justify-between gap-2 bg-brand-primary/10 p-2 rounded-xl border border-brand-primary/20">
+                  <span className="flex items-center gap-1.5 text-white">
+                    <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                    <span>Generación de Copys</span>
+                  </span>
+                  <span className="px-2 py-0.5 bg-brand-primary text-white text-[9px] font-black uppercase rounded-lg shadow-sm">GRATIS E ILIMITADO</span>
                 </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
-                  <span className="text-slate-200">🎨 **Estudio Creativo**: **100 Renders** de Logos/Imágenes al mes.</span>
+                <li className="flex items-center justify-between gap-2 bg-brand-primary/10 p-2 rounded-xl border border-brand-primary/20">
+                  <span className="flex items-center gap-1.5 text-white">
+                    <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                    <span>Estudio Creativo (Renders)</span>
+                  </span>
+                  <span className="font-mono font-bold text-brand-primary text-[11px]">100 / mes</span>
                 </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
-                  <span className="text-slate-200">⚡ Acceso prioritario + Sincronización en Nube.</span>
+                <li className="flex items-center gap-1.5 pt-1 text-slate-200">
+                  <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                  <span>Acceso prioritario + Sincronización en Nube</span>
                 </li>
               </ul>
             </div>
@@ -383,22 +401,31 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
               <p className="text-xs text-slate-400 leading-relaxed font-sans">
                 Máxima velocidad para agencias o equipos de mercadeo que administran múltiples marcas en paralelo.
               </p>
-              <ul className="space-y-2 text-xs text-slate-400 border-t border-white/5 pt-4 font-sans">
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
-                  <span className="text-slate-200">💬 **Consultas de Chat e IA**: **¡GRATIS E ILIMITADAS!**</span>
+              <ul className="space-y-2.5 text-xs text-slate-400 border-t border-white/5 pt-4 font-sans">
+                <li className="flex items-center justify-between gap-2 bg-white/[0.03] p-2 rounded-xl border border-white/5">
+                  <span className="flex items-center gap-1.5 text-slate-200">
+                    <Check className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                    <span>Consultas de Chat e IA</span>
+                  </span>
+                  <span className="px-2 py-0.5 bg-purple-500/15 text-purple-300 text-[9px] font-black uppercase rounded-lg border border-purple-500/20">GRATIS E ILIMITADO</span>
                 </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
-                  <span className="text-slate-200">✍️ **Generación de Copys**: **¡Gratis e Ilimitado!**</span>
+                <li className="flex items-center justify-between gap-2 bg-white/[0.03] p-2 rounded-xl border border-white/5">
+                  <span className="flex items-center gap-1.5 text-slate-200">
+                    <Check className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                    <span>Generación de Copys</span>
+                  </span>
+                  <span className="px-2 py-0.5 bg-purple-500/15 text-purple-300 text-[9px] font-black uppercase rounded-lg border border-purple-500/20">GRATIS E ILIMITADO</span>
                 </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
-                  <span className="text-slate-200">🎨 **Estudio Creativo**: **350 Renders** de Logos/Imágenes al mes.</span>
+                <li className="flex items-center justify-between gap-2 bg-white/[0.03] p-2 rounded-xl border border-white/5">
+                  <span className="flex items-center gap-1.5 text-slate-200">
+                    <Check className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                    <span>Estudio Creativo (Renders)</span>
+                  </span>
+                  <span className="font-mono font-bold text-purple-300 text-[11px]">350 / mes</span>
                 </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>💼 Gestión Multimarcas Avanzada sin límites.</span>
+                <li className="flex items-center gap-1.5 pt-1 text-slate-400">
+                  <Check className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                  <span>Gestión Multimarcas Avanzada sin límites</span>
                 </li>
               </ul>
             </div>

@@ -727,37 +727,44 @@ export default function ProjectManager({ profile, onUpdateProfile, onNavigateToE
               </div>
 
               <form onSubmit={handleUpdateProfile} className="space-y-10 relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  <div className="space-y-6">
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] ml-1">Tu Nombre o Alias</label>
-                      <input 
-                        value={profileName}
-                        onChange={(e) => setProfileName(e.target.value)}
-                        className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-5 text-white focus:border-brand-primary/50 outline-none transition-all"
-                        placeholder="Ej: Heczar"
-                      />
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] ml-1">Tu Nombre o Alias</label>
+                        <p className="text-[11px] text-slate-400 ml-1 leading-normal">
+                          💡 <strong>Consejo:</strong> Usa el nombre con el que quieres que la IA se dirija a ti en las sesiones de asesoría y diagnósticos.
+                        </p>
+                        <input 
+                          value={profileName}
+                          onChange={(e) => setProfileName(e.target.value)}
+                          className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-4 text-sm text-white focus:border-brand-primary/50 outline-none transition-all"
+                          placeholder="Ej: Carlos Mendoza (Director Creativo)"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] ml-1">Biografía Profesional</label>
+                        <p className="text-[11px] text-slate-400 ml-1 leading-normal">
+                          💡 <strong>Consejo:</strong> Describe tu rol, tu industria y experiencia. Esto ayuda a la IA a adaptar su nivel de complejidad a tu perfil.
+                        </p>
+                        <textarea 
+                          value={profileBio}
+                          onChange={(e) => setProfileBio(e.target.value)}
+                          className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-4 text-sm text-white focus:border-brand-primary/50 outline-none min-h-[100px] transition-all resize-none"
+                          placeholder="Ej: Fundador de agencia digital enfocado en captación de clientes para marcas de e-commerce y servicios..."
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] ml-1">Biografía Profesional</label>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] ml-1">Filosofía de Trabajo</label>
+                      <p className="text-[11px] text-slate-400 ml-1 leading-normal">
+                        💡 <strong>Consejo:</strong> Define los valores de tu negocio (ej: ventas directas, tono cercano, elegancia visual). La IA usará estos principios en cada recomendación.
+                      </p>
                       <textarea 
-                        value={profileBio}
-                        onChange={(e) => setProfileBio(e.target.value)}
-                        className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-5 text-white focus:border-brand-primary/50 outline-none min-h-[100px] transition-all resize-none"
-                        placeholder="Define quién eres y tu experiencia..."
+                        value={profilePhilosophy}
+                        onChange={(e) => setProfilePhilosophy(e.target.value)}
+                        className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-4 text-sm text-white focus:border-brand-primary/50 outline-none min-h-[140px] transition-all resize-none"
+                        placeholder="Ej: Resultados y Estética. Priorizamos anuncios con mensajes claros y diseños visuales sofisticados..."
                       />
                     </div>
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] ml-1">Filosofía de Trabajo</label>
-                    <textarea 
-                      value={profilePhilosophy}
-                      onChange={(e) => setProfilePhilosophy(e.target.value)}
-                      className="w-full bg-surface-900/50 border border-white/10 rounded-2xl p-5 text-white focus:border-brand-primary/50 outline-none min-h-[120px] transition-all resize-none"
-                      placeholder="¿Qué valores rigen tu ejecución? Ej: Resultados sobre estética..."
-                    />
-                  </div>
-                </div>
 
                 <div className="pt-8 border-t border-white/5">
                   <button 
