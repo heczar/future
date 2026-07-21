@@ -116,7 +116,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-12 py-12 px-4 sm:px-6">
+    <div className="max-w-7xl mx-auto space-y-12 py-12 px-4 sm:px-6">
       {/* Toast Notification */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50 bg-slate-900 border border-brand-primary/45 py-3.5 px-6 rounded-2xl shadow-2xl flex items-center gap-3 animate-fadeIn">
@@ -236,7 +236,10 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                 : 'Imágenes limitadas. La simulación requiere licencia real.'}
             </p>
           </div>
-       {/* Structured 5-Tier Monthly Subscription Grid - Full Width for Perfect Dimensions */}
+        </div>
+      </div>
+
+      {/* Structured 5-Tier Monthly Subscription Grid - Full Width for Perfect Dimensions */}
       <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-6 sm:p-8 space-y-6 mb-8 text-left animate-fadeIn">
         <div>
           <span className="text-[8px] font-mono font-black text-brand-primary uppercase tracking-widest block mb-1">
