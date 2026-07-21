@@ -341,7 +341,8 @@ export default function AdvisoryHub({
               {/* Chat messages */}
               <div 
                 ref={chatContainerRef}
-                className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin text-xs py-4"
+                translate="no"
+                className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin text-xs py-4 notranslate"
               >
                 {/* Brand status notice inside chat */}
                 <div className="flex items-center gap-2.5 p-3.5 bg-white/5 border border-white/5 rounded-xl text-slate-400 text-xs">
@@ -357,8 +358,9 @@ export default function AdvisoryHub({
                   {chatMessages.map((msg, idx) => (
                     <div 
                       key={`msg-${idx}-${msg.role}`}
+                      translate="no"
                       className={cn(
-                        "p-4 rounded-2xl max-w-[85%] transition-all leading-relaxed whitespace-pre-wrap text-left text-xs font-sans",
+                        "p-4 rounded-2xl max-w-[85%] transition-all leading-relaxed whitespace-pre-wrap text-left text-xs font-sans notranslate",
                         msg.role === 'user'
                           ? "bg-brand-primary/10 border border-brand-primary/20 text-white ml-auto rounded-tr-none"
                           : "bg-white/5 border border-white/5 text-slate-300 mr-auto rounded-tl-none"
