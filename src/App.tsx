@@ -771,6 +771,7 @@ function AppContent() {
           {/* ASESORÍA */}
           <div className={cn("w-full transition-all duration-150", activeTab === 'advisory' ? "block opacity-100" : "hidden opacity-0")}>
             <AdvisoryHub 
+              key="advisory-consultation"
               mode="consultation"
               profile={profile} 
               projectsList={projectsList} 
@@ -785,6 +786,7 @@ function AppContent() {
           {/* COPYS */}
           <div className={cn("w-full transition-all duration-150", activeTab === 'copys' ? "block opacity-100" : "hidden opacity-0")}>
             <AdvisoryHub 
+              key="advisory-copys"
               mode="copys"
               profile={profile} 
               projectsList={projectsList} 

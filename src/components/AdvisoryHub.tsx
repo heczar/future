@@ -366,26 +366,30 @@ export default function AdvisoryHub({
                   </span>
                 </div>
 
-                {chatMessages.map((msg, idx) => (
-                  <div 
-                    key={idx}
-                    className={cn(
-                      "p-4 rounded-2xl max-w-[85%] transition-all leading-relaxed whitespace-pre-wrap text-left text-xs font-sans",
-                      msg.role === 'user'
-                        ? "bg-brand-primary/10 border border-brand-primary/20 text-white ml-auto rounded-tr-none"
-                        : "bg-white/5 border border-white/5 text-slate-300 mr-auto rounded-tl-none"
-                    )}
-                  >
-                    {renderFormattedChatMessage(msg.text)}
-                  </div>
-                ))}
+                <div className="space-y-4 flex flex-col w-full min-h-0">
+                  {chatMessages.map((msg, idx) => (
+                    <div 
+                      key={`msg-${idx}-${msg.role}`}
+                      className={cn(
+                        "p-4 rounded-2xl max-w-[85%] transition-all leading-relaxed whitespace-pre-wrap text-left text-xs font-sans",
+                        msg.role === 'user'
+                          ? "bg-brand-primary/10 border border-brand-primary/20 text-white ml-auto rounded-tr-none"
+                          : "bg-white/5 border border-white/5 text-slate-300 mr-auto rounded-tl-none"
+                      )}
+                    >
+                      {renderFormattedChatMessage(msg.text)}
+                    </div>
+                  ))}
+                </div>
 
-                {isChatLoading && (
-                  <div className="bg-white/5 border border-white/5 text-slate-400 mr-auto rounded-tl-none p-4 rounded-2xl max-w-[70%] flex items-center gap-3 animate-pulse">
-                    <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
-                    <span className="text-[10px] text-brand-primary uppercase tracking-[0.25em] font-black">FUTURA está analizando...</span>
-                  </div>
-                )}
+                <div className="w-full flex justify-start">
+                  {isChatLoading && (
+                    <div className="bg-white/5 border border-white/5 text-slate-400 mr-auto rounded-tl-none p-4 rounded-2xl max-w-[70%] flex items-center gap-3 animate-pulse">
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
+                      <span className="text-[10px] text-brand-primary uppercase tracking-[0.25em] font-black">FUTURA está analizando...</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Chat Input panel */}
