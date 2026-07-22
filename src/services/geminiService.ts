@@ -1398,6 +1398,9 @@ function cleanLLMResponse(text: string): string {
     cleaned = cleaned.substring(3).trim();
   }
   
+  // 2.5. Remove markdown heading hashes (e.g. "### ", "## ", "# ") from the beginning of lines
+  cleaned = cleaned.replace(/^[ \t]*#+[ \t]+/gm, '');
+  
   // 3. Remove typical outro phrases at the end of the text
   const outroRegex = /[\r\n]+(Espero que te sea útil|¡Espero que esto te ayude|Cuéntame si necesitas|¿Qué te parece|Cualquier duda|¡Listo!|¡Éxito en tu campaña)[^\n]*$/i;
   cleaned = cleaned.replace(outroRegex, '').trim();
