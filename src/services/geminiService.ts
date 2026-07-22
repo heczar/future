@@ -277,7 +277,7 @@ function getDeterministicSimulationResponse(apiEndpoint: string, payload: any): 
 
   // --- PATH A: chatAboutPhase (SPE PHASE STRATEGIST) ---
   if (apiEndpoint.includes("chatAboutPhase")) {
-    const rawPhase = payload?.phase || "Fase 1";
+    const rawPhase = String(payload?.phase || "Fase 1");
     let phaseName = "";
     let phaseObjective = "";
     let phaseMantra = "";
@@ -484,6 +484,8 @@ async function executeWithFallback<T>(
         if ('imageUrl' in data && typeof data.imageUrl === 'string' && data.imageUrl.trim().length > 0) {
           return data.imageUrl as any;
         }
+        // If data is a general object, return the object directly as T (fixes server response rejection for strategy object)
+        return data as T;
       }
       if (typeof data === 'string' && data.trim().length > 0) {
         return data as T;
@@ -845,13 +847,23 @@ export function generateAdvancedDynamicSVG(
   mockupType?: string,
   customMockupDesc?: string
 ): string {
-  const cleanName = brandName || "FUTURA";
+  const safePrompt = String(textPrompt || "");
+  const cleanName = String(brandName || "FUTURA");
+  const safeNiche = String(niche || "");
+  const safeLogoStyle = String(logoStyle || "");
+  const safeMockupType = String(mockupType || "");
+  const safeCustomMockupDesc = String(customMockupDesc || "");
+
   const initials = (() => {
     const parts = cleanName.trim().split(/\s+/);
     if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
+      const p0 = parts[0] ? String(parts[0]) : "";
+      const p1 = parts[1] ? String(parts[1]) : "";
+      const char0 = p0[0] || "";
+      const char1 = p1[0] || "";
+      return (char0 + char1).toUpperCase() || "FT";
     }
-    return cleanName.trim().slice(0, 2).toUpperCase();
+    return cleanName.trim().slice(0, 2).toUpperCase() || "FT";
   })();
 
   const hex1 = colors?.[0]?.hex || "#FFD700";
@@ -859,7 +871,7 @@ export function generateAdvancedDynamicSVG(
   const hex3 = colors?.[2]?.hex || "#090d16";
   const hex4 = colors?.[3]?.hex || "#1e293b";
 
-  const isMockup = textPrompt.toLowerCase().includes("mockup") || textPrompt.toLowerCase().includes("valla") || textPrompt.toLowerCase().includes("escaparate") || textPrompt.toLowerCase().includes("packaging") || textPrompt.toLowerCase().includes("letrero");
+  const isMockup = safePrompt.toLowerCase().includes("mockup") || safePrompt.toLowerCase().includes("valla") || safePrompt.toLowerCase().includes("escaparate") || safePrompt.toLowerCase().includes("packaging") || safePrompt.toLowerCase().includes("letrero");
 
   if (isMockup) {
     // Generate a beautiful Mockup simulation inside SVG
@@ -988,9 +1000,9 @@ export function generateAdvancedDynamicSVG(
         ${mockupMainGraphics}
 
         <!-- Custom prompt descriptor line (If any) -->
-        ${customMockupDesc ? `
+        ${safeCustomMockupDesc ? `
         <rect x="40" y="15" width="320" height="24" fill="rgba(0,0,0,0.6)" rx="6" stroke="rgba(255,255,255,0.04)" stroke-width="0.75" />
-        <text x="200" y="30" text-anchor="middle" fill="${hex1}" font-family="'JetBrains Mono', monospace" font-size="7.5" font-weight="bold" letter-spacing="1">PREFERENCIA: ${customMockupDesc.toUpperCase().slice(0, 42)}...</text>
+        <text x="200" y="30" text-anchor="middle" fill="${hex1}" font-family="'JetBrains Mono', monospace" font-size="7.5" font-weight="bold" letter-spacing="1">PREFERENCIA: ${safeCustomMockupDesc.toUpperCase().slice(0, 42)}...</text>
         ` : ""}
       </svg>
     `;
@@ -998,10 +1010,10 @@ export function generateAdvancedDynamicSVG(
   }
 
   // ELSE: LOGO GENERATOR
-  const chosenStyle = logoStyle || "Simétrico y Geométrico de Lujo";
+  const chosenStyle = safeLogoStyle || "Simétrico y Geométrico de Lujo";
   const bgGradId = "bgGrad_" + Math.random().toString(36).substr(2, 9);
   const strokeGradId = "strokeGrad_" + Math.random().toString(36).substr(2, 9);
-  const lowerNiche = (niche || "").toLowerCase();
+  const lowerNiche = safeNiche.toLowerCase();
 
   const getNicheVectorArtwork = (strokeId: string): string => {
     if (lowerNiche.includes("dental") || lowerNiche.includes("dentis") || lowerNiche.includes("odonto") || lowerNiche.includes("diente") || lowerNiche.includes("dent")) {
@@ -1244,7 +1256,7 @@ export function generateAdvancedDynamicSVG(
 
       <!-- Clean textual composition with brand name -->
       <text x="200" y="340" text-anchor="middle" fill="#FFFFFF" font-family="'Space Grotesk', 'Inter', sans-serif" font-weight="bold" font-size="14" letter-spacing="6" fill-opacity="0.9">${cleanName.toUpperCase()}</text>
-      <text x="200" y="360" text-anchor="middle" fill="${hex1}" font-family="'JetBrains Mono', monospace" font-size="7.5" font-weight="bold" letter-spacing="4" fill-opacity="0.8">${niche ? niche.toUpperCase().slice(0, 36) : "FUTURA AUTOMATIC DESIGN"}</text>
+      <text x="200" y="360" text-anchor="middle" fill="${hex1}" font-family="'JetBrains Mono', monospace" font-size="7.5" font-weight="bold" letter-spacing="4" fill-opacity="0.8">${safeNiche ? safeNiche.toUpperCase().slice(0, 36) : "FUTURA AUTOMATIC DESIGN"}</text>
     </svg>
   `;
 

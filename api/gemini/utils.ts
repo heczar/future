@@ -282,8 +282,8 @@ export async function generateContentWithRetry(
 // ==========================================
 
 export function getChatWithAdvisorFallback(message: string, brandContext?: string): string {
-  const msg = (message || "").toLowerCase();
-  const contextLower = (brandContext || "").toLowerCase();
+  const msg = String(message || "").toLowerCase();
+  const contextLower = String(brandContext || "").toLowerCase();
   
   let header = "### ⚜️ Asesor Estratégico Local de FUTURA\n\n*Nota: El motor principal está experimentando una alta demanda temporal. He activado nuestro protocolo de asesoría local de respaldo de FUTURA para brindarte soluciones estratégicas inmediatas sin interrupciones.* \n\n";
 
@@ -353,8 +353,8 @@ Dime, ¿cuál es el obstáculo más grande que sientes que enfrenta tu negocio d
 }
 
 export function getChatAboutPhaseFallback(phase: string, message: string): string {
-  const activePhase = phase || "Diagnóstico";
-  const msg = (message || "").toLowerCase();
+  const activePhase = String(phase || "Diagnóstico");
+  const msg = String(message || "").toLowerCase();
   
   let header = `### 💎 Conexión Local - SPE: ${activePhase}\n\n*Nota: El motor principal de FUTURA está operando con alta demanda. Se ha desplegado el módulo de consulta local de respaldo para darte soluciones de máximo calibre sin esperas.* \n\n`;
 
@@ -447,8 +447,8 @@ En **FUTURA** aplicamos la filosofía de **Resultados sobre Estética**:
 }
 
 export function getGenerateSocialCopyFallback(params: any): any {
-  const platformName = (params?.platform || "Instagram").toUpperCase();
-  const audienceDetails = params?.extraContext || "posicionamiento de marca y diferenciación";
+  const platformName = String(params?.platform || "Instagram").toUpperCase();
+  const audienceDetails = String(params?.extraContext || "posicionamiento de marca y diferenciación");
   const isEnglish = params?.language === 'en';
   
   if (isEnglish) {
