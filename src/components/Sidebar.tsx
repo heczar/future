@@ -147,6 +147,9 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
             <Settings className="w-4 h-4" />
             Cerrar Sesión
           </button>
+          <p className="text-[8px] font-mono text-slate-600 text-center select-none pt-1">
+            FUTURA Stable Build: 2026-07-22-10:15
+          </p>
         </div>
       </aside>
     </>
