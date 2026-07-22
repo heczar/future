@@ -1377,38 +1377,47 @@ export async function generateSocialCopy(params: {
   const apiEndpoint = "/api/gemini/generateSocialCopy";
   const payload = { params };
 
-  const clientFallback = async () => {
-    const model = "gemini-3.5-flash";
-    const systemInstruction = `
-      Eres el REDACTOR CREATIVO DE ÉLITE de FUTURA.
-      Especialidad: copies que convierten y detienen el scroll.
-      Filosofía: "Results over Aesthetics". Redacción directa, persuasiva, orientada a la acción.
-    `;
+  const clientFallback = async (): Promise<string> => {
+    try {
+      const model = "gemini-3.5-flash";
+      const systemInstruction = `
+        Eres el REDACTOR CREATIVO DE ÉLITE de FUTURA.
+        Especialidad: copies que convierten y detienen el scroll.
+        Filosofía: "Results over Aesthetics". Redacción directa, persuasiva, orientada a la acción.
+      `;
 
-    const prompt = `
-      Genera un copy excepcional para redes sociales:
-      - Red Social: ${(params.platform || "").toUpperCase()}
-      - Categoría: ${(params.copyType || "").toUpperCase()}
-      - Tono: ${params.tone || "Results over Aesthetics"}
-      - Idioma: ${params.language === 'en' ? 'Inglés' : 'Español'}
-      - Detalles: ${params.extraContext || 'Posicionamiento estratégico general'}
-    `;
+      const prompt = `
+        Genera un copy excepcional para redes sociales:
+        - Red Social: ${(params.platform || "").toUpperCase()}
+        - Categoría: ${(params.copyType || "").toUpperCase()}
+        - Tono: ${params.tone || "Results over Aesthetics"}
+        - Idioma: ${params.language === 'en' ? 'Inglés' : 'Español'}
+        - Detalles: ${params.extraContext || 'Posicionamiento estratégico general'}
+      `;
 
-    const ai = getClientAi();
-    const response = await ai.models.generateContent({
-      model,
-      contents: [{ parts: [{ text: prompt }] }],
-      config: { systemInstruction }
-    });
+      const ai = getClientAi();
+      const response = await ai.models.generateContent({
+        model,
+        contents: [{ parts: [{ text: prompt }] }],
+        config: { systemInstruction }
+      });
 
-    return response.text || "";
+      return (response && typeof response.text === 'string' && response.text.trim().length > 0)
+        ? response.text
+        : getDeterministicSimulationResponse(apiEndpoint, payload);
+    } catch (e) {
+      console.warn("[FUTURA] Fallback directo de generación de copy falló, cargando simulación...", e);
+      return getDeterministicSimulationResponse(apiEndpoint, payload);
+    }
   };
 
-  return executeWithFallback<string>(
+  const res = await executeWithFallback<string>(
     apiEndpoint,
     payload,
     clientFallback
   );
+
+  return typeof res === 'string' ? res : getDeterministicSimulationResponse(apiEndpoint, payload);
 }
 
 // 6. Refining Copy Editor
@@ -1420,33 +1429,42 @@ export async function refineSocialCopy(
   const apiEndpoint = "/api/gemini/refineSocialCopy";
   const payload = { currentCopy, refineInstructions };
 
-  const clientFallback = async () => {
-    const model = "gemini-3.5-flash";
-    const systemInstruction = "Eres un editor experto de copywriting. Refina el copy provisto según las instrucciones del usuario.";
+  const clientFallback = async (): Promise<string> => {
+    try {
+      const model = "gemini-3.5-flash";
+      const systemInstruction = "Eres un editor experto de copywriting. Refina el copy provisto según las instrucciones del usuario.";
 
-    const prompt = `
-      COPY ACTUAL:
-      """
-      ${currentCopy}
-      """
+      const prompt = `
+        COPY ACTUAL:
+        """
+        ${currentCopy}
+        """
 
-      INSTRUCCIONES DE REFINAMIENTO:
-      "${refineInstructions}"
-    `;
+        INSTRUCCIONES DE REFINAMIENTO:
+        "${refineInstructions}"
+      `;
 
-    const ai = getClientAi();
-    const response = await ai.models.generateContent({
-      model,
-      contents: [{ parts: [{ text: prompt }] }],
-      config: { systemInstruction }
-    });
+      const ai = getClientAi();
+      const response = await ai.models.generateContent({
+        model,
+        contents: [{ parts: [{ text: prompt }] }],
+        config: { systemInstruction }
+      });
 
-    return response.text || currentCopy;
+      return (response && typeof response.text === 'string' && response.text.trim().length > 0)
+        ? response.text
+        : (currentCopy || getDeterministicSimulationResponse(apiEndpoint, payload));
+    } catch (e) {
+      console.warn("[FUTURA] Fallback directo de refinamiento de copy falló, manteniendo copy actual...", e);
+      return currentCopy || getDeterministicSimulationResponse(apiEndpoint, payload);
+    }
   };
 
-  return executeWithFallback<string>(
+  const res = await executeWithFallback<string>(
     apiEndpoint,
     payload,
     clientFallback
   );
+
+  return typeof res === 'string' ? res : (currentCopy || getDeterministicSimulationResponse(apiEndpoint, payload));
 }
