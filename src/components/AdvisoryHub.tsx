@@ -137,8 +137,8 @@ export default function AdvisoryHub({
       }
     } catch (err: any) {
       console.error("Chat Error:", err);
-      const rawErrorMsg = typeof err === 'string' ? err : (err?.message || (typeof err === 'object' ? JSON.stringify(err) : String(err)));
-      const isCritical = rawErrorMsg.includes("CRÍTICO");
+      const rawErrorMsg = typeof err === 'string' ? err : String(err?.message || err || 'Error desconocido');
+      const isCritical = typeof rawErrorMsg === 'string' && rawErrorMsg.includes("CRÍTICO");
       
       setChatMessages(prev => [...prev, {
         role: 'model',

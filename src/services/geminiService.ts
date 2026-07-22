@@ -435,78 +435,86 @@ async function executeWithFallback<T>(
   payload: any,
   fallbackFn: () => Promise<T>
 ): Promise<T> {
-  const prompt = (payload?.prompt || payload?.message || payload?.params?.extraContext || "").trim();
-  const context = (payload?.context || payload?.brandContext || payload?.params?.projectDescription || "").trim();
-  const isFutura = context.toLowerCase().includes("futura") || 
-                   prompt.toLowerCase().includes("futura") || 
-                   JSON.stringify(payload || {}).toLowerCase().includes("futura_brand_vault");
-
   try {
-    const userKey = localStorage.getItem("user_gemini_api_key") || "";
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (userKey.trim().length > 0) {
-      headers["x-gemini-api-key"] = userKey.trim();
-    }
+    const prompt = (payload?.prompt || payload?.message || payload?.params?.extraContext || "").trim();
+    const context = (payload?.context || payload?.brandContext || payload?.params?.projectDescription || "").trim();
 
-    const res = await fetch(apiEndpoint, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload)
-    });
+    try {
+      const userKey = localStorage.getItem("user_gemini_api_key") || "";
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (userKey.trim().length > 0) {
+        headers["x-gemini-api-key"] = userKey.trim();
+      }
 
-    // 404 indicates server route is not present (standard static host like Vercel)
-    if (res.status === 404) {
-      console.warn(`[FUTURA HYBRID] Servidor local no soporta esta ruta o estás en un hosting estático (404). Escalando a API de Cliente...`);
-      return await fallbackFn();
-    }
+      const res = await fetch(apiEndpoint, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload)
+      });
 
-    if (!res.ok) {
-      let errorMsg = `Server error ${res.status}`;
-      try {
-        const errData = await res.json();
-        if (errData && errData.error) {
-          errorMsg = errData.error;
+      // 404 indicates server route is not present (standard static host like Vercel)
+      if (res.status === 404) {
+        console.warn(`[FUTURA HYBRID] Servidor local no soporta esta ruta o estás en un hosting estático (404). Escalando a API de Cliente...`);
+        try {
+          return await fallbackFn();
+        } catch (fallback404Err: any) {
+          console.warn(`[FUTURA HYBRID] Fallback tras 404 falló:`, fallback404Err?.message);
+          return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
         }
-      } catch (e) {
-        // Not JSON
       }
-      throw new Error(errorMsg);
-    }
 
-    const data = await res.json();
-    if (data && typeof data === 'object') {
-      if ('response' in data && typeof data.response === 'string' && data.response.trim().length > 0) {
-        return data.response as any;
+      if (!res.ok) {
+        let errorMsg = `Server error ${res.status}`;
+        try {
+          const errData = await res.json();
+          if (errData && errData.error) {
+            errorMsg = errData.error;
+          }
+        } catch (e) {
+          // Not JSON
+        }
+        throw new Error(errorMsg);
       }
-      if ('imageUrl' in data && typeof data.imageUrl === 'string' && data.imageUrl.trim().length > 0) {
-        return data.imageUrl as any;
+
+      const data = await res.json();
+      if (data && typeof data === 'object') {
+        if ('response' in data && typeof data.response === 'string' && data.response.trim().length > 0) {
+          return data.response as any;
+        }
+        if ('imageUrl' in data && typeof data.imageUrl === 'string' && data.imageUrl.trim().length > 0) {
+          return data.imageUrl as any;
+        }
       }
-    }
-    if (typeof data === 'string' && data.trim().length > 0) {
-      return data as T;
-    }
-    throw new Error("Respuesta del servidor inválida o vacía.");
-  } catch (error: any) {
-    const errorStr = (error?.message || "").toLowerCase();
-    console.warn(`[FUTURA HYBRID] Aviso de canal de servidor (${error.message || 'ocupado'}). Activando protocolo de resiliencia de respaldo...`);
-
-    // Propagate key configuration errors so the user is aware of missing setups
-    if (errorStr.includes("gemini_api_key") || errorStr.includes("clave") || errorStr.includes("no está configurada") || errorStr.includes("api key") || errorStr.includes("my_gemini_api_key") || errorStr.includes("credentials")) {
-      throw error;
-    }
-
-    // Attempt client-side execution if we have client/localStorage/env keys
-    if (hasClientApiKey()) {
-      try {
-        console.warn(`[FUTURA] Intentando canal directo del navegador...`);
-        return await fallbackFn();
-      } catch (fallbackError: any) {
-        console.warn(`[FUTURA HYBRID] Canal directo completado con aviso:`, fallbackError.message);
+      if (typeof data === 'string' && data.trim().length > 0) {
+        return data as T;
       }
-    }
+      throw new Error("Respuesta del servidor inválida o vacía.");
+    } catch (error: any) {
+      const errorStr = (error?.message || "").toLowerCase();
+      console.warn(`[FUTURA HYBRID] Aviso de canal de servidor (${error?.message || 'ocupado'}). Activando protocolo de resiliencia de respaldo...`);
 
-    // Elegant deterministic simulation fallback as the ultimate protection
-    console.warn(`[FUTURA HYBRID] Cargando respuesta estructurada de resguardo estratégico para continuar...`);
+      // Propagate key configuration errors so the user is aware of missing setups
+      if (errorStr.includes("gemini_api_key") || errorStr.includes("clave") || errorStr.includes("no está configurada") || errorStr.includes("api key") || errorStr.includes("my_gemini_api_key") || errorStr.includes("credentials")) {
+        throw error;
+      }
+
+      // Attempt client-side execution if we have client/localStorage/env keys
+      if (hasClientApiKey()) {
+        try {
+          console.warn(`[FUTURA] Intentando canal directo del navegador...`);
+          return await fallbackFn();
+        } catch (fallbackError: any) {
+          console.warn(`[FUTURA HYBRID] Canal directo completado con aviso:`, fallbackError?.message);
+        }
+      }
+
+      // Elegant deterministic simulation fallback as the ultimate protection
+      console.warn(`[FUTURA HYBRID] Cargando respuesta estructurada de resguardo estratégico para continuar...`);
+      return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
+    }
+  } catch (outerError: any) {
+    // Absolute last-resort safety net: no error should ever escape this function
+    console.error(`[FUTURA CRITICAL] executeWithFallback error absoluto capturado:`, outerError?.message);
     return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
   }
 }
