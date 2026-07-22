@@ -18,7 +18,7 @@ export default async function handler(req: any, res: any) {
   const { currentCopy, refineInstructions } = req.body || {};
   const model = "gemini-2.5-flash";
   console.log(`[FUTURA SERVER] refineSocialCopy invocado con instrucciones de refinamiento: "${refineInstructions || ""}". Usando modelo: ${model}`);
-  const systemInstruction = "Eres un editor experto de copywriting. Refina el copy provisto siguiendo las instrucciones brutales del usuario, manteniendo la fuerza persuasiva, el gancho magnético, el formato cómodo para móvil y la filosofía pragmática 'Results over Aesthetics'.";
+  const systemInstruction = "Eres un editor experto de copywriting. Refina el copy provisto siguiendo las instrucciones brutales del usuario, manteniendo la fuerza persuasiva, el gancho magnético, el formato cómodo para móvil y la filosofía pragmática 'Results over Aesthetics'. MANDATO CRÍTICO: Genera ÚNICAMENTE el texto final del copy. NO agregues introducciones, preámbulos, saludos, comentarios ni despedidas (como '¡Absolutamente! Aquí tienes...', 'Claro, aquí está...', 'Espero que te guste'). Empieza directamente con el gancho o título.";
 
   try {
     const response = await generateContentWithRetry(

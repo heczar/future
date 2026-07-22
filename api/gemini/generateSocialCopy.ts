@@ -32,7 +32,8 @@ export default async function handler(req: any, res: any) {
     - Captura la atención con ganchos magnéticos desde la primera frase.
     - Utiliza saltos de línea estratégicos para facilitar la lectura visual.
     - Combina llamadas a la acción (CTAs) de conversión directa con hashtags de nicho quirúrgicos.
-
+    - MANDATO CRÍTICO: Genera ÚNICAMENTE el texto final del copy publicitario. NO agregues introducciones, preámbulos, saludos, comentarios ni despedidas (como "¡Absolutamente! Aquí tienes...", "Aquí tienes el copy...", "Claro, con gusto..."). Empieza directamente con el gancho o título.
+    
     SEGÚN LA CATEGORÍA SOLICITADA DEBES ADAPTARTE:
     1. Publicitario (Advertising): Estructura AIDA (Atención, Interés, Deseo, Acción) o dolor-agitación-solución. Enfocado en conversiones rápidas, beneficios comerciales irresistibles, destacar ofertas audaces, y urgencia sutil.
     2. Informativo (Informativo): Aporta valor educativo masivo, resúmenes organizados, checklists accionables, o desgloses paso a paso para el usuario final.

@@ -1380,6 +1380,32 @@ export async function chatAboutPhase(
 }
 
 // 5. Ultimate Copywriter Generator
+function cleanLLMResponse(text: string): string {
+  if (typeof text !== 'string') return "";
+  
+  let cleaned = text.trim();
+  
+  // 1. Remove introductory conversational phrases (case-insensitive regex)
+  const introRegex = /^(¡Absolutamente!|¡Por supuesto!|¡Entendido!|Claro( que sí)?|Excelente|Aquí tienes)[^:\n\r]*[:\n\r]+/i;
+  while (introRegex.test(cleaned)) {
+    cleaned = cleaned.replace(introRegex, '').trim();
+  }
+  
+  // 2. Remove leading markdown horizontal rules "---" or "___" if they appear after cleaning the intro
+  if (cleaned.startsWith("---")) {
+    cleaned = cleaned.substring(3).trim();
+  } else if (cleaned.startsWith("___")) {
+    cleaned = cleaned.substring(3).trim();
+  }
+  
+  // 3. Remove typical outro phrases at the end of the text
+  const outroRegex = /[\r\n]+(Espero que te sea útil|¡Espero que esto te ayude|Cuéntame si necesitas|¿Qué te parece|Cualquier duda|¡Listo!|¡Éxito en tu campaña)[^\n]*$/i;
+  cleaned = cleaned.replace(outroRegex, '').trim();
+  
+  return cleaned;
+}
+
+// 5. Ultimate Copywriter Generator
 export async function generateSocialCopy(params: {
   copyType: 'advertising' | 'informative' | 'engagement';
   platform: string;
@@ -1437,7 +1463,8 @@ export async function generateSocialCopy(params: {
     clientFallback
   );
 
-  return typeof res === 'string' ? res : getDeterministicSimulationResponse(apiEndpoint, payload);
+  const rawResult = typeof res === 'string' ? res : getDeterministicSimulationResponse(apiEndpoint, payload);
+  return cleanLLMResponse(rawResult);
 }
 
 // 6. Refining Copy Editor
@@ -1486,5 +1513,6 @@ export async function refineSocialCopy(
     clientFallback
   );
 
-  return typeof res === 'string' ? res : (currentCopy || getDeterministicSimulationResponse(apiEndpoint, payload));
+  const rawResult = typeof res === 'string' ? res : (currentCopy || getDeterministicSimulationResponse(apiEndpoint, payload));
+  return cleanLLMResponse(rawResult);
 }
