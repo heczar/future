@@ -49,7 +49,8 @@ export default function AdvisoryHub({
     if (!inputText) return "";
     if (!includeLinks) return inputText;
     
-    const regex = /(FUTURA Hub|Semillero de Marca|Blueprint|Asesoría Estratégica|Asesoría|Consultor|Generador de Copys|Copys|Texto Publicitario|Motor Creativo|Fábrica de Conversión|Imágenes|Galería de Activos|Baúl de Marca|Vault|Membresías|Membresía|Planes|Mi Perfil|Perfil)/gi;
+    // Ordered longest-to-shortest matches to avoid matching prefixes first
+    const regex = /(FUTURA Hub|Semillero de Marca|Blueprints|Blueprint|Asesorías Estratégicas|Asesoría Estratégica|Asesorías|Asesoría|Consultores|Consultor|Generador de Copys|Copywriting|Copys|Textos Publicitarios|Texto Publicitario|Motores Creativos|Motor Creativo|Estudios Creativos|Estudio Creativo|Fábrica de Conversión|Imágenes|Galerías de Activos|Galería de Activos|Baúles de Marca|Baúl de Marca|Vaults|Vault|Membresías|Membresía|Suscripciones|Suscripción|Planes de Suscripción|Planes|Mi Perfil|Perfiles|Perfil)/gi;
     const tokens = inputText.split(regex);
     
     return tokens.map((token, tIdx) => {
@@ -63,16 +64,16 @@ export default function AdvisoryHub({
       } else if (lower.includes("asesoría") || lower.includes("asesoria") || lower.includes("consultor")) {
         tabTarget = 'advisory';
         displayLabel = `💬 ${token}`;
-      } else if (lower.includes("copys") || lower.includes("texto publicitario")) {
+      } else if (lower.includes("copys") || lower.includes("copywriting") || lower.includes("texto publicitario")) {
         tabTarget = 'copys';
         displayLabel = `✍️ ${token}`;
-      } else if (lower.includes("motor") || lower.includes("conversión") || lower.includes("conversion") || lower.includes("imágenes") || lower.includes("imagenes")) {
+      } else if (lower.includes("motor") || lower.includes("estudio") || lower.includes("conversión") || lower.includes("conversion") || lower.includes("imágenes") || lower.includes("imagenes")) {
         tabTarget = 'images';
         displayLabel = `🎨 ${token}`;
-      } else if (lower.includes("baúl") || lower.includes("baul") || lower.includes("vault")) {
+      } else if (lower.includes("baúl") || lower.includes("baul") || lower.includes("vault") || lower.includes("galería") || lower.includes("galeria")) {
         tabTarget = 'brands';
         displayLabel = `💼 ${token}`;
-      } else if (lower.includes("membresía") || lower.includes("membresia") || lower.includes("planes")) {
+      } else if (lower.includes("membresía") || lower.includes("membresia") || lower.includes("suscripción") || lower.includes("suscripcion") || lower.includes("planes")) {
         tabTarget = 'pro';
         displayLabel = `👑 ${token}`;
       } else if (lower.includes("perfil")) {
