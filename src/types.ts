@@ -49,6 +49,7 @@ export interface ProjectContext {
 }
 
 export interface UserProfile {
+  id?: string;
   name: string;
   roles: string[];
   bio: string;

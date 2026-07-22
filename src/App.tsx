@@ -180,6 +180,7 @@ function AppContent() {
   const prevMessagesLengthRef = React.useRef(0);
   
   const [profile, setProfile] = useState<UserProfile>({
+    id: "guest",
     name: "Invitado",
     roles: ["Emprendedor", "Creador", "Estratega"],
     bio: "Motor creativo para el desarrollo de marcas y optimización de contenido digital.",
@@ -370,10 +371,11 @@ function AppContent() {
             setDoc(docRef, loaded, { merge: true }).catch(err => console.error("Admin auto sync back err:", err));
           }
         }
-        setProfile(loaded);
+        setProfile({ ...loaded, id: user.uid });
       } else {
         const isMaster = user.email?.toLowerCase() === 'heczaroficial@gmail.com';
         const initialProfile: UserProfile = {
+          id: user.uid,
           name: user.displayName || (isMaster ? "Heczar (Director)" : "Estratega"),
           roles: isMaster ? ["Líder", "Administrador Principal", "Estratega Supremo"] : ["Líder"],
           bio: isMaster ? "Propietario y titular absoluto del sistema FUTURA." : "Sin biografía definida.",
@@ -393,6 +395,7 @@ function AppContent() {
       // Fallback: build standard default profile for this user
       const isMaster = user.email?.toLowerCase() === 'heczaroficial@gmail.com';
       setProfile({
+        id: user.uid,
         name: user.displayName || (isMaster ? "Heczar (Director)" : "Estratega"),
         roles: isMaster ? ["Líder", "Administrador Principal", "Estratega Supremo"] : ["Líder"],
         bio: isMaster ? "Propietario y titular absoluto del sistema FUTURA." : "Sin biografía definida.",
