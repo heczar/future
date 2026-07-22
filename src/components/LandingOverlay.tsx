@@ -91,6 +91,58 @@ export default function LandingOverlay({ onClose }: LandingOverlayProps) {
           </motion.div>
         </div>
 
+        {/* Rotating Promotional Marquee Ribbon (SPE to Activar spacing) */}
+        <div className="w-full overflow-hidden bg-brand-primary/5 border-y border-white/5 py-5 relative mt-16 md:mt-24 rounded-2xl">
+          <div className="flex whitespace-nowrap animate-marquee gap-12">
+            <div className="flex items-center shrink-0 gap-12 text-xs md:text-sm font-mono font-black text-brand-primary uppercase tracking-widest">
+              <span>✨ PUBLICIDAD DE CONVERSIÓN</span>
+              <span>•</span>
+              <span>🚀 MARKETING ESTRATÉGICO</span>
+              <span>•</span>
+              <span>✍️ COPYS PERSUASIVOS</span>
+              <span>•</span>
+              <span>🎨 DISEÑOS DE ALTO IMPACTO</span>
+              <span>•</span>
+              <span>💼 LOGOTIPOS DE ELITE</span>
+              <span>•</span>
+              <span>📐 MOCKUPS PROFESIONALES</span>
+              <span>•</span>
+              <span>💬 ASESORÍA DE NEGOCIOS</span>
+              <span>•</span>
+              <span>🔍 EXPLORA FUTURA</span>
+            </div>
+            <div className="flex items-center shrink-0 gap-12 text-xs md:text-sm font-mono font-black text-brand-primary uppercase tracking-widest" aria-hidden="true">
+              <span>✨ PUBLICIDAD DE CONVERSIÓN</span>
+              <span>•</span>
+              <span>🚀 MARKETING ESTRATÉGICO</span>
+              <span>•</span>
+              <span>✍️ COPYS PERSUASIVOS</span>
+              <span>•</span>
+              <span>🎨 DISEÑOS DE ALTO IMPACTO</span>
+              <span>•</span>
+              <span>💼 LOGOTIPOS DE ELITE</span>
+              <span>•</span>
+              <span>📐 MOCKUPS PROFESIONALES</span>
+              <span>•</span>
+              <span>💬 ASESORÍA DE NEGOCIOS</span>
+              <span>•</span>
+              <span>🔍 EXPLORA FUTURA</span>
+            </div>
+          </div>
+          
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes marqueeLoop {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .animate-marquee {
+              display: flex;
+              width: max-content;
+              animation: marqueeLoop 22s linear infinite;
+            }
+          `}} />
+        </div>
+
         {/* Button */}
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
