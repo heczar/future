@@ -30,7 +30,8 @@ export function getAiClient(customKey?: string): GoogleGenAI {
 }
 
 export function robustJsonParse(text: string, defaultPrompt: string): { strategy: string; copy: string; imagePrompt: string; videoProposal?: string } {
-  let cleaned = text.replace(/```json\n?|\n?```/g, '').trim();
+  const safeText = typeof text === 'string' ? text : String(text || '');
+  let cleaned = safeText.replace(/```json\n?|\n?```/g, '').trim();
 
   try {
     const parsed = JSON.parse(cleaned);

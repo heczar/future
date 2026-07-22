@@ -75,7 +75,8 @@ function sanitizeClientContents(history: any[], newMessage: string, defaultRole:
 
 // Robust JSON parsing for content strategy client-side
 function robustClientJsonParse(text: string, defaultPrompt: string): { strategy: string; copy: string; imagePrompt: string; videoProposal?: string } {
-  let cleaned = text.replace(/```json\n?|\n?```/g, '').trim();
+  const safeText = typeof text === 'string' ? text : String(text || '');
+  let cleaned = safeText.replace(/```json\n?|\n?```/g, '').trim();
 
   try {
     const parsed = JSON.parse(cleaned);
@@ -375,16 +376,16 @@ Yo soy tu **Compañero y Asesor Estratégico**. Mi mayor deseo es simplificarte 
 Cuéntame, por favor, ¿qué idea, proyecto, servicio o desafío tienes en mente hoy para que lo repasemos juntos con total calma y sentido común? Me encantaría ayudarte a darle forma.`;
     }
 
-    const s0 = (sTips && sTips[0]) || "**Recomendación Principal:** Analiza las necesidades clave de tu público objetivo.";
-    const i0 = (iTips && iTips[0]) || "**Enfoque Práctico:** Estructura una propuesta clara de valor para tu oferta.";
-    const s1 = (sTips && sTips[1]) || "**Siguiente Paso:** Implementa cambios progresivos y mide los resultados.";
+    const s0 = (sTips && typeof sTips[0] === 'string' && sTips[0].trim().length > 0) ? sTips[0] : "**Recomendación Principal:** Analiza las necesidades clave de tu público objetivo.";
+    const i0 = (iTips && typeof iTips[0] === 'string' && iTips[0].trim().length > 0) ? iTips[0] : "**Enfoque Práctico:** Estructura una propuesta clara de valor para tu oferta.";
+    const s1 = (sTips && typeof sTips[1] === 'string' && sTips[1].trim().length > 0) ? sTips[1] : "**Siguiente Paso:** Implementa cambios progresivos y mide los resultados.";
 
-    const s0Title = s0.includes(':') ? s0.split(':')[0] : s0;
-    const s0Body = s0.includes(':') ? s0.substring(s0.indexOf(':') + 1) : '';
-    const i0Title = i0.includes(':') ? i0.split(':')[0] : i0;
-    const i0Body = i0.includes(':') ? i0.substring(i0.indexOf(':') + 1) : '';
-    const s1Title = s1.includes(':') ? s1.split(':')[0] : s1;
-    const s1Body = s1.includes(':') ? s1.substring(s1.indexOf(':') + 1) : '';
+    const s0Title = typeof s0 === 'string' && s0.includes(':') ? s0.split(':')[0] : (s0 || '');
+    const s0Body = typeof s0 === 'string' && s0.includes(':') ? s0.substring(s0.indexOf(':') + 1) : '';
+    const i0Title = typeof i0 === 'string' && i0.includes(':') ? i0.split(':')[0] : (i0 || '');
+    const i0Body = typeof i0 === 'string' && i0.includes(':') ? i0.substring(i0.indexOf(':') + 1) : '';
+    const s1Title = typeof s1 === 'string' && s1.includes(':') ? s1.split(':')[0] : (s1 || '');
+    const s1Body = typeof s1 === 'string' && s1.includes(':') ? s1.substring(s1.indexOf(':') + 1) : '';
 
     return `### ⚡ TU ASESOR DE CONFIANZA FUTURA™
 *Mentoría Directa y Sencilla para el Crecimiento de tu Negocio*
@@ -474,14 +475,17 @@ async function executeWithFallback<T>(
 
     const data = await res.json();
     if (data && typeof data === 'object') {
-      if ('response' in data) {
+      if ('response' in data && typeof data.response === 'string' && data.response.trim().length > 0) {
         return data.response as any;
       }
-      if ('imageUrl' in data) {
+      if ('imageUrl' in data && typeof data.imageUrl === 'string' && data.imageUrl.trim().length > 0) {
         return data.imageUrl as any;
       }
     }
-    return data as T;
+    if (typeof data === 'string' && data.trim().length > 0) {
+      return data as T;
+    }
+    throw new Error("Respuesta del servidor inválida o vacía.");
   } catch (error: any) {
     const errorStr = (error?.message || "").toLowerCase();
     console.warn(`[FUTURA HYBRID] Aviso de canal de servidor (${error.message || 'ocupado'}). Activando protocolo de resiliencia de respaldo...`);
@@ -1249,57 +1253,66 @@ export async function chatWithAdvisor(
   const apiEndpoint = "/api/gemini/chatWithAdvisor";
   const payload = { message, history, brandContext };
 
-  const clientFallback = async () => {
-    const model = "gemini-3.5-flash";
-    const systemInstruction = `
-      Eres el ASESOR ESTRATÉGICO Y COMPAÑERO DE NEGOCIOS DE LA APLICACIÓN FUTURA (FUTURA App Advisor de la suite de Future Marketing Consult).
-      Estás en el CENTRO DE CONSULTORÍA de la plataforma. Tu propósito principal es responder con total coherencia, sentido común y criterio lógico a cualquier persona, sea un profesional experimentado o alguien común dando sus primeros pasos. Hablas de forma súper clara, amable, empática y con una excelente facilidad de asimilación.
-      
-      FILOSOFÍA DE RESPUESTA ("Humana, Cómoda y con Criterio de Persona Común"):
-      1. CRITERIO LÓGICO NATURAL: Si el usuario te hace una pregunta sencilla, cotidiana o informal (como un saludo o una duda de sentido común sobre negocios), respóndele de manera natural, humana, cálida y directa, como lo haría un mentor comprensivo. No utilices sermones corporativos ni asumas que todo debe ser hiper-técnico.
-      2. EXPLICACIONES SENCILLAS Y CÓMODAS: Traduce cualquier concepto complejo a palabras de uso cotidiano. Explica el "por qué" y el "cómo" de forma didáctica. Tu misión es hacer el marketing y la estrategia comercial amigables, accesibles y cómodos para todo el mundo.
-      3. FORMATO LIGERO Y AGRADABLE DE LEER: Estructura tus textos de manera extremadamente directa y al grano. Escribe párrafos ultra-cortos (a la mitad de longitud de lo normal, máximo 1 o 2 líneas cada uno). Utiliza viñetas muy escuetas y elimina cualquier palabrería o explicación redundante.
-      4. CERCANÍA AUTÉNTICA: Puedes saludar amigablemente al inicio de tu respuesta y cerrar con una frase motivadora u orientativa sin sonar robótico.
-      
-      ESTRUCTURA DE APOYO DISPONIBLE EN FUTURA APPS (Sugiérela de forma útil y orgánica cuando sea oportuno):
-      - FUTURA Hub (Semillero de Marca/Blueprint): Para madurar la idea de negocio y cimientos de origen.
-      - Motor Creativo (Fábrica de Conversión): Para generar copys altamente persuasivos, conceptos visuales e ideas de video.
-      - Baúl de Marca ("Vault"): Para custodiar la esencia visual y pitches de venta.
-      - Galería de Activos: El panel de control final para ver tus creaciones recopiladas listas para exportar.
-      
-      METODOLOGÍA FILOSÓFICA (SPE - Sistema Pentagonal de Ejecución):
-      - Fase 1: Enfoque / Identidad pura (Results over Aesthetics).
-      - Fase 2: Automatización y Procesos de Conversión.
-      - Fase 3: Escala & Volumen Comercial.
-      - Fase 4: Optimización Financiera.
-      - Fase 5: Conectividad y Fidelización.
+  const clientFallback = async (): Promise<string> => {
+    try {
+      const model = "gemini-3.5-flash";
+      const systemInstruction = `
+        Eres el ASESOR ESTRATÉGICO Y COMPAÑERO DE NEGOCIOS DE LA APLICACIÓN FUTURA (FUTURA App Advisor de la suite de Future Marketing Consult).
+        Estás en el CENTRO DE CONSULTORÍA de la plataforma. Tu propósito principal es responder con total coherencia, sentido común y criterio lógico a cualquier persona, sea un profesional experimentado o alguien común dando sus primeros pasos. Hablas de forma súper clara, amable, empática y con una excelente facilidad de asimilación.
+        
+        FILOSOFÍA DE RESPUESTA ("Humana, Cómoda y con Criterio de Persona Común"):
+        1. CRITERIO LÓGICO NATURAL: Si el usuario te hace una pregunta sencilla, cotidiana o informal (como un saludo o una duda de sentido común sobre negocios), respóndele de manera natural, humana, cálida y directa, como lo haría un mentor comprensivo. No utilices sermones corporativos ni asumas que todo debe ser hiper-técnico.
+        2. EXPLICACIONES SENCILLAS Y CÓMODAS: Traduce cualquier concepto complejo a palabras de uso cotidiano. Explica el "por qué" y el "cómo" de forma didáctica. Tu misión es hacer el marketing y la estrategia comercial amigables, accesibles y cómodos para todo el mundo.
+        3. FORMATO LIGERO Y AGRADABLE DE LEER: Estructura tus textos de manera extremadamente directa y al grano. Escribe párrafos ultra-cortos (a la mitad de longitud de lo normal, máximo 1 o 2 líneas cada uno). Utiliza viñetas muy escuetas y elimina cualquier palabrería o explicación redundante.
+        4. CERCANÍA AUTÉNTICA: Puedes saludar amigablemente al inicio de tu respuesta y cerrar con una frase motivadora u orientativa sin sonar robótico.
+        
+        ESTRUCTURA DE APOYO DISPONIBLE EN FUTURA APPS (Sugiérela de forma útil y orgánica cuando sea oportuno):
+        - FUTURA Hub (Semillero de Marca/Blueprint): Para madurar la idea de negocio y cimientos de origen.
+        - Motor Creativo (Fábrica de Conversión): Para generar copys altamente persuasivos, conceptos visuales e ideas de video.
+        - Baúl de Marca ("Vault"): Para custodiar la esencia visual y pitches de venta.
+        - Galería de Activos: El panel de control final para ver tus creaciones recopiladas listas para exportar.
+        
+        METODOLOGÍA FILOSÓFICA (SPE - Sistema Pentagonal de Ejecución):
+        - Fase 1: Enfoque / Identidad pura (Results over Aesthetics).
+        - Fase 2: Automatización y Procesos de Conversión.
+        - Fase 3: Escala & Volumen Comercial.
+        - Fase 4: Optimización Financiera.
+        - Fase 5: Conectividad y Fidelización.
 
-      MANDATOS CRÍTICOS:
-      - SIN CONEXIÓN EXTERNA DIRECTA: FUTURA no publica directamente en redes. Es una suite estratégica para planificar y simular internamente el marketing de alto calibre.
-      - REGLA DE CONTEXTO PASIVO: Si hay un Contexto de Marca provisto, incorpóralo de manera sutil y lógica si el usuario te pregunta específicamente sobre su negocio, pero no presumas oraciones robóticas como "Veo en tu base de datos...". Sé orgánico.
+        MANDATOS CRÍTICOS:
+        - SIN CONEXIÓN EXTERNA DIRECTA: FUTURA no publica directamente en redes. Es una suite estratégica para planificar y simular internamente el marketing de alto calibre.
+        - REGLA DE CONTEXTO PASIVO: Si hay un Contexto de Marca provisto, incorpóralo de manera sutil y lógica si el usuario te pregunta específicamente sobre su negocio, pero no presumas oraciones robóticas como "Veo en tu base de datos...". Sé orgánico.
 
-      Responde en ESPAÑOL, usando Markdown muy legible, limpio y pulido.
-      Contexto de Marca: ${brandContext || "Ninguno"}
-    `;
+        Responde en ESPAÑOL, usando Markdown muy legible, limpio y pulido.
+        Contexto de Marca: ${brandContext || "Ninguno"}
+      `;
 
-    const listHistory = Array.isArray(history) ? history : [];
-    const contents = sanitizeClientContents(listHistory, message);
+      const listHistory = Array.isArray(history) ? history : [];
+      const contents = sanitizeClientContents(listHistory, message);
 
-    const ai = getClientAi();
-    const response = await ai.models.generateContent({
-      model,
-      contents,
-      config: { systemInstruction }
-    });
+      const ai = getClientAi();
+      const response = await ai.models.generateContent({
+        model,
+        contents,
+        config: { systemInstruction }
+      });
 
-    return response.text || "FUTURA no pudo emitir su veredicto.";
+      return (response && typeof response.text === 'string' && response.text.trim().length > 0)
+        ? response.text
+        : getDeterministicSimulationResponse(apiEndpoint, payload);
+    } catch (err) {
+      console.warn("[FUTURA] Fallback directo del cliente falló, cargando simulación determinista...", err);
+      return getDeterministicSimulationResponse(apiEndpoint, payload);
+    }
   };
 
-  return executeWithFallback<string>(
+  const result = await executeWithFallback<string>(
     apiEndpoint,
     payload,
     clientFallback
   );
+
+  return typeof result === 'string' ? result : getDeterministicSimulationResponse(apiEndpoint, payload);
 }
 
 // 4. SPE Phase Chat Consultation

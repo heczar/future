@@ -63,7 +63,11 @@ export default async function handler(req: any, res: any) {
       }
     );
 
-    return res.status(200).json({ response: response.text || "No response received" });
+    const replyText = (response && typeof response.text === 'string' && response.text.trim())
+      ? response.text
+      : getChatWithAdvisorFallback(message, brandContext);
+
+    return res.status(200).json({ response: replyText });
   } catch (error: any) {
     const errStr = (error?.message || "").toLowerCase();
     const isQuotaOrLimit = errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit") || errStr.includes("503") || errStr.includes("unavailable");

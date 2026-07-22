@@ -121,7 +121,8 @@ export default function AdvisoryHub({
         : "No hay marca conectada en esta sesión.";
 
       const response = await chatWithAdvisor(promptText, chatMessages, brandCtx);
-      setChatMessages(prev => [...prev, { role: 'model', text: response }]);
+      const safeResponse = typeof response === 'string' ? response : (response?.response || String(response || "Respuesta recibida correctamente."));
+      setChatMessages(prev => [...prev, { role: 'model', text: safeResponse }]);
 
       // Record consumption on database
       await trackActionConsumption(profile.id, profile.isPremium, 'consult');
