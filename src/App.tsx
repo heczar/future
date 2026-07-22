@@ -515,7 +515,7 @@ function AppContent() {
     return (
       <div className="space-y-6 text-left max-w-5xl mx-auto">
         {/* Welcome Section */}
-        <section className="p-5 md:p-6 bg-gradient-to-br from-brand-primary/10 via-surface-950/40 to-transparent border border-white/5 rounded-3xl backdrop-blur-md relative overflow-hidden">
+        <section className="p-6 md:p-8 bg-gradient-to-br from-brand-primary/10 via-surface-950/40 to-transparent border border-white/5 rounded-3xl backdrop-blur-md relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
             <Sparkles className="w-32 h-32 text-brand-primary" />
           </div>
@@ -528,99 +528,79 @@ function AppContent() {
               Bienvenido, <span className="text-brand-primary">{profile?.name || 'Líder'}</span>
             </h2>
             <p className="text-[11px] md:text-xs text-slate-300 leading-relaxed max-w-2xl">
-              Desde aquí puedes acceder a todas tus herramientas: consultas, textos publicitarios y creación de imágenes.
+              Desde aquí puedes acceder a todas tus herramientas: consultas estratégicas avanzadas, textos publicitarios y la creación de imágenes y marcas comerciales.
             </p>
-          </div>
-
-          {/* User Credits Status */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4 pt-4 border-t border-white/5 relative z-10">
-            <div className="bg-white/5 border border-white/5 p-3 rounded-xl">
-              <span className="text-[8px] font-mono text-slate-500 uppercase tracking-wider block">Créditos de IA</span>
-              <span className="text-base font-bold text-white mt-0.5 block">
-                {profile?.credits === 999999 ? 'Ilimitados 👑' : `${profile?.credits || 0} Restantes`}
-              </span>
-            </div>
-            <div className="bg-white/5 border border-white/5 p-3 rounded-xl">
-              <span className="text-[8px] font-mono text-slate-500 uppercase tracking-wider block">Marcas Registradas</span>
-              <span className="text-base font-bold text-white mt-0.5 block">{brandsCount} Activas</span>
-            </div>
-            <div className="bg-white/5 border border-white/5 p-3 rounded-xl col-span-2 md:col-span-1">
-              <span className="text-[8px] font-mono text-slate-500 uppercase tracking-wider block">Nivel de Cuenta</span>
-              <span className="text-base font-bold text-brand-primary mt-0.5 block">
-                {profile?.isPremium ? 'Acceso Premium' : 'Plan Básico'}
-              </span>
-            </div>
           </div>
         </section>
 
         {/* Services / Consoles Grid */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 font-sans">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 font-sans">
           {/* Card 1: Asesoría */}
           <div 
             onClick={() => setActiveTab('advisory')}
-            className="group cursor-pointer p-5 bg-surface-900/30 border border-white/5 hover:border-brand-primary/30 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[160px] transition-all hover:bg-surface-900/50 hover:scale-[1.01]"
+            className="group cursor-pointer p-7 md:p-8 bg-[#0b0c10]/60 border border-white/5 hover:border-brand-primary/40 rounded-[2rem] relative overflow-hidden flex flex-col justify-between min-h-[250px] md:min-h-[270px] transition-all hover:bg-[#0f1118]/80 hover:scale-[1.01] shadow-xl text-left"
           >
-            <div className="absolute top-0 right-0 p-3 font-mono text-4xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">CHAT</div>
-            <div className="space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:scale-105 transition-transform">
-                <MessageSquare className="w-5 h-5" />
+            <div className="absolute top-0 right-0 p-4 font-mono text-5xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">CHAT</div>
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:scale-105 transition-transform shrink-0">
+                <MessageSquare className="w-6 h-6" />
               </div>
-              <div className="text-left">
-                <h3 className="font-bold text-white text-sm tracking-wide uppercase">Asesoría</h3>
-                <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
-                  Tu consultor estratégico de IA para analizar ideas de negocio y debatir enfoques comerciales.
+              <div className="space-y-2">
+                <h3 className="font-black text-white text-base tracking-wide uppercase">Asesoría Estratégica</h3>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Tu consultor de negocios dedicado 24/7. Analiza propuestas de valor, define modelos de monetización eficientes, detecta cuellos de botella en tu embudo y planifica estrategias de crecimiento acelerado (growth hacking) con el sistema SPE.
                 </p>
               </div>
             </div>
-            <div className="mt-2.5 flex items-center gap-1.5 text-[9px] font-mono uppercase font-bold text-brand-primary tracking-widest">
-              <span>Abrir Chat</span>
-              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            <div className="mt-4 flex items-center gap-1.5 text-[10px] font-mono uppercase font-black text-brand-primary tracking-widest">
+              <span>Iniciar Consultas</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
 
           {/* Card 2: Copys */}
           <div 
             onClick={() => setActiveTab('copys')}
-            className="group cursor-pointer p-5 bg-surface-900/30 border border-white/5 hover:border-brand-primary/30 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[160px] transition-all hover:bg-surface-900/50 hover:scale-[1.01]"
+            className="group cursor-pointer p-7 md:p-8 bg-[#0b0c10]/60 border border-white/5 hover:border-purple-500/40 rounded-[2rem] relative overflow-hidden flex flex-col justify-between min-h-[250px] md:min-h-[270px] transition-all hover:bg-[#0f1118]/80 hover:scale-[1.01] shadow-xl text-left"
           >
-            <div className="absolute top-0 right-0 p-3 font-mono text-4xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">COPYS</div>
-            <div className="space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-105 transition-transform">
-                <Bot className="w-5 h-5" />
+            <div className="absolute top-0 right-0 p-4 font-mono text-5xl font-black text-white/5 group-hover:text-purple-500/5 transition-colors pointer-events-none">COPYS</div>
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-105 transition-transform shrink-0">
+                <Bot className="w-6 h-6" />
               </div>
-              <div className="text-left">
-                <h3 className="font-bold text-white text-sm tracking-wide uppercase">Copys</h3>
-                <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
-                  Redacta textos persuasivos para Instagram, LinkedIn, Facebook, TikTok y WhatsApp en segundos.
+              <div className="space-y-2">
+                <h3 className="font-black text-white text-base tracking-wide uppercase">Copys de Venta</h3>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Redacta textos de venta irresistibles diseñados para detener el scroll y activar conversiones inmediatas. Estructuras de redacción persuasiva (AIDA/PAS) optimizadas para redes sociales, anuncios pagados, correos comerciales y lanzamientos de marca.
                 </p>
               </div>
             </div>
-            <div className="mt-2.5 flex items-center gap-1.5 text-[9px] font-mono uppercase font-bold text-brand-primary tracking-widest">
-              <span>Generar Copy</span>
-              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            <div className="mt-4 flex items-center gap-1.5 text-[10px] font-mono uppercase font-black text-brand-primary tracking-widest">
+              <span>Redactar Anuncios</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
 
           {/* Card 3: Imágenes */}
           <div 
             onClick={() => setActiveTab('images')}
-            className="group cursor-pointer p-5 bg-surface-900/30 border border-white/5 hover:border-brand-primary/30 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[160px] transition-all hover:bg-surface-900/50 hover:scale-[1.01]"
+            className="group cursor-pointer p-7 md:p-8 bg-[#0b0c10]/60 border border-white/5 hover:border-amber-500/40 rounded-[2rem] relative overflow-hidden flex flex-col justify-between min-h-[250px] md:min-h-[270px] transition-all hover:bg-[#0f1118]/80 hover:scale-[1.01] shadow-xl text-left"
           >
-            <div className="absolute top-0 right-0 p-3 font-mono text-4xl font-black text-white/5 group-hover:text-brand-primary/5 transition-colors pointer-events-none">STUDIO</div>
-            <div className="space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform">
-                <Sparkles className="w-5 h-5 animate-pulse" />
+            <div className="absolute top-0 right-0 p-4 font-mono text-5xl font-black text-white/5 group-hover:text-amber-500/5 transition-colors pointer-events-none">STUDIO</div>
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform shrink-0">
+                <Sparkles className="w-6 h-6 animate-pulse" />
               </div>
-              <div className="text-left">
-                <h3 className="font-bold text-white text-sm tracking-wide uppercase">Imágenes</h3>
-                <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
-                  Genera logotipos e imágenes profesionales para tus redes sociales y campañas.
+              <div className="space-y-2">
+                <h3 className="font-black text-white text-base tracking-wide uppercase">Estudio Creativo</h3>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Genera logotipos comerciales personalizados inspirados en tu nicho y diseña imágenes de campaña impactantes utilizando inteligencia artificial de vanguardia. Incluye un editor de lienzo interactivo para agregar textos, capas y personalizar tu marca.
                 </p>
               </div>
             </div>
-            <div className="mt-2.5 flex items-center gap-1.5 text-[9px] font-mono uppercase font-bold text-brand-primary tracking-widest">
-              <span>Crear Visual</span>
-              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            <div className="mt-4 flex items-center gap-1.5 text-[10px] font-mono uppercase font-black text-brand-primary tracking-widest">
+              <span>Diseñar Activos</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
         </section>
