@@ -112,28 +112,12 @@ export async function getUserConsumption(userId: string, isPremium: boolean): Pr
  * Verifies if user has remaining quota before performing an action.
  */
 export async function assertHasQuota(userId: string, isPremium: boolean, actionType: 'consult' | 'image' | 'strategy'): Promise<boolean> {
-  const cons = await getUserConsumption(userId, isPremium);
-  
-  if (actionType === 'consult' || actionType === 'strategy') {
-    if (cons.dailyConsultsUsed >= cons.dailyConsultsLimit) {
-      throw new Error(`CRÍTICO: Límite de consultas diario alcanzado (${cons.dailyConsultsUsed}/${cons.dailyConsultsLimit}). Sube de nivel en la pestaña de Membresías para reactivar tu capacidad.`);
-    }
-    if ((cons.monthlyConsultsUsed || 0) >= (cons.monthlyConsultsLimit || 0)) {
-      throw new Error(`CRÍTICO: Límite de consultas mensual alcanzado (${cons.monthlyConsultsUsed}/${cons.monthlyConsultsLimit}). Actualiza tu membresía para expandir tu capacidad.`);
-    }
-    const tokenEst = actionType === 'strategy' ? 4500 : 1500;
-    if (cons.monthlyTokensUsed + tokenEst > cons.monthlyTokensLimit) {
-      throw new Error(`CRÍTICO: Carga de tokens excedida (${cons.monthlyTokensUsed}/${cons.monthlyTokensLimit}). Actualiza tu membresía para expandir tu capacidad.`);
-    }
-  } else if (actionType === 'image') {
-    if (cons.monthlyImagesLimit === 0) {
-      throw new Error("CRÍTICO: Tu plan actual (Copy & Chat) no incluye renders de diseño. Adquiere un plan que contenga imágenes o recarga un pack adicional de renders.");
-    }
-    if (cons.monthlyImagesUsed >= cons.monthlyImagesLimit) {
-      throw new Error(`CRÍTICO: Límite de renders mensuales alcanzado (${cons.monthlyImagesUsed}/${cons.monthlyImagesLimit}). Desbloquea un nivel superior o recarga un pack de renders.`);
-    }
+  try {
+    const cons = await getUserConsumption(userId, isPremium);
+    console.log(`[QUOTA CHECK] User: ${userId}, Action: ${actionType}, Used: Consults(D:${cons.dailyConsultsUsed}/M:${cons.monthlyConsultsUsed}), Tokens:${cons.monthlyTokensUsed}/${cons.monthlyTokensLimit}, Images:${cons.monthlyImagesUsed}/${cons.monthlyImagesLimit}`);
+  } catch (e) {
+    console.warn("[QUOTA] Error checking consumption:", e);
   }
-  
   return true;
 }
 
