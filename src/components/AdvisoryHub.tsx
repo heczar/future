@@ -238,8 +238,6 @@ export default function AdvisoryHub({
   // COPY GENERATOR LOGIC
   // ==========================================
   const [copyTopic, setCopyTopic] = useState('');
-  const [selectedPlatform, setSelectedPlatform] = useState('Instagram');
-  const [selectedTone, setSelectedTone] = useState('Persuasivo e Directo (Vendedor)');
   const [isGeneratingCopy, setIsGeneratingCopy] = useState(false);
   const [generatedCopy, setGeneratedCopy] = useState('');
   
@@ -288,8 +286,8 @@ export default function AdvisoryHub({
 
       const result = await generateSocialCopy({
         copyType: 'advertising',
-        platform: selectedPlatform,
-        tone: selectedTone,
+        platform: 'Instagram y Redes Sociales',
+        tone: 'Persuasivo y directo',
         clientDetails: copyTopic,
         extraContext: activeBrand ? `Marca: ${activeBrand.name}. Pautas: ${activeBrand.description}` : '',
         language: 'es',
@@ -361,13 +359,7 @@ export default function AdvisoryHub({
     setTimeout(() => setCopiedText(false), 2000);
   };
 
-  const platforms = ['Instagram', 'LinkedIn', 'Facebook', 'TikTok', 'WhatsApp'];
-  const tones = [
-    'Persuasivo e Directo (Vendedor)',
-    'Educativo y Profesional',
-    'Casual e Informal',
-    'Emocional e Inspirador'
-  ];
+
 
   return (
     <div className="flex flex-col h-full space-y-6 text-left">
@@ -539,42 +531,6 @@ export default function AdvisoryHub({
                       />
                     </label>
                   )}
-                </div>
-
-                {/* Platform Selector */}
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-slate-400">Plataforma Objetivo</label>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {platforms.map((plat) => (
-                      <button
-                        key={plat}
-                        type="button"
-                        onClick={() => setSelectedPlatform(plat)}
-                        className={cn(
-                          "px-3 py-2 text-[11px] font-mono font-bold rounded-lg border text-center transition-all cursor-pointer",
-                          selectedPlatform === plat
-                            ? "bg-brand-primary/10 border-brand-primary text-brand-primary"
-                            : "bg-black/20 border-white/5 text-slate-500 hover:text-slate-300"
-                        )}
-                      >
-                        {plat}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Tone Selector */}
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-slate-400">Tono de Comunicación</label>
-                  <select
-                    value={selectedTone}
-                    onChange={(e) => setSelectedTone(e.target.value)}
-                    className="w-full bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-brand-primary/40 cursor-pointer"
-                  >
-                    {tones.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
                 </div>
 
                 {/* Submit button */}
