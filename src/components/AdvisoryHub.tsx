@@ -45,8 +45,82 @@ export default function AdvisoryHub({
   onPromptConsumed,
   mode
 }: AdvisoryHubProps) {
-  const renderFormattedChatMessage = (text: string) => {
-    return <span className="whitespace-pre-wrap">{text}</span>;
+  const renderTextWithNavigationLinks = (inputText: string, includeLinks: boolean) => {
+    if (!inputText) return "";
+    if (!includeLinks) return inputText;
+    
+    const regex = /(FUTURA Hub|Semillero de Marca|Blueprint|Asesoría Estratégica|Asesoría|Consultor|Generador de Copys|Copys|Texto Publicitario|Motor Creativo|Fábrica de Conversión|Imágenes|Galería de Activos|Baúl de Marca|Vault|Membresías|Membresía|Planes|Mi Perfil|Perfil)/gi;
+    const tokens = inputText.split(regex);
+    
+    return tokens.map((token, tIdx) => {
+      const lower = token.toLowerCase();
+      let tabTarget: string | null = null;
+      let displayLabel = token;
+      
+      if (lower.includes("hub") || lower.includes("semillero") || lower.includes("blueprint")) {
+        tabTarget = 'dashboard';
+        displayLabel = `📁 ${token}`;
+      } else if (lower.includes("asesoría") || lower.includes("asesoria") || lower.includes("consultor")) {
+        tabTarget = 'advisory';
+        displayLabel = `💬 ${token}`;
+      } else if (lower.includes("copys") || lower.includes("texto publicitario")) {
+        tabTarget = 'copys';
+        displayLabel = `✍️ ${token}`;
+      } else if (lower.includes("motor") || lower.includes("conversión") || lower.includes("conversion") || lower.includes("imágenes") || lower.includes("imagenes")) {
+        tabTarget = 'images';
+        displayLabel = `🎨 ${token}`;
+      } else if (lower.includes("baúl") || lower.includes("baul") || lower.includes("vault")) {
+        tabTarget = 'brands';
+        displayLabel = `💼 ${token}`;
+      } else if (lower.includes("membresía") || lower.includes("membresia") || lower.includes("planes")) {
+        tabTarget = 'pro';
+        displayLabel = `👑 ${token}`;
+      } else if (lower.includes("perfil")) {
+        tabTarget = 'profile';
+        displayLabel = `👤 ${token}`;
+      }
+      
+      if (tabTarget) {
+        return (
+          <button
+            key={tIdx}
+            type="button"
+            onClick={() => {
+              setActiveTab(tabTarget!);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="inline-flex items-center gap-1 mx-1 px-1.5 py-0.5 rounded bg-brand-primary/10 border border-brand-primary/20 text-brand-primary font-bold hover:bg-brand-primary/20 active:scale-95 transition-all text-[10px] cursor-pointer"
+          >
+            {displayLabel}
+          </button>
+        );
+      }
+      
+      return token;
+    });
+  };
+
+  const renderFormattedChatMessage = (text: string, includeLinks = true) => {
+    if (typeof text !== 'string') return text;
+    const parts = text.split(/\*\*([^*]+)\*\*/g);
+    
+    return (
+      <span className="whitespace-pre-wrap">
+        {parts.map((part, index) => {
+          const isBold = index % 2 === 1;
+          const content = renderTextWithNavigationLinks(part, includeLinks);
+          
+          if (isBold) {
+            return (
+              <strong key={index} className="font-bold text-white bg-white/5 px-1 py-0.5 rounded border border-white/5 mx-0.5">
+                {content}
+              </strong>
+            );
+          }
+          return <React.Fragment key={index}>{content}</React.Fragment>;
+        })}
+      </span>
+    );
   };
 
   // Mode is now controlled by the parent via props — no more internal sub-tab state
@@ -554,7 +628,7 @@ export default function AdvisoryHub({
                 <div className="flex-1 bg-[#090909] border border-white/10 rounded-xl p-4 overflow-y-auto text-left min-h-0 select-text">
                   {generatedCopy ? (
                     <div className="text-slate-300 text-xs whitespace-pre-wrap leading-relaxed prose prose-invert prose-xs">
-                      {generatedCopy}
+                      {renderFormattedChatMessage(generatedCopy, false)}
                     </div>
                   ) : (
                     <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 space-y-2">
