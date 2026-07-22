@@ -276,15 +276,15 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
           
-          {/* Pilot Plan Card */}
+          {/* Pilot Plan Card (Slate / Subtle Theme) */}
           <div className="bg-[#0c0d11]/80 border border-white/5 rounded-2xl p-6 flex flex-col justify-between transition-all hover:scale-[1.01] shadow-lg h-full">
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
                 <div>
-                  <span className="text-[9px] font-mono font-black text-[#f59e0b] uppercase tracking-wider block">PLAN PILOTO</span>
+                  <span className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-wider block">PLAN PILOTO</span>
                   <h4 className="text-base font-black text-white uppercase tracking-wide">FUTURA Pilot</h4>
                 </div>
-                <div className="text-right text-[#f59e0b]">
+                <div className="text-right text-slate-300">
                   <span className="text-base font-mono font-black">$10.00</span>
                   <span className="text-[8px] text-slate-500 uppercase tracking-wide block">Al mes</span>
                 </div>
@@ -295,27 +295,27 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
               <ul className="space-y-2.5 text-xs text-slate-400 border-t border-white/5 pt-4 font-sans">
                 <li className="flex items-center justify-between gap-2 bg-white/[0.03] p-2 rounded-xl border border-white/5">
                   <span className="flex items-center gap-1.5 text-slate-200">
-                    <Check className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
+                    <Check className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span>Consultas de Chat e IA</span>
                   </span>
-                  <span className="px-2 py-0.5 bg-[#f59e0b]/15 text-[#f59e0b] text-[9px] font-black uppercase rounded-lg border border-[#f59e0b]/20">GRATIS E ILIMITADO</span>
+                  <span className="px-2 py-0.5 bg-white/5 text-slate-400 text-[9px] font-black uppercase rounded-lg border border-white/10">GRATIS E ILIMITADO</span>
                 </li>
                 <li className="flex items-center justify-between gap-2 bg-white/[0.03] p-2 rounded-xl border border-white/5">
                   <span className="flex items-center gap-1.5 text-slate-200">
-                    <Check className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
+                    <Check className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span>Generación de Copys</span>
                   </span>
-                  <span className="px-2 py-0.5 bg-[#f59e0b]/15 text-[#f59e0b] text-[9px] font-black uppercase rounded-lg border border-[#f59e0b]/20">GRATIS E ILIMITADO</span>
+                  <span className="px-2 py-0.5 bg-white/5 text-slate-400 text-[9px] font-black uppercase rounded-lg border border-white/10">GRATIS E ILIMITADO</span>
                 </li>
                 <li className="flex items-center justify-between gap-2 bg-white/[0.03] p-2 rounded-xl border border-white/5">
                   <span className="flex items-center gap-1.5 text-slate-200">
-                    <Check className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
+                    <Check className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                     <span>Estudio Creativo (Renders)</span>
                   </span>
-                  <span className="font-mono font-bold text-white text-[11px]">25 / mes</span>
+                  <span className="font-mono font-bold text-slate-300 text-[11px]">25 / mes</span>
                 </li>
-                <li className="flex items-center gap-1.5 pt-1 text-slate-400">
-                  <Check className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <li className="flex items-center gap-1.5 pt-1 text-slate-500">
+                  <Check className="w-3.5 h-3.5 text-slate-600 shrink-0" />
                   <span>Soporta Add-ons de diseño adicional</span>
                 </li>
               </ul>
@@ -324,53 +324,52 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
             <button
               type="button"
               onClick={() => handleSelectPlan('pilot', 'FUTURA Pilot', 10.00)}
-              className="w-full mt-5 py-2.5 bg-[#f59e0b]/10 hover:bg-[#f59e0b]/20 text-[#f59e0b] rounded-xl text-xs font-mono uppercase font-black tracking-wider border border-[#f59e0b]/20 cursor-pointer text-center transition-all"
+              className="w-full mt-5 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-mono uppercase font-black tracking-wider border border-white/5 cursor-pointer text-center transition-all"
             >
               Adquirir Pilot ($10)
             </button>
           </div>
 
-          {/* Pro Plan Card */}
-          <div className="bg-gradient-to-b from-[#0e1017] to-[#040508] border border-brand-primary/45 rounded-2xl p-6 flex flex-col justify-between transition-all hover:scale-[1.02] shadow-2xl shadow-brand-primary/10 ring-1 ring-brand-primary/20 relative overflow-hidden h-full">
-            <div className="absolute top-2.5 right-2.5 bg-brand-primary/20 text-brand-primary text-[6px] font-mono font-bold px-1.5 py-0.5 rounded border border-brand-primary/20">RECOMENDADO</div>
+          {/* Pro Plan Card (Amber/Gold Theme) */}
+          <div className="bg-[#0c0d11]/80 border border-amber-500/20 rounded-2xl p-6 flex flex-col justify-between transition-all hover:scale-[1.01] shadow-lg h-full">
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-brand-primary/15 pb-2.5">
+              <div className="flex items-center justify-between border-b border-amber-500/10 pb-2.5">
                 <div>
-                  <span className="text-[9px] font-mono font-black text-brand-primary uppercase tracking-widest block">CRECIMIENTO</span>
+                  <span className="text-[9px] font-mono font-black text-amber-500 uppercase tracking-widest block">CRECIMIENTO</span>
                   <h4 className="text-base font-black text-white uppercase tracking-wide">FUTURA Pro</h4>
                 </div>
                 <div className="text-right">
-                  <span className="text-base font-mono font-black text-brand-primary">$29.00</span>
+                  <span className="text-base font-mono font-black text-amber-500">$29.00</span>
                   <span className="text-[8px] text-slate-500 uppercase tracking-wide block">Al mes</span>
                 </div>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed font-sans">
                 La opción ideal para marcas y negocios activos que escalan su volumen de pautas publicitarias y copys.
               </p>
-              <ul className="space-y-2.5 text-xs text-white border-t border-brand-primary/15 pt-4 font-sans">
-                <li className="flex items-center justify-between gap-2 bg-brand-primary/10 p-2 rounded-xl border border-brand-primary/20">
+              <ul className="space-y-2.5 text-xs text-white border-t border-amber-500/10 pt-4 font-sans">
+                <li className="flex items-center justify-between gap-2 bg-amber-500/5 p-2 rounded-xl border border-amber-500/10">
                   <span className="flex items-center gap-1.5 text-white">
-                    <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                    <Check className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                     <span>Consultas de Chat e IA</span>
                   </span>
-                  <span className="px-2 py-0.5 bg-brand-primary text-white text-[9px] font-black uppercase rounded-lg shadow-sm">GRATIS E ILIMITADO</span>
+                  <span className="px-2 py-0.5 bg-amber-500 text-black text-[9px] font-black uppercase rounded-lg shadow-sm">GRATIS E ILIMITADO</span>
                 </li>
-                <li className="flex items-center justify-between gap-2 bg-brand-primary/10 p-2 rounded-xl border border-brand-primary/20">
+                <li className="flex items-center justify-between gap-2 bg-amber-500/5 p-2 rounded-xl border border-amber-500/10">
                   <span className="flex items-center gap-1.5 text-white">
-                    <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                    <Check className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                     <span>Generación de Copys</span>
                   </span>
-                  <span className="px-2 py-0.5 bg-brand-primary text-white text-[9px] font-black uppercase rounded-lg shadow-sm">GRATIS E ILIMITADO</span>
+                  <span className="px-2 py-0.5 bg-amber-500 text-black text-[9px] font-black uppercase rounded-lg shadow-sm">GRATIS E ILIMITADO</span>
                 </li>
-                <li className="flex items-center justify-between gap-2 bg-brand-primary/10 p-2 rounded-xl border border-brand-primary/20">
+                <li className="flex items-center justify-between gap-2 bg-amber-500/5 p-2 rounded-xl border border-amber-500/10">
                   <span className="flex items-center gap-1.5 text-white">
-                    <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                    <Check className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                     <span>Estudio Creativo (Renders)</span>
                   </span>
-                  <span className="font-mono font-bold text-brand-primary text-[11px]">100 / mes</span>
+                  <span className="font-mono font-bold text-amber-400 text-[11px]">100 / mes</span>
                 </li>
                 <li className="flex items-center gap-1.5 pt-1 text-slate-200">
-                  <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                  <Check className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                   <span>Acceso prioritario + Sincronización en Nube</span>
                 </li>
               </ul>
@@ -379,51 +378,52 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
             <button
               type="button"
               onClick={() => handleSelectPlan('pro', 'FUTURA Pro', 29.00)}
-              className="w-full mt-5 py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-xs font-mono uppercase font-black tracking-wider cursor-pointer text-center transition-all"
+              className="w-full mt-5 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-xl text-xs font-mono uppercase font-black tracking-wider border border-amber-500/20 cursor-pointer text-center transition-all"
             >
               Adquirir Pro ($29)
             </button>
           </div>
 
-          {/* Agency Plan Card */}
-          <div className="bg-[#0c0d11]/80 border border-white/5 rounded-2xl p-6 flex flex-col justify-between transition-all hover:scale-[1.01] shadow-lg h-full">
+          {/* Agency Plan Card (Highlighted Premium Purple Theme) */}
+          <div className="bg-gradient-to-b from-[#130b24] to-[#040508] border border-purple-500/40 rounded-2xl p-6 flex flex-col justify-between transition-all hover:scale-[1.02] shadow-2xl shadow-purple-500/10 ring-1 ring-purple-500/20 relative overflow-hidden h-full">
+            <div className="absolute top-2.5 right-2.5 bg-purple-500/25 text-purple-300 text-[7px] font-mono font-bold px-1.5 py-0.5 rounded border border-purple-500/30 uppercase tracking-widest">ELITE / MÁS COMPLETO</div>
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
+              <div className="flex items-center justify-between border-b border-purple-500/15 pb-2.5">
                 <div>
-                  <span className="text-[9px] font-mono font-black text-slate-400 uppercase tracking-wider block">CORPORATIVO</span>
+                  <span className="text-[9px] font-mono font-black text-purple-400 uppercase tracking-wider block">CORPORATIVO</span>
                   <h4 className="text-base font-black text-white uppercase tracking-wide">FUTURA Agency</h4>
                 </div>
                 <div className="text-right">
-                  <span className="text-base font-mono font-black text-slate-300">$79.00</span>
+                  <span className="text-base font-mono font-black text-purple-400">$79.00</span>
                   <span className="text-[8px] text-slate-500 uppercase tracking-wide block">Al mes</span>
                 </div>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed font-sans">
                 Máxima velocidad para agencias o equipos de mercadeo que administran múltiples marcas en paralelo.
               </p>
-              <ul className="space-y-2.5 text-xs text-slate-400 border-t border-white/5 pt-4 font-sans">
-                <li className="flex items-center justify-between gap-2 bg-white/[0.03] p-2 rounded-xl border border-white/5">
+              <ul className="space-y-2.5 text-xs text-slate-400 border-t border-purple-500/15 pt-4 font-sans">
+                <li className="flex items-center justify-between gap-2 bg-purple-500/5 p-2 rounded-xl border border-purple-500/10">
                   <span className="flex items-center gap-1.5 text-slate-200">
                     <Check className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                     <span>Consultas de Chat e IA</span>
                   </span>
                   <span className="px-2 py-0.5 bg-purple-500/15 text-purple-300 text-[9px] font-black uppercase rounded-lg border border-purple-500/20">GRATIS E ILIMITADO</span>
                 </li>
-                <li className="flex items-center justify-between gap-2 bg-white/[0.03] p-2 rounded-xl border border-white/5">
+                <li className="flex items-center justify-between gap-2 bg-purple-500/5 p-2 rounded-xl border border-purple-500/10">
                   <span className="flex items-center gap-1.5 text-slate-200">
                     <Check className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                     <span>Generación de Copys</span>
                   </span>
                   <span className="px-2 py-0.5 bg-purple-500/15 text-purple-300 text-[9px] font-black uppercase rounded-lg border border-purple-500/20">GRATIS E ILIMITADO</span>
                 </li>
-                <li className="flex items-center justify-between gap-2 bg-white/[0.03] p-2 rounded-xl border border-white/5">
+                <li className="flex items-center justify-between gap-2 bg-purple-500/5 p-2 rounded-xl border border-purple-500/10">
                   <span className="flex items-center gap-1.5 text-slate-200">
                     <Check className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                     <span>Estudio Creativo (Renders)</span>
                   </span>
                   <span className="font-mono font-bold text-purple-300 text-[11px]">350 / mes</span>
                 </li>
-                <li className="flex items-center gap-1.5 pt-1 text-slate-400">
+                <li className="flex items-center gap-1.5 pt-1 text-slate-300">
                   <Check className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                   <span>Gestión Multimarcas Avanzada sin límites</span>
                 </li>
@@ -433,7 +433,7 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
             <button
               type="button"
               onClick={() => handleSelectPlan('agency', 'FUTURA Agency', 79.00)}
-              className="w-full mt-5 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-mono uppercase font-black tracking-wider border border-white/5 cursor-pointer text-center transition-all"
+              className="w-full mt-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-mono uppercase font-black tracking-wider cursor-pointer text-center transition-all shadow-lg shadow-purple-500/20"
             >
               Adquirir Agency ($79)
             </button>
@@ -460,8 +460,8 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* Pack 50 */}
-              <div className="p-4 bg-white/[0.01] border border-white/5 hover:border-brand-primary/30 rounded-xl flex items-center justify-between transition-colors">
+              {/* Pack 50 (Slate / Low Contrast) */}
+              <div className="p-4 bg-white/[0.01] border border-white/5 hover:border-white/10 rounded-xl flex items-center justify-between transition-colors">
                 <div className="text-left space-y-0.5">
                   <span className="text-[8px] font-mono font-bold text-slate-500 uppercase tracking-wide block">PACK STARTER</span>
                   <strong className="text-xs text-white uppercase block">50 Renders Extra</strong>
@@ -470,40 +470,40 @@ export default function MembershipPlans({ profile, onUpdateProfile }: Membership
                 <button
                   type="button"
                   onClick={() => handleSelectPlan('addon_50', 'Pack 50 Renders Extra', 4.99)}
-                  className="p-2 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  className="p-2 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Recargar
                 </button>
               </div>
 
-              {/* Pack 150 */}
-              <div className="p-4 bg-white/[0.01] border border-brand-primary/20 hover:border-brand-primary/40 rounded-xl flex items-center justify-between relative overflow-hidden transition-colors">
-                <div className="absolute top-0 right-0 bg-brand-primary/10 text-brand-primary text-[6px] font-mono font-bold px-1.5 py-0.5 rounded-bl">Ahorro</div>
+              {/* Pack 150 (Amber / Gold Theme) */}
+              <div className="p-4 bg-white/[0.01] border border-amber-500/20 hover:border-amber-500/35 rounded-xl flex items-center justify-between relative overflow-hidden transition-colors">
+                <div className="absolute top-0 right-0 bg-amber-500/10 text-amber-400 text-[6px] font-mono font-bold px-1.5 py-0.5 rounded-bl">Ahorro</div>
                 <div className="text-left space-y-0.5">
-                  <span className="text-[8px] font-mono font-bold text-brand-primary uppercase tracking-wide block">PACK PRO</span>
+                  <span className="text-[8px] font-mono font-bold text-amber-500 uppercase tracking-wide block">PACK PRO</span>
                   <strong className="text-xs text-white uppercase block">150 Renders Extra</strong>
-                  <span className="text-[9px] text-brand-primary font-mono font-bold">$12.99 USD</span>
+                  <span className="text-[9px] text-amber-500 font-mono font-bold">$12.99 USD</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleSelectPlan('addon_150', 'Pack 150 Renders Extra', 12.99)}
-                  className="p-2 bg-brand-primary text-white rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  className="p-2 bg-amber-500 hover:bg-amber-600 text-black rounded-lg text-[9px] font-mono font-black uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Recargar
                 </button>
               </div>
 
-              {/* Pack 500 */}
-              <div className="p-4 bg-white/[0.01] border border-white/5 hover:border-brand-primary/30 rounded-xl flex items-center justify-between transition-colors">
+              {/* Pack 500 (Purple Theme) */}
+              <div className="p-4 bg-white/[0.01] border border-purple-500/25 hover:border-purple-500/40 rounded-xl flex items-center justify-between transition-colors shadow-lg shadow-purple-500/5">
                 <div className="text-left space-y-0.5">
-                  <span className="text-[8px] font-mono font-bold text-slate-500 uppercase tracking-wide block">PACK SCALE</span>
+                  <span className="text-[8px] font-mono font-bold text-purple-400 uppercase tracking-wide block">PACK SCALE</span>
                   <strong className="text-xs text-white uppercase block">500 Renders Extra</strong>
-                  <span className="text-[9px] text-slate-400 font-mono">$34.99 USD</span>
+                  <span className="text-[9px] text-purple-400 font-mono font-bold">$34.99 USD</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleSelectPlan('addon_500', 'Pack 500 Renders Extra', 34.99)}
-                  className="p-2 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  className="p-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-sm"
                 >
                   Recargar
                 </button>
