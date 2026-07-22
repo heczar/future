@@ -654,6 +654,58 @@ function AppContent() {
             ))}
           </div>
         </section>
+
+        {/* Rotating Promotional Marquee Ribbon */}
+        <div className="w-full overflow-hidden bg-brand-primary/5 border-y border-white/5 py-5 relative mt-8 rounded-2xl">
+          <div className="flex whitespace-nowrap animate-dashboardMarquee gap-12">
+            <div className="flex items-center shrink-0 gap-12 text-xs md:text-sm font-mono font-black text-brand-primary uppercase tracking-widest">
+              <span>✨ PUBLICIDAD DE CONVERSIÓN</span>
+              <span>•</span>
+              <span>🚀 MARKETING ESTRATÉGICO</span>
+              <span>•</span>
+              <span>✍️ COPYS PERSUASIVOS</span>
+              <span>•</span>
+              <span>🎨 DISEÑOS DE ALTO IMPACTO</span>
+              <span>•</span>
+              <span>💼 LOGOTIPOS DE ELITE</span>
+              <span>•</span>
+              <span>📐 MOCKUPS PROFESIONALES</span>
+              <span>•</span>
+              <span>💬 ASESORÍA DE NEGOCIOS</span>
+              <span>•</span>
+              <span>🔍 EXPLORA FUTURA</span>
+            </div>
+            <div className="flex items-center shrink-0 gap-12 text-xs md:text-sm font-mono font-black text-brand-primary uppercase tracking-widest" aria-hidden="true">
+              <span>✨ PUBLICIDAD DE CONVERSIÓN</span>
+              <span>•</span>
+              <span>🚀 MARKETING ESTRATÉGICO</span>
+              <span>•</span>
+              <span>✍️ COPYS PERSUASIVOS</span>
+              <span>•</span>
+              <span>🎨 DISEÑOS DE ALTO IMPACTO</span>
+              <span>•</span>
+              <span>💼 LOGOTIPOS DE ELITE</span>
+              <span>•</span>
+              <span>📐 MOCKUPS PROFESIONALES</span>
+              <span>•</span>
+              <span>💬 ASESORÍA DE NEGOCIOS</span>
+              <span>•</span>
+              <span>🔍 EXPLORA FUTURA</span>
+            </div>
+          </div>
+          
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes dashboardMarqueeLoop {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .animate-dashboardMarquee {
+              display: flex;
+              width: max-content;
+              animation: dashboardMarqueeLoop 22s linear infinite;
+            }
+          `}} />
+        </div>
       </div>
     );
   };
