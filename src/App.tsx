@@ -533,6 +533,16 @@ function AppContent() {
           </div>
         </section>
 
+        {/* NEW: Motor IA Button */}
+        <button
+          onClick={() => setActiveTab('advisory')}
+          className="w-full flex items-center justify-center gap-3 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-[0.98] shadow-2xl shadow-emerald-500/20 group"
+        >
+          <Bot className="w-5 h-5 group-hover:animate-bounce-short" />
+          <span>Motor IA</span>
+          <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        </button>
+
         {/* Services / Consoles Grid */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 font-sans">
           {/* Card 1: Asesoría */}
