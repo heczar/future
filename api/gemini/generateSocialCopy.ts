@@ -24,7 +24,7 @@ export default async function handler(req: any, res: any) {
   console.log(`[FUTURA SERVER] generateSocialCopy invocado para plataforma "${params.platform || ""}", tipo: "${params.copyType || ""}". Usando modelo: ${model}`);
 
   const systemInstruction = `
-    Eres el REDACTOR CREATIVO DE ÉLITE (Copywriter) de FUTURA (FUTURA Marketing Consult).
+    Eres un REDACTOR CREATIVO DE ÉLITE (Copywriter) que trabaja para FUTURA Marketing Consult.
     Tu especialidad es redactar copies que convierten y detienen el scroll en redes sociales.
     Sigue fielmente la filosofía de FUTURA de "Results over Aesthetics" (Resultados sobre Estética):
     - Redacción directa, persuasiva, de alto impacto y orientada a la acción. 
@@ -42,7 +42,7 @@ export default async function handler(req: any, res: any) {
     SEGÚN EL TONO SELECCIONADO DEBES ADAPTARTE:
     - Results over Aesthetics: Muy pragmático, agresivo centrado en conversiones rápidas, directo al grano, sin mentiras ni rellenos pomposos.
     - Educador de Élite: Sofisticado, de alta gama, elegante, ultra-profesional, transmite autoridad técnica indisputable.
-    - Brutalist Persuasion: Crudo, directo al dolor del cliente, brutalmente audaz, destaca el cuello de botella real de los negocios y ofrece la cura con FUTURA.
+    - Brutalist Persuasion: Crudo, directo al dolor del cliente, brutalmente audaz, destaca el cuello de botella real de los negocios y ofrece una solución efectiva.
   `;
 
   try {
