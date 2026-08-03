@@ -23,7 +23,8 @@ import {
   Layers,
   ChevronRight,
   Maximize2,
-  Info
+  Info,
+  Download
 } from 'lucide-react';
 import { db, auth } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -222,6 +223,21 @@ export default function CreativeStudio({
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleDownloadImage = () => {
+    if (!generatedResult) return;
+    const link = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const isSvg = generatedResult.startsWith('data:image/svg+xml');
+    const extension = isSvg ? 'svg' : (generationType === 'logos' ? 'png' : 'jpg');
+    const filename = `futura-${generationType === 'logos' ? 'logo' : 'diseno'}-${dateStr}.${extension}`;
+    
+    link.download = filename;
+    link.href = generatedResult;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // ==========================================
@@ -856,25 +872,32 @@ export default function CreativeStudio({
                 </div>
 
                 {/* Actions Bar */}
-                <div className="flex gap-2.5 mt-4 shrink-0">
+                <div className="flex gap-2.5 mt-4 shrink-0 flex-wrap sm:flex-nowrap">
                   <button
                     onClick={() => setIsEditingInCanvas(true)}
-                    className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 border border-white/5 cursor-pointer"
+                    className="flex-1 min-w-[100px] py-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 border border-white/5 cursor-pointer"
                   >
                     <Edit3 className="w-4 h-4 text-brand-primary" />
-                    <span>Editar Diseño</span>
+                    <span>Editar</span>
                   </button>
                   <button
                     onClick={handleSaveToGallery}
                     disabled={isSaving}
-                    className="flex-1 py-3 bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-40 text-white rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 min-w-[120px] py-3 bg-[#0a0a0a] border border-white/10 hover:bg-white/5 text-slate-300 disabled:opacity-40 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     {isSaving ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
                     ) : (
-                      <Save className="w-4 h-4" />
+                      <Save className="w-4 h-4 text-brand-primary" />
                     )}
-                    <span>Guardar en Galería</span>
+                    <span>Guardar</span>
+                  </button>
+                  <button
+                    onClick={handleDownloadImage}
+                    className="flex-1 min-w-[120px] py-3 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Descargar</span>
                   </button>
                 </div>
               </div>

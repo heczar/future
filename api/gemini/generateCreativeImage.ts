@@ -29,14 +29,36 @@ export default async function handler(req: any, res: any) {
   let model = "imagen-3.0-generate-002";
 
   try {
-    const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo");
+    const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
     
+    // Optimize and translate prompt from Spanish to English using Gemini Flash
+    let englishPrompt = prompt;
+    try {
+      console.log(`[FUTURA SERVER] Translating/optimizing prompt: "${prompt}"`);
+      const transResponse = await getAiClient(customKey).models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `You are an expert prompt engineer for AI image generators (FLUX/Imagen). Translate and optimize this Spanish image or logo design request into a clean, highly descriptive, professional English prompt.
+        - Translate all terms to English.
+        - Crucially, remove all conversational text, examples, notes, and meta-instructions (e.g., "Si tienes...", "por ejemplo...", "como referencia de vibra", list bullet points).
+        - Focus ONLY on describing the visual subject, style, composition, lighting, and colors.
+        - Return ONLY the optimized English prompt text. Do not add quotes or introductory sentences.
+        
+        Spanish Request: "${prompt}"`
+      });
+      if (transResponse.text) {
+        englishPrompt = transResponse.text.trim();
+        console.log(`[FUTURA SERVER] Optimized prompt: "${englishPrompt}"`);
+      }
+    } catch (transErr) {
+      console.warn("[FUTURA SERVER] Prompt optimization failed, using original prompt:", transErr);
+    }
+
     // Create an incredibly descriptive high-quality prompt wrapper
     let enhancedPrompt = "";
     if (isLogo) {
-      enhancedPrompt = `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, sharp vector wireframe balance, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. Suitable for luxury and high-converting modern digital brands. Strictly NO blurry gradients, NO complex drop shadows.`;
+      enhancedPrompt = `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid flat background, sharp vector wireframe balance, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. Suitable for luxury and high-converting modern digital brands. Strictly NO blurry gradients, NO complex drop shadows.`;
     } else {
-      enhancedPrompt = `A high-resolution, premium editorial product photograph. ${prompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling.`;
+      enhancedPrompt = `A high-resolution, premium editorial product photograph. ${englishPrompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling.`;
     }
 
     // Prohibit unrequested texts or gibberish that image generators often output

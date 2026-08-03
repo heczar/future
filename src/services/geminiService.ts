@@ -697,10 +697,30 @@ export async function generateCreativeImage(
     }
 
     try {
-      const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo");
+      const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
+      
+      // Optimize and translate prompt from Spanish to English using client-side Gemini Flash
+      let englishPrompt = prompt;
+      try {
+        const ai = getClientAi();
+        const transResponse = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: {
+            parts: [{
+              text: `You are an expert prompt engineer. Translate and optimize this Spanish image or logo design request into a highly descriptive English prompt. Remove all conversational noise, instructions, examples (like "Si tienes...", "por ejemplo..."). Return ONLY the optimized English visual description. Do not add quotes. Request: "${prompt}"`
+            }]
+          }
+        });
+        if (transResponse.candidates?.[0]?.content?.parts?.[0]?.text) {
+          englishPrompt = transResponse.candidates[0].content.parts[0].text.trim();
+        }
+      } catch (err) {
+        console.warn("Client prompt translation failed:", err);
+      }
+
       const pollinationsPrompt = isLogo 
-        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
-        : `A high-resolution, premium editorial product photograph. ${prompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
+        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
+        : `A high-resolution, premium editorial product photograph. ${englishPrompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
       
       const response = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(pollinationsPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`);
       if (response.ok) {
