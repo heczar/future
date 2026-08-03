@@ -124,21 +124,10 @@ export default function AdvisoryHub({
     );
   };
 
-  // Mode is now controlled by the parent via props — no more internal sub-tab state
-  const [selectedBrandId, setSelectedBrandId] = useState<string>(() => {
-    return localStorage.getItem('activeConsultBrandId') || '';
-  });
+  const [selectedBrandId, setSelectedBrandId] = useState<string>('');
 
   // Get active brand from list
   const activeBrand = projectsList.find(p => p.id === selectedBrandId);
-
-  useEffect(() => {
-    if (selectedBrandId) {
-      localStorage.setItem('activeConsultBrandId', selectedBrandId);
-    } else {
-      localStorage.removeItem('activeConsultBrandId');
-    }
-  }, [selectedBrandId]);
 
   // Handle initial prompt from dashboard
   useEffect(() => {
@@ -380,23 +369,6 @@ export default function AdvisoryHub({
               : 'Redacta anuncios persuasivos para redes sociales listos para vender.'}
           </p>
         </div>
-
-        {/* Brand Selector */}
-        <div className="flex items-center gap-2 self-start sm:self-center">
-          <Briefcase className="w-4 h-4 text-slate-500" />
-          <select
-            value={selectedBrandId}
-            onChange={(e) => setSelectedBrandId(e.target.value)}
-            className="bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2 outline-none focus:border-brand-primary/40 cursor-pointer"
-          >
-            <option value="">-- Sin Marca Conectada (General) --</option>
-            {projectsList.map((project) => (
-              <option key={project.id} value={project.id}>
-                📁 {project.name}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
 
       {/* Content Area */}
@@ -412,15 +384,6 @@ export default function AdvisoryHub({
                 translate="no"
                 className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin text-xs py-4 notranslate"
               >
-                {/* Brand status notice inside chat */}
-                <div className="flex items-center gap-2.5 p-3.5 bg-white/5 border border-white/5 rounded-xl text-slate-400 text-xs">
-                  <Info className="w-4 h-4 text-brand-primary shrink-0" />
-                  <span className="leading-relaxed">
-                    {activeBrand 
-                      ? `Conversando usando el contexto de la marca: ${activeBrand.name}. Para cambiar de contexto selecciona otra marca arriba.`
-                      : "Conversación general. Puedes conectar una marca en la esquina superior para adaptar las respuestas automáticamente."}
-                  </span>
-                </div>
 
                 <div className="space-y-4 flex flex-col w-full min-h-0">
                   {chatMessages.map((msg, idx) => (
