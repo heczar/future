@@ -46,10 +46,7 @@ export default function CreativeStudio({
   onUpdateProfile,
   setActiveTab
 }: CreativeStudioProps) {
-  const [generationType, setGenerationType] = useState<'logos' | 'images'>('logos');
-  const [selectedBrandId, setSelectedBrandId] = useState<string>(() => {
-    return localStorage.getItem('activeConsultBrandId') || '';
-  });
+  const [selectedBrandId, setSelectedBrandId] = useState<string>('');
 
   // Database Sync Settings
   const activeBrand = projectsList.find(p => p.id === selectedBrandId);
@@ -470,23 +467,6 @@ export default function CreativeStudio({
           <p className="text-xs text-slate-400 mt-1">
             Crea logos vectoriales e imágenes fotorrealistas para tus campañas y personalízalas con el editor de lienzo.
           </p>
-        </div>
-
-        {/* Brand Selector */}
-        <div className="flex items-center gap-2 self-start sm:self-center">
-          <Briefcase className="w-4 h-4 text-slate-500" />
-          <select
-            value={selectedBrandId}
-            onChange={(e) => setSelectedBrandId(e.target.value)}
-            className="bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2 outline-none focus:border-brand-primary/40 cursor-pointer"
-          >
-            <option value="">-- Sin Marca Conectada (General) --</option>
-            {projectsList.map((project) => (
-              <option key={project.id} value={project.id}>
-                📁 {project.name}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 
