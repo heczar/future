@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import https from 'https';
 import { getAiClient, callWithRetry } from "./utils.js";
 
 export default async function handler(req: any, res: any) {
@@ -103,12 +104,7 @@ export default async function handler(req: any, res: any) {
       try {
         console.log(`[FUTURA SERVER] Falling back to Pollinations AI for prompt: ${prompt}`);
         const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`;
-        const fetchRes = await fetch(pollinationsUrl);
-        if (fetchRes.ok) {
-          const arrayBuffer = await fetchRes.arrayBuffer();
-          const base64 = Buffer.from(arrayBuffer).toString('base64');
-          imageUrl = `data:image/jpeg;base64,${base64}`;
-        }
+        imageUrl = await fetchImageAsBase64(pollinationsUrl);
       } catch (pollinationsErr) {
         console.error("[FUTURA] Pollinations fallback failed:", pollinationsErr);
       }
@@ -137,12 +133,7 @@ export default async function handler(req: any, res: any) {
         : `A high-resolution, premium editorial product photograph. ${prompt}. Soap/cosmetics clean bottle, oup/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
       
       const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fallbackPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`;
-      const fetchRes = await fetch(pollinationsUrl);
-      if (fetchRes.ok) {
-        const arrayBuffer = await fetchRes.arrayBuffer();
-        const base64 = Buffer.from(arrayBuffer).toString('base64');
-        imageUrl = `data:image/jpeg;base64,${base64}`;
-      }
+      imageUrl = await fetchImageAsBase64(pollinationsUrl);
     } catch (pollinationsErr) {
       console.error("[FUTURA] Pollinations fallback from catch failed, using SVG.", pollinationsErr);
     }
@@ -715,5 +706,24 @@ export function generateAdvancedDynamicSVG(
   `;
 
   return svgString;
+}
+
+function fetchImageAsBase64(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      if (res.statusCode !== 200) {
+        reject(new Error(`Failed to fetch image: status code ${res.statusCode}`));
+        return;
+      }
+      const chunks: Buffer[] = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        resolve(`data:image/jpeg;base64,${buffer.toString('base64')}`);
+      });
+    }).on('error', (err) => {
+      reject(err);
+    });
+  });
 }
 

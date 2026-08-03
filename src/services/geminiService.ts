@@ -873,11 +873,59 @@ export async function generateCreativeImage(
     return `https://images.unsplash.com/featured/1000x1000/?${encodeURIComponent(keywords)}&sig=${cacheBuster}`;
   };
 
-  return executeWithFallback<string | null>(
+  const result = await executeWithFallback<string | null>(
     apiEndpoint,
     payload,
     clientFallback
   );
+
+  // If the result is the local SVG fallback (meaning the server failed to generate a real image and fell back to vector mockup),
+  // let's intercept it and get a real image from Pollinations AI directly in the browser!
+  if (result && result.startsWith('data:image/svg+xml')) {
+    console.log("[FUTURA] Server returned SVG fallback. Intercepting and fetching real image from Pollinations AI...");
+    try {
+      const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
+      
+      // Translate/optimize the prompt using client-side Gemini Flash
+      let englishPrompt = prompt;
+      try {
+        const ai = getClientAi();
+        const transResponse = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: {
+            parts: [{
+              text: `You are an expert prompt engineer. Translate and optimize this Spanish image or logo design request into a highly descriptive English prompt. Remove all conversational noise, instructions, examples. Return ONLY the optimized English visual description. Do not add quotes. Request: "${prompt}"`
+            }]
+          }
+        });
+        if (transResponse.candidates?.[0]?.content?.parts?.[0]?.text) {
+          englishPrompt = transResponse.candidates[0].content.parts[0].text.trim();
+        }
+      } catch (err) {
+        console.warn("Client prompt translation failed during interception:", err);
+      }
+
+      const pollinationsPrompt = isLogo 
+        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
+        : `A high-resolution, premium editorial product photograph. ${englishPrompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
+      
+      const response = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(pollinationsPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const base64Data = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error("Error reading image data"));
+          reader.readAsDataURL(blob);
+        });
+        return base64Data;
+      }
+    } catch (pollinationsErr) {
+      console.warn("[FUTURA] Client Pollinations interception fallback failed, returning original SVG:", pollinationsErr);
+    }
+  }
+
+  return result;
 }
 
 export function generateAdvancedDynamicSVG(
