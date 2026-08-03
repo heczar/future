@@ -78,6 +78,21 @@ export default async function handler(req: any, res: any) {
 
     // Default elegant fallback if zero bytes found or quota was hit
     if (!imageUrl || quotaDetected) {
+      try {
+        console.log(`[FUTURA SERVER] Falling back to Pollinations AI for prompt: ${prompt}`);
+        const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`;
+        const fetchRes = await fetch(pollinationsUrl);
+        if (fetchRes.ok) {
+          const arrayBuffer = await fetchRes.arrayBuffer();
+          const base64 = Buffer.from(arrayBuffer).toString('base64');
+          imageUrl = `data:image/jpeg;base64,${base64}`;
+        }
+      } catch (pollinationsErr) {
+        console.error("[FUTURA] Pollinations fallback failed:", pollinationsErr);
+      }
+    }
+
+    if (!imageUrl) {
       imageUrl = getContextualFallback(prompt, brandName, niche, colors, logoStyle, mockupType, customMockupDesc);
     }
 
@@ -90,8 +105,30 @@ export default async function handler(req: any, res: any) {
       const cleanMsg = (error?.message || String(error)).slice(0, 100);
       console.log("[FUTURA] Server Image Generation exception. Serving elegant design placeholder.", cleanMsg);
     }
-    const backupUrl = getContextualFallback(prompt, brandName, niche, colors, logoStyle, mockupType, customMockupDesc);
-    return res.status(200).json({ imageUrl: backupUrl });
+    
+    let imageUrl: string | null = null;
+    try {
+      console.log(`[FUTURA SERVER ERROR FALLBACK] Falling back to Pollinations AI for prompt: ${prompt}`);
+      const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo");
+      let fallbackPrompt = isLogo 
+        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
+        : `A high-resolution, premium editorial product photograph. ${prompt}. Soap/cosmetics clean bottle, oup/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
+      
+      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fallbackPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`;
+      const fetchRes = await fetch(pollinationsUrl);
+      if (fetchRes.ok) {
+        const arrayBuffer = await fetchRes.arrayBuffer();
+        const base64 = Buffer.from(arrayBuffer).toString('base64');
+        imageUrl = `data:image/jpeg;base64,${base64}`;
+      }
+    } catch (pollinationsErr) {
+      console.error("[FUTURA] Pollinations fallback from catch failed, using SVG.", pollinationsErr);
+    }
+
+    if (!imageUrl) {
+      imageUrl = getContextualFallback(prompt, brandName, niche, colors, logoStyle, mockupType, customMockupDesc);
+    }
+    return res.status(200).json({ imageUrl });
   }
 }
 

@@ -693,8 +693,30 @@ export async function generateCreativeImage(
         return `data:image/jpeg;base64,${imgBytes}`;
       }
     } catch (apiErr) {
-      console.warn("Client image model failed, falling back to beautiful curated Unsplash design...", apiErr);
+      console.warn("Client image model failed, falling back to Pollinations AI...", apiErr);
     }
+
+    try {
+      const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo");
+      const pollinationsPrompt = isLogo 
+        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
+        : `A high-resolution, premium editorial product photograph. ${prompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
+      
+      const response = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(pollinationsPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const base64Data = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error("Error reading image data"));
+          reader.readAsDataURL(blob);
+        });
+        return base64Data;
+      }
+    } catch (pollinationsErr) {
+      console.warn("Client Pollinations fallback failed, using legacy fallback", pollinationsErr);
+    }
+
     // High premium abstract design fallback for professional interface
     const text = (prompt || "").toLowerCase();
     const isLogo = text.includes("logo") || text.includes("icon") || text.includes("symbol") || text.includes("isotipo") || text.includes("branding") || text.includes("isologo") || text.includes("logotipo");
