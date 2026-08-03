@@ -53,13 +53,16 @@ export default async function handler(req: any, res: any) {
       - Tono/Estilo: ${params.tone || "Results over Aesthetics"}
       - Idioma: ${params.language === 'en' ? 'Inglés' : 'Español'}
 
-      --- INSTRUCCIONES ESPECÍFICAS Y CONTEXTO DEL USUARIO (PRIORIDAD ALTA) ---
-      Por favor, genera el copy BASÁNDOTE EXCLUSIVAMENTE en las siguientes indicaciones y detalles provistos por el usuario. El copy DEBE tratar sobre el tema/producto/servicio descrito a continuación, NO sobre FUTURA, a menos que se especifique explícitamente dentro de este contexto:
+      --- TEMA PRINCIPAL / PRODUCTO (MÁXIMA PRIORIDAD) ---
+      Escribe el copy sobre el siguiente tema, producto o servicio solicitado por el usuario:
+      "${params.clientDetails || ""}"
 
-      CONTEXTO ESPECÍFICO:
-      ${params.extraContext || 'Genera un copy genérico sobre la importancia de un posicionamiento estratégico y la generación de demanda calificada para cualquier negocio.'}
+      --- INFORMACIÓN ADICIONAL / CONTEXTO DE MARCA (OPCIONAL) ---
+      Si el usuario tiene una marca activa, usa esta información de marca para contextualizar el texto, pero el tema principal sigue siendo el anterior:
+      "${params.extraContext || ""}"
 
-      --- FIN DE INSTRUCCIONES ESPECÍFICAS ---
+      --- INSTRUCCIÓN CRÍTICA DE MARCA ---
+      No asumas que el negocio se llama "FUTURA" ni intentes vender los servicios de consultoría de "FUTURA", a menos que el tema principal lo especifique. Escribe el copy desde la perspectiva del negocio descrito en el tema principal o en la información adicional de marca.
 
       Genera una respuesta perfecta con formato Markdown pulido. Incluye:
       1. Título llamativo (Gancho de scroll / Hook impactante)

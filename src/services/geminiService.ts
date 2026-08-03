@@ -1483,7 +1483,10 @@ export async function generateSocialCopy(params: {
         - Categoría: ${(params.copyType || "").toUpperCase()}
         - Tono: ${params.tone || "Results over Aesthetics"}
         - Idioma: ${params.language === 'en' ? 'Inglés' : 'Español'}
-        - Detalles: ${params.extraContext || 'Posicionamiento estratégico general'}
+        - Tema/Producto principal: ${params.clientDetails || ""}
+        - Contexto adicional de marca: ${params.extraContext || "Ninguno"}
+        
+        INSTRUCCIÓN CRÍTICA: No asumas que el negocio es "FUTURA" ni vendas los servicios de "FUTURA" a menos que se te pida explícitamente. Escribe el copy exclusivamente para el tema o producto principal solicitado.
       `;
 
       const ai = getClientAi();
