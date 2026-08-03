@@ -46,6 +46,7 @@ export default function CreativeStudio({
   onUpdateProfile,
   setActiveTab
 }: CreativeStudioProps) {
+  const [generationType, setGenerationType] = useState<'logos' | 'images'>('logos');
   const [selectedBrandId, setSelectedBrandId] = useState<string>('');
 
   // Database Sync Settings
