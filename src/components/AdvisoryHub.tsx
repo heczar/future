@@ -533,23 +533,6 @@ export default function AdvisoryHub({
                         )}
                       >
                         {renderFormattedChatMessage(msg.text)}
-
-                        {msg.role === 'model' && setStudioInspirationPrompt && (
-                          <div className="mt-3.5 pt-2.5 border-t border-white/5 flex items-center justify-between opacity-60 group-hover/msg:opacity-100 transition-opacity">
-                            <span className="text-[9px] text-slate-500 font-mono">¿Te gusta esta idea visual?</span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setStudioInspirationPrompt(msg.text);
-                                setActiveTab('images');
-                              }}
-                              className="text-[10px] font-mono font-bold text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 border border-brand-primary/20 px-2.5 py-1.5 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-1"
-                            >
-                              <Sparkles className="w-3.5 h-3.5 text-brand-primary" />
-                              <span>🎨 Crear Imagen / Logo</span>
-                            </button>
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>
