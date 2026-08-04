@@ -216,9 +216,19 @@ function getContextualFallback(
   mockupType?: string,
   customMockupDesc?: string
 ): string {
-  const svgString = generateAdvancedDynamicSVG(promptText, brandName, niche, colors, logoStyle, mockupType, customMockupDesc);
-  const base64Svg = Buffer.from(svgString.trim()).toString('base64');
-  return `data:image/svg+xml;base64,${base64Svg}`;
+  const rawPrompt = (promptText || niche || brandName || "diseño creativo").replace(/["'\[\]]/g, '').trim();
+  const isLogo = rawPrompt.toLowerCase().includes("logo") || 
+                 rawPrompt.toLowerCase().includes("icon") || 
+                 rawPrompt.toLowerCase().includes("symbol") || 
+                 rawPrompt.toLowerCase().includes("isotipo") || 
+                 rawPrompt.toLowerCase().includes("logotipo");
+
+  const cleanEn = isLogo 
+    ? `A professional minimalist vector logo isotype for ${rawPrompt}, clean solid background, sharp modern geometry, high resolution, no watermark` 
+    : `A high resolution editorial commercial product photograph of ${rawPrompt}, studio soft lighting, sharp focus, 8k resolution, professional commercial styling, no watermark`;
+
+  const randomSeed = Math.floor(Math.random() * 1000000);
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanEn)}?width=1024&height=1024&seed=${randomSeed}&nologo=true`;
 }
 
 export function generateAdvancedDynamicSVG(

@@ -122,28 +122,19 @@ function getDeterministicSimulationResponse(apiEndpoint: string, payload: any): 
   const textLower = (prompt + " " + context).toLowerCase();
 
   if (apiEndpoint.includes("generateCreativeImage")) {
-    if (textLower.includes("dental") || textLower.includes("dentist") || textLower.includes("odontolog") || textLower.includes("dient") || textLower.includes("sonris")) {
-      return "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1000&auto=format&fit=crop&q=80";
-    }
-    if (textLower.includes("cafe") || textLower.includes("coffee") || textLower.includes("gourmet") || textLower.includes("cafeter") || textLower.includes("taza") || textLower.includes("grano")) {
-      return "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=1000&auto=format&fit=crop&q=80";
-    }
-    if (textLower.includes("food") || textLower.includes("comid") || textLower.includes("restauran") || textLower.includes("hamburg") || textLower.includes("plat") || textLower.includes("mesa") || textLower.includes("ingrediente")) {
-      return "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1000&auto=format&fit=crop&q=80";
-    }
-    if (textLower.includes("tech") || textLower.includes("software") || textLower.includes("comput") || textLower.includes("matrix") || textLower.includes("digital") || textLower.includes("ia") || textLower.includes("web") || textLower.includes("code") || textLower.includes("pantalla") || textLower.includes("celular")) {
-      return "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1000&auto=format&fit=crop&q=80";
-    }
-    if (textLower.includes("belleza") || textLower.includes("spa") || textLower.includes("cosmetic") || textLower.includes("piel") || textLower.includes("beauty") || textLower.includes("estetic") || textLower.includes("masaje") || textLower.includes("crema")) {
-      return "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000&auto=format&fit=crop&q=80";
-    }
-    if (textLower.includes("house") || textLower.includes("inmobil") || textLower.includes("arquitectur") || textLower.includes("hogar") || textLower.includes("apartamento") || textLower.includes("diseño") || textLower.includes("interi") || textLower.includes("casa") || textLower.includes("edificio")) {
-      return "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1000&auto=format&fit=crop&q=80";
-    }
-    if (textLower.includes("fitness") || textLower.includes("gimnas") || textLower.includes("fit") || textLower.includes("sport") || textLower.includes("entrenamien") || textLower.includes("fuerz") || textLower.includes("músculo")) {
-      return "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=1000&auto=format&fit=crop&q=80";
-    }
-    return "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&auto=format&fit=crop&q=80";
+    const rawPrompt = (prompt || "diseño profesional para marca").replace(/["'\[\]]/g, '').trim();
+    const isLogo = rawPrompt.toLowerCase().includes("logo") || 
+                   rawPrompt.toLowerCase().includes("icon") || 
+                   rawPrompt.toLowerCase().includes("symbol") || 
+                   rawPrompt.toLowerCase().includes("isotipo") || 
+                   rawPrompt.toLowerCase().includes("logotipo");
+
+    const cleanEn = isLogo 
+      ? `A professional minimalist vector logo isotype for ${rawPrompt}, clean solid background, sharp modern geometry, high resolution, no watermark` 
+      : `A high resolution editorial commercial product photograph of ${rawPrompt}, studio soft lighting, sharp focus, 8k resolution, professional commercial styling, no watermark`;
+
+    const randomSeed = Math.floor(Math.random() * 1000000);
+    return `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanEn)}?width=1024&height=1024&seed=${randomSeed}&nologo=true`;
   }
 
   // 1. Sector recognition (supports Spanish NLP keywords)
