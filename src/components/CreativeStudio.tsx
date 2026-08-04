@@ -66,6 +66,16 @@ export default function CreativeStudio({
   const [imagePrompt, setImagePrompt] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('1:1');
   const [selectedImageStyle, setSelectedImageStyle] = useState('Fotorrealista Premium');
+  const [selectedModel, setSelectedModel] = useState('default');
+  const [hasNvidiaKey, setHasNvidiaKey] = useState(false);
+
+  useEffect(() => {
+    const key = localStorage.getItem('user_nvidia_api_key') || '';
+    if (key) {
+      setHasNvidiaKey(true);
+      setSelectedModel('black-forest-labs/flux.1-dev');
+    }
+  }, []);
 
   // ==========================================
   // CANVAS EDITOR STATES
@@ -133,7 +143,8 @@ export default function CreativeStudio({
         brandName,
         logoStyle: selectedLogoStyle,
         niche: logoDescription,
-        colors
+        colors,
+        model: selectedModel
       });
       setGeneratedResult(result);
 
@@ -173,7 +184,9 @@ export default function CreativeStudio({
 
       const fullPrompt = `${imagePrompt}. Estilo visual: ${selectedImageStyle}. ${brandContext} Alta resolución, sin textos escritos.`;
 
-      const result = await generateCreativeImage(fullPrompt, selectedFormat);
+      const result = await generateCreativeImage(fullPrompt, selectedFormat, undefined, {
+        model: selectedModel
+      });
       setGeneratedResult(result);
 
       // Track successful design render consumption
@@ -714,7 +727,27 @@ export default function CreativeStudio({
               </button>
             </div>
 
-              {generationType === 'logos' ? (
+            {/* AI Engine Selector */}
+            <div className="space-y-1.5 p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl mb-4">
+              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Motor de IA Generativo</label>
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="w-full bg-[#050505] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-brand-primary/45 cursor-pointer"
+              >
+                <option value="default">Por defecto: Gemini / Pollinations (Gratuito)</option>
+                {hasNvidiaKey ? (
+                  <>
+                    <option value="black-forest-labs/flux.1-dev">NVIDIA NIM: FLUX.1-dev</option>
+                    <option value="qwen/qwen-image">NVIDIA NIM: Qwen-Image</option>
+                  </>
+                ) : (
+                  <option value="disabled" disabled>NVIDIA NIM (Configura tu clave en Perfil)</option>
+                )}
+              </select>
+            </div>
+
+            {generationType === 'logos' ? (
                 /* LOGO BUILDER FORM */
                 <div
                   className="space-y-4 pt-2"

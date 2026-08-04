@@ -658,7 +658,8 @@ export async function generateCreativeImage(
     colors: metadata?.colors,
     logoStyle: metadata?.logoStyle,
     mockupType: metadata?.mockupType,
-    customMockupDesc: metadata?.customMockupDesc
+    customMockupDesc: metadata?.customMockupDesc,
+    model: metadata?.model
   };
 
   const clientFallback = async () => {
@@ -679,7 +680,7 @@ export async function generateCreativeImage(
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "qwen/qwen-image",
+            model: metadata?.model === "qwen/qwen-image" ? "qwen/qwen-image" : "black-forest-labs/flux.1-dev",
             prompt: cleanPrompt,
             response_format: "b64_json"
           })
@@ -940,7 +941,7 @@ export async function generateCreativeImage(
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "qwen/qwen-image",
+            model: metadata?.model === "qwen/qwen-image" ? "qwen/qwen-image" : "black-forest-labs/flux.1-dev",
             prompt: cleanPrompt,
             response_format: "b64_json"
           })

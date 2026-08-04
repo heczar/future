@@ -26,13 +26,20 @@ export default async function handler(req: any, res: any) {
     colors,
     logoStyle,
     mockupType,
-    customMockupDesc
+    customMockupDesc,
+    model: requestedModel
   } = req.body || {};
   let model = "imagen-3.0-generate-002";
 
-  // Check if NVIDIA API key is provided and route to Qwen-Image on NVIDIA NIM
+  // Check if NVIDIA API key is provided and route to NVIDIA NIM
   if (nvidiaKey) {
-    console.log("[FUTURA SERVER] Routing image generation request to NVIDIA NIM using qwen/qwen-image...");
+    // Map selected model or default to black-forest-labs/flux.1-dev
+    let targetModel = "black-forest-labs/flux.1-dev";
+    if (requestedModel === "qwen/qwen-image") {
+      targetModel = "qwen/qwen-image";
+    }
+
+    console.log(`[FUTURA SERVER] Routing image generation request to NVIDIA NIM using model: ${targetModel}...`);
     try {
       const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
       const cleanPrompt = isLogo 
@@ -46,7 +53,7 @@ export default async function handler(req: any, res: any) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "qwen/qwen-image",
+          model: targetModel,
           prompt: cleanPrompt,
           response_format: "b64_json"
         })
