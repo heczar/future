@@ -762,7 +762,15 @@ export async function generateCreativeImage(
         ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
         : `A high-resolution, premium editorial product photograph. ${englishPrompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
       
-      const response = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(pollinationsPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`);
+      // Add a 30-second timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
+      const response = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(pollinationsPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const blob = await response.blob();
         const base64Data = await new Promise<string>((resolve, reject) => {
@@ -774,111 +782,46 @@ export async function generateCreativeImage(
         return base64Data;
       }
     } catch (pollinationsErr) {
-      console.warn("Client Pollinations fallback failed, using legacy fallback", pollinationsErr);
+      console.warn("Client Pollinations fallback failed, using Unsplash source fallback", pollinationsErr);
     }
 
-    // High premium abstract design fallback for professional interface
+    // Final fallback: Unsplash source (always available, no API key, real photos)
     const text = (prompt || "").toLowerCase();
-    const isLogo = text.includes("logo") || text.includes("icon") || text.includes("symbol") || text.includes("isotipo") || text.includes("branding") || text.includes("isologo") || text.includes("logotipo");
-
-    if (isLogo) {
-      const getContextualFallback = (
-        promptText: string,
-        brandName?: string,
-        niche?: string,
-        colors?: { hex: string; name: string }[],
-        logoStyle?: string,
-        mockupType?: string,
-        customMockupDesc?: string
-      ): string => {
-        const svgString = generateAdvancedDynamicSVG(promptText, brandName, niche, colors, logoStyle, mockupType, customMockupDesc);
-        const b64 = btoa(encodeURIComponent(svgString.trim()).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16))));
-        return `data:image/svg+xml;base64,${b64}`;
-      };
-
-      return getContextualFallback(
-        prompt, 
-        metadata?.brandName, 
-        metadata?.niche, 
-        metadata?.colors, 
-        metadata?.logoStyle, 
-        metadata?.mockupType, 
-        metadata?.customMockupDesc
-      );
-    }
-
     const mappings: { [key: string]: string } = {
       "dental": "dental,dentist,smile",
       "dentist": "dental,dentist,smile",
       "odontolo": "dental,dentist,clinic",
-      "dient": "dental,dentist,smile",
-      "sonris": "smile,happy,person",
       "cafe": "coffee,cafe,bean",
       "coffee": "coffee,cafe,cup",
       "gourmet": "gourmet,cuisine,food",
-      "cafeter": "cafe,coffee,bakery",
       "food": "food,culinary,gourmet",
       "comid": "food,culinary,dish",
       "restauran": "restaurant,dining",
-      "hamburg": "burger,fastfood",
-      "plat": "food,dish",
       "tech": "technology,digital",
       "software": "code,programming,developer",
-      "comput": "computer,developer,desk",
-      "matrix": "cyberpunk,matrix,cyber",
       "digital": "digital,abstract",
-      "ia": "artificial-intelligence,tech",
-      "artificial": "technology,cyber",
-      "web": "webdesign,ux,computer",
-      "code": "code,developer",
-      "programac": "code,developer",
       "belleza": "beauty,spa,cosmetics",
       "spa": "spa,wellness,bamboo",
       "cosmetic": "cosmetics,makeup,skincare",
-      "piel": "skincare,serum",
-      "beauty": "beauty,skincare",
-      "estet": "spa,beauty",
-      "masaj": "massage,spa",
       "house": "architecture,interior,house",
       "inmobil": "realestate,property,luxury-home",
-      "arquitectur": "architecture,modern-building",
-      "hogar": "home,cozy-living",
-      "apartamento": "apartment,loft,interior",
-      "diseño": "design,interior,architecture",
-      "interi": "interior,minimalist-room",
       "fitness": "fitness,gym",
-      "gimnas": "gym,fitness",
-      "fit": "fitness,workout",
-      "sport": "sports,athlete",
-      "entrenamien": "training,workout",
-      "fuerz": "gym,workout",
-      "banana": "banana,fruit,yellow",
-      "platano": "banana,fruit,yellow",
       "zapato": "shoes,sneakers,fashion",
-      "calzado": "shoes,fashion",
-      "vestid": "dress,fashion,apparel",
       "ropa": "clothing,fashion",
       "moda": "fashion,style",
       "auto": "car,automotive,sportscar",
-      "coche": "car,automotive",
-      "carro": "car,luxury-car",
-      "motor": "car,automotive",
       "perro": "dog,cute-pet",
       "gato": "cat,cute-pet",
-      "mascota": "pet,dog,cat",
       "viaje": "travel,adventure,destination",
-      "turism": "travel,landscape",
       "playa": "beach,ocean,relax",
-      "montaña": "mountain,landscape,nature",
       "hotel": "luxury-hotel,resort",
       "marketing": "marketing,business,office",
       "negocio": "business,workspace,meeting",
-      "finanz": "finance,money,investment",
-      "dinero": "wealth,money",
-      "educac": "education,learning,classroom",
-      "escuel": "school,learning,book",
-      "medicin": "medicine,healthcare,doctor",
-      "salud": "health,wellness"
+      "salud": "health,wellness",
+      "logo": "abstract,geometric,minimal",
+      "brand": "branding,design,minimal",
+      "logotipo": "abstract,geometric,design",
+      "isotipo": "abstract,geometric,design"
     };
 
     const matchedTags: string[] = [];
@@ -894,7 +837,7 @@ export async function generateCreativeImage(
     } else {
       const cleanWords = text
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") // remove spanish accents
+        .replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9\s]/g, "")
         .split(/\s+/)
         .filter(w => {
@@ -987,7 +930,15 @@ export async function generateCreativeImage(
         ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
         : `A high-resolution, premium editorial product photograph. ${englishPrompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
       
-      const response = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(pollinationsPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`);
+      // Add a 30-second timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
+      const response = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(pollinationsPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const blob = await response.blob();
         const base64Data = await new Promise<string>((resolve, reject) => {
@@ -999,8 +950,15 @@ export async function generateCreativeImage(
         return base64Data;
       }
     } catch (pollinationsErr) {
-      console.warn("[FUTURA] Client Pollinations interception fallback failed, returning original SVG:", pollinationsErr);
+      console.warn("[FUTURA] Client Pollinations interception fallback failed:", pollinationsErr);
     }
+
+    // Instead of returning SVG, return an Unsplash image as a real visual
+    const textLower = (prompt || "").toLowerCase();
+    const isLogoFinal = textLower.includes("logo") || textLower.includes("logotipo") || textLower.includes("isotipo");
+    const kw = isLogoFinal ? "abstract,geometric,minimal" : "business,product,commercial";
+    const cacheBust = Math.floor(Math.random() * 1000);
+    return `https://images.unsplash.com/featured/1000x1000/?${encodeURIComponent(kw)}&sig=${cacheBust}`;
   }
 
   return result;

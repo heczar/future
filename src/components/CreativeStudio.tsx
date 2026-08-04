@@ -917,10 +917,10 @@ export default function CreativeStudio({
               </div>
             ) : generatedResult ? (
               <div className="flex-1 flex flex-col min-h-0">
-                {generatedResult.startsWith('data:image/svg+xml;base64,') && (
-                  <div className="mb-3 p-3 bg-brand-primary/10 border border-brand-primary/20 rounded-xl text-[10px] text-brand-primary font-bold uppercase tracking-wider flex items-center justify-center gap-2 text-center">
+                {(generatedResult.startsWith('data:image/svg+xml;base64,') || generatedResult.includes('unsplash.com')) && (
+                  <div className="mb-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl text-[10px] text-blue-400 font-bold uppercase tracking-wider flex items-center justify-center gap-2 text-center">
                     <Info className="w-4 h-4 shrink-0" />
-                    <span>Tu cuenta no tiene acceso al generador de imágenes avanzado. Se muestra un diseño de ejemplo.</span>
+                    <span>Se muestra una imagen de referencia. Tu plan incluye {profile?.isPremium ? '25+' : '3'} generaciones IA/mes. Intenta nuevamente si la imagen no cargó.</span>
                   </div>
                 )}
                 {/* Image Display */}
