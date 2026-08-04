@@ -824,36 +824,7 @@ export async function generateCreativeImage(
       "isotipo": "abstract,geometric,design"
     };
 
-    const matchedTags: string[] = [];
-    for (const [key, val] of Object.entries(mappings)) {
-      if (text.includes(key)) {
-        matchedTags.push(val);
-      }
-    }
-
-    let keywords = "";
-    if (matchedTags.length > 0) {
-      keywords = matchedTags.join(",");
-    } else {
-      const cleanWords = text
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9\s]/g, "")
-        .split(/\s+/)
-        .filter(w => {
-          return w.length > 3 && 
-                 !["para", "como", "esta", "este", "todo", "sigue", "necesito", "solicit", "solicito", "conectar", "conecta", "crear", "hacer", "diseno", "imagen", "imagenes", "resultado", "resultados", "estilo", "marca", "marcas"].includes(w);
-        });
-      
-      if (cleanWords.length > 0) {
-        keywords = cleanWords.slice(0, 3).join(",");
-      } else {
-        keywords = "abstract,minimal,background";
-      }
-    }
-
-    const cacheBuster = Math.floor(Math.random() * 1000);
-    return `https://images.unsplash.com/featured/1000x1000/?${encodeURIComponent(keywords)}&sig=${cacheBuster}`;
+    return getDeterministicSimulationResponse("generateCreativeImage", { prompt });
   };
 
   const result = await executeWithFallback<string | null>(
@@ -953,12 +924,7 @@ export async function generateCreativeImage(
       console.warn("[FUTURA] Client Pollinations interception fallback failed:", pollinationsErr);
     }
 
-    // Instead of returning SVG, return an Unsplash image as a real visual
-    const textLower = (prompt || "").toLowerCase();
-    const isLogoFinal = textLower.includes("logo") || textLower.includes("logotipo") || textLower.includes("isotipo");
-    const kw = isLogoFinal ? "abstract,geometric,minimal" : "business,product,commercial";
-    const cacheBust = Math.floor(Math.random() * 1000);
-    return `https://images.unsplash.com/featured/1000x1000/?${encodeURIComponent(kw)}&sig=${cacheBust}`;
+    return getDeterministicSimulationResponse("generateCreativeImage", { prompt });
   }
 
   return result;

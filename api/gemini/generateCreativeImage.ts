@@ -766,22 +766,14 @@ export function generateAdvancedDynamicSVG(
   return svgString;
 }
 
-function fetchImageAsBase64(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      if (res.statusCode !== 200) {
-        reject(new Error(`Failed to fetch image: status code ${res.statusCode}`));
-        return;
-      }
-      const chunks: Buffer[] = [];
-      res.on('data', (chunk) => chunks.push(chunk));
-      res.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        resolve(`data:image/jpeg;base64,${buffer.toString('base64')}`);
-      });
-    }).on('error', (err) => {
-      reject(err);
-    });
-  });
+async function fetchImageAsBase64(url: string): Promise<string> {
+  const response = await fetch(url, { redirect: 'follow' });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image: status code ${response.status}`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const contentType = response.headers.get('content-type') || 'image/jpeg';
+  return `data:${contentType};base64,${buffer.toString('base64')}`;
 }
 
