@@ -4,6 +4,7 @@
  */
 
 import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatWithAdvisorFallback } from "./utils.js";
+import { buildSkillsInjection } from "./loadOpenDesignSkill.js";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -46,8 +47,9 @@ export default async function handler(req: any, res: any) {
     - SIN CONEXIÓN EXTERNA DIRECTA: FUTURA no publica directamente en redes. Es una suite estratégica para planificar y simular internamente el marketing de alto calibre.
     - REGLA DE CONTEXTO PASIVO: Si hay un Contexto de Marca provisto, incorpóralo de manera sutil y lógica si el usuario te pregunta específicamente sobre su negocio, pero no presumas oraciones robóticas como "Veo en tu base de datos...". Sé orgánico.
 
-    Responde en ESPAÑOL, usando Markdown muy legible, limpio y pulido.
+     Responde en ESPAÑOL, usando Markdown muy legible, limpio y pulido.
     Contexto de Marca: ${brandContext || "Ninguno"}
+    ${buildSkillsInjection(['brainstorming', 'creative-director', 'design-brief', 'design-consultation', 'brand-extract', 'brand-guidelines'])}
   `;
 
   try {

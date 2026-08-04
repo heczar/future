@@ -5,6 +5,7 @@
 
 import https from 'https';
 import { getAiClient, callWithRetry } from "./utils.js";
+import { buildSkillsInjection } from "./loadOpenDesignSkill.js";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -46,8 +47,8 @@ export default async function handler(req: any, res: any) {
     console.log(`[FUTURA SERVER] Routing image generation request to NVIDIA NIM using auto-selected model: ${targetModel}...`);
     try {
       const cleanPrompt = isLogo 
-        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
-        : `A high-resolution, premium editorial product photograph. ${prompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
+        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark. [Open Design Canvas Guidelines: Focal Point -> Supporting -> Background visual hierarchy, rule of thirds, sleek vector curves, sharp edges, flat solid layout].`
+        : `A high-resolution, premium editorial product photograph. ${prompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark. [Open Design Ecommerce Guidelines: lifestyle close-up, studio soft lighting, warm ambient shadows, high-contrast, premium commercial layout].`;
 
       const response = await fetch("https://integrate.api.nvidia.com/v1/images/generations", {
         method: "POST",
@@ -114,9 +115,9 @@ export default async function handler(req: any, res: any) {
     // Create an incredibly descriptive high-quality prompt wrapper
     let enhancedPrompt = "";
     if (isLogo) {
-      enhancedPrompt = `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid flat background, sharp vector wireframe balance, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. Suitable for luxury and high-converting modern digital brands. Strictly NO blurry gradients, NO complex drop shadows.`;
+      enhancedPrompt = `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid flat background, sharp vector wireframe balance, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. Suitable for luxury and high-converting modern digital brands. Strictly NO blurry gradients, NO complex drop shadows. [Open Design Canvas Guidelines: Focal Point -> Supporting -> Background visual hierarchy, rule of thirds, sleek vector curves, sharp edges, flat solid layout].`;
     } else {
-      enhancedPrompt = `A high-resolution, premium editorial product photograph. ${englishPrompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling.`;
+      enhancedPrompt = `A high-resolution, premium editorial product photograph. ${englishPrompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. [Open Design Ecommerce Guidelines: lifestyle close-up, studio soft lighting, warm ambient shadows, high-contrast, premium commercial layout].`;
     }
 
     // Prohibit unrequested texts or gibberish that image generators often output

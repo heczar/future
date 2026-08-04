@@ -4,6 +4,7 @@
  */
 
 import { getAiClient, generateContentWithRetry, getGenerateSocialCopyFallback } from "./utils.js";
+import { buildSkillsInjection } from "./loadOpenDesignSkill.js";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -43,6 +44,8 @@ export default async function handler(req: any, res: any) {
     - Results over Aesthetics: Muy pragmático, agresivo centrado en conversiones rápidas, directo al grano, sin mentiras ni rellenos pomposos.
     - Educador de Élite: Sofisticado, de alta gama, elegante, ultra-profesional, transmite autoridad técnica indisputable.
     - Brutalist Persuasion: Crudo, directo al dolor del cliente, brutalmente audaz, destaca el cuello de botella real de los negocios y ofrece una solución efectiva.
+    
+    ${buildSkillsInjection(['copywriting', 'ad-creative', 'video-social-short'])}
   `;
 
   try {
