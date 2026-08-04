@@ -39,13 +39,17 @@ interface CreativeStudioProps {
   projectsList: ProjectContext[];
   onUpdateProfile: (p: any) => void;
   setActiveTab: (tab: string) => void;
+  initialPrompt?: string;
+  onPromptConsumed?: () => void;
 }
 
 export default function CreativeStudio({
   profile,
   projectsList,
   onUpdateProfile,
-  setActiveTab
+  setActiveTab,
+  initialPrompt,
+  onPromptConsumed
 }: CreativeStudioProps) {
   const [generationType, setGenerationType] = useState<'logos' | 'images'>('logos');
   const [selectedBrandId, setSelectedBrandId] = useState<string>('');
@@ -68,6 +72,28 @@ export default function CreativeStudio({
   const [imagePrompt, setImagePrompt] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('1:1');
   const [selectedImageStyle, setSelectedImageStyle] = useState('Fotorrealista Premium');
+
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.trim()) {
+      const isLogoPrompt = initialPrompt.toLowerCase().includes("logo") || 
+                           initialPrompt.toLowerCase().includes("brand") || 
+                           initialPrompt.toLowerCase().includes("logotipo") || 
+                           initialPrompt.toLowerCase().includes("isotipo") || 
+                           initialPrompt.toLowerCase().includes("marca");
+      
+      if (isLogoPrompt) {
+        setGenerationType('logos');
+        setLogoDescription(initialPrompt);
+      } else {
+        setGenerationType('images');
+        setImagePrompt(initialPrompt);
+      }
+
+      if (onPromptConsumed) {
+        onPromptConsumed();
+      }
+    }
+  }, [initialPrompt]);
 
   // ==========================================
   // CANVAS EDITOR STATES

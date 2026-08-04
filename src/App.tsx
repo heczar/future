@@ -165,6 +165,7 @@ function AppContent() {
   const [showVaultInfo, setShowVaultInfo] = useState(false);
   const [showSecurityInfo, setShowSecurityInfo] = useState(false);
   const [dashboardPrompt, setDashboardPrompt] = useState('');
+  const [studioInspirationPrompt, setStudioInspirationPrompt] = useState('');
   const [hubMessages, setHubMessages] = useState<{role: 'user' | 'model', text: string}[]>([]);
   const [isHubLoading, setIsHubLoading] = useState(false);
   const [learnedProtocols, setLearnedProtocols] = useState<string[]>([]);
@@ -801,8 +802,6 @@ function AppContent() {
           {/* HOME / DASHBOARD */}
           <div className={cn("w-full transition-all duration-150", (activeTab === '' || activeTab === 'dashboard') ? "block opacity-100" : "hidden opacity-0")}>
             {renderDashboardView()}
-
-            {/* Panel para nuevos usuarios (inicio de sesión) - REMOVED: Now handled by top-level AppContent conditional rendering */}
           </div>
 
           {/* ASESORÍA */}
@@ -815,6 +814,7 @@ function AppContent() {
               onUpdateProfile={handleUpdateProfile} 
               setActiveTab={setActiveTab}
               setDashboardPrompt={setDashboardPrompt}
+              setStudioInspirationPrompt={setStudioInspirationPrompt}
               initialPrompt={activeTab === 'advisory' ? dashboardPrompt : ''}
               onPromptConsumed={() => setDashboardPrompt('')}
             />
@@ -842,6 +842,8 @@ function AppContent() {
               projectsList={projectsList} 
               onUpdateProfile={handleUpdateProfile} 
               setActiveTab={setActiveTab}
+              initialPrompt={studioInspirationPrompt}
+              onPromptConsumed={() => setStudioInspirationPrompt('')}
             />
           </div>
 

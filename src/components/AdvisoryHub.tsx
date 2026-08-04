@@ -30,6 +30,7 @@ interface AdvisoryHubProps {
   onUpdateProfile: (p: any) => void;
   setActiveTab: (tab: string) => void;
   setDashboardPrompt: (prompt: string) => void;
+  setStudioInspirationPrompt?: (prompt: string) => void;
   initialPrompt?: string;
   onPromptConsumed?: () => void;
   mode: 'consultation' | 'copys';
@@ -41,6 +42,7 @@ export default function AdvisoryHub({
   onUpdateProfile,
   setActiveTab,
   setDashboardPrompt,
+  setStudioInspirationPrompt,
   initialPrompt,
   onPromptConsumed,
   mode
@@ -524,13 +526,30 @@ export default function AdvisoryHub({
                         key={`msg-${idx}-${msg.role}`}
                         translate="no"
                         className={cn(
-                          "p-4 rounded-2xl max-w-[85%] transition-all leading-relaxed whitespace-pre-wrap text-left text-xs font-sans notranslate",
+                          "p-4 rounded-2xl max-w-[85%] transition-all leading-relaxed whitespace-pre-wrap text-left text-xs font-sans notranslate relative group/msg",
                           msg.role === 'user'
                             ? "bg-brand-primary/10 border border-brand-primary/20 text-white ml-auto rounded-tr-none"
                             : "bg-white/5 border border-white/5 text-slate-300 mr-auto rounded-tl-none"
                         )}
                       >
                         {renderFormattedChatMessage(msg.text)}
+
+                        {msg.role === 'model' && setStudioInspirationPrompt && (
+                          <div className="mt-3.5 pt-2.5 border-t border-white/5 flex items-center justify-between opacity-60 group-hover/msg:opacity-100 transition-opacity">
+                            <span className="text-[9px] text-slate-500 font-mono">¿Te gusta esta idea visual?</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setStudioInspirationPrompt(msg.text);
+                                setActiveTab('images');
+                              }}
+                              className="text-[10px] font-mono font-bold text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 border border-brand-primary/20 px-2.5 py-1.5 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-1"
+                            >
+                              <Sparkles className="w-3.5 h-3.5 text-brand-primary" />
+                              <span>🎨 Crear Imagen / Logo</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
