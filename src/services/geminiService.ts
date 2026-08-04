@@ -673,24 +673,28 @@ export async function generateCreativeImage(
           ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark. [Open Design Canvas Guidelines: Focal Point -> Supporting -> Background visual hierarchy, rule of thirds, sleek vector curves, sharp edges, flat solid layout].`
           : `A high-resolution, premium editorial product photograph. ${prompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark. [Open Design Ecommerce Guidelines: lifestyle close-up, studio soft lighting, warm ambient shadows, high-contrast, premium commercial layout].`;
 
-        const response = await fetch("https://integrate.api.nvidia.com/v1/images/generations", {
+        const response = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${nvidiaKey.trim()}`,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Accept": "application/json"
           },
           body: JSON.stringify({
-            model: isLogo ? "qwen/qwen-image" : "black-forest-labs/flux.1-dev",
             prompt: cleanPrompt,
-            response_format: "b64_json"
+            mode: "base",
+            cfg_scale: 3.5,
+            width: 1024,
+            height: 1024
           })
         });
 
         if (response.ok) {
           const data = await response.json();
-          const b64 = data?.data?.[0]?.b64_json;
+          const b64 = data?.artifacts?.[0]?.base64 || data?.data?.[0]?.b64_json || data?.b64_json || data?.image;
           if (b64) {
-            return `data:image/png;base64,${b64}`;
+            const prefix = b64.startsWith('data:image') ? '' : 'data:image/png;base64,';
+            return `${prefix}${b64}`;
           }
         }
       } catch (nvidiaErr) {
@@ -848,24 +852,28 @@ export async function generateCreativeImage(
           ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark. [Open Design Canvas Guidelines: Focal Point -> Supporting -> Background visual hierarchy, rule of thirds, sleek vector curves, sharp edges, flat solid layout].`
           : `A high-resolution, premium editorial product photograph. ${prompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark. [Open Design Ecommerce Guidelines: lifestyle close-up, studio soft lighting, warm ambient shadows, high-contrast, premium commercial layout].`;
 
-        const response = await fetch("https://integrate.api.nvidia.com/v1/images/generations", {
+        const response = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${nvidiaKey.trim()}`,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Accept": "application/json"
           },
           body: JSON.stringify({
-            model: isLogo ? "qwen/qwen-image" : "black-forest-labs/flux.1-dev",
             prompt: cleanPrompt,
-            response_format: "b64_json"
+            mode: "base",
+            cfg_scale: 3.5,
+            width: 1024,
+            height: 1024
           })
         });
 
         if (response.ok) {
           const data = await response.json();
-          const b64 = data?.data?.[0]?.b64_json;
+          const b64 = data?.artifacts?.[0]?.base64 || data?.data?.[0]?.b64_json || data?.b64_json || data?.image;
           if (b64) {
-            return `data:image/png;base64,${b64}`;
+            const prefix = b64.startsWith('data:image') ? '' : 'data:image/png;base64,';
+            return `${prefix}${b64}`;
           }
         }
       } catch (nvidiaErr) {
