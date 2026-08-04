@@ -9,7 +9,7 @@ import { buildSkillsInjection } from "./loadOpenDesignSkill.js";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-gemini-api-key, X-Gemini-Api-Key');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-gemini-api-key, X-Gemini-Api-Key, x-nvidia-api-key, X-Nvidia-Api-Key');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
 
   if (req.method === 'OPTIONS') {
@@ -17,7 +17,7 @@ export default async function handler(req: any, res: any) {
   }
 
   const customKey = req.headers['x-gemini-api-key'] || "";
-  const nvidiaKey = req.headers['x-nvidia-api-key'] || "";
+  const nvidiaKey = req.headers['x-nvidia-api-key'] || process.env.NVIDIA_API_KEY || "";
   const { 
     prompt, 
     aspectRatio, 
