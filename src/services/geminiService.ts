@@ -675,10 +675,10 @@ export async function generateCreativeImage(
           },
           body: JSON.stringify({
             prompt: cleanPrompt,
-            mode: "base",
-            cfg_scale: 3.5,
-            width: 1024,
-            height: 1024
+            aspect_ratio: aspectRatio || "1:1",
+            seed: Math.floor(Math.random() * 1000000),
+            num_inference_steps: 28,
+            guidance_scale: 3.5
           })
         });
 
@@ -854,10 +854,10 @@ export async function generateCreativeImage(
           },
           body: JSON.stringify({
             prompt: cleanPrompt,
-            mode: "base",
-            cfg_scale: 3.5,
-            width: 1024,
-            height: 1024
+            aspect_ratio: aspectRatio || "1:1",
+            seed: Math.floor(Math.random() * 1000000),
+            num_inference_steps: 28,
+            guidance_scale: 3.5
           })
         });
 
