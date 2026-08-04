@@ -155,7 +155,81 @@ export default function AdvisoryHub({
   });
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [savedConversations, setSavedConversations] = useState<any[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string>('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Load saved conversations on mount
+  useEffect(() => {
+    const savedConvsRaw = localStorage.getItem('futura_saved_conversations');
+    if (savedConvsRaw) {
+      try {
+        setSavedConversations(JSON.parse(savedConvsRaw));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  const saveActiveChat = (currentId: string, messagesList: any[]) => {
+    if (messagesList.length <= 1) return;
+    const savedConvsRaw = localStorage.getItem('futura_saved_conversations');
+    let convs = savedConvsRaw ? JSON.parse(savedConvsRaw) : [];
+    
+    const firstUserMsg = messagesList.find(m => m.role === 'user')?.text || 'Nueva Conversación';
+    const cleanTitle = firstUserMsg.substring(0, 25) + (firstUserMsg.length > 25 ? '...' : '');
+
+    const exists = convs.some((c: any) => c.id === currentId);
+    if (!exists) {
+      convs.unshift({
+        id: currentId,
+        title: cleanTitle,
+        messages: messagesList,
+        updatedAt: Date.now()
+      });
+    } else {
+      convs = convs.map((c: any) => {
+        if (c.id === currentId) {
+          return {
+            ...c,
+            title: c.title === 'Nueva Conversación' || c.title.trim() === '' ? cleanTitle : c.title,
+            messages: messagesList,
+            updatedAt: Date.now()
+          };
+        }
+        return c;
+      });
+    }
+    localStorage.setItem('futura_saved_conversations', JSON.stringify(convs));
+    setSavedConversations(convs);
+  };
+
+  const handleNewChat = () => {
+    setActiveConversationId('');
+    setChatMessages([
+      {
+        role: 'model',
+        text: '¡Hola! Soy tu Consultor Estratégico FUTURA. Estoy aquí para simplificar tu marketing y ayudarte a tomar mejores decisiones comerciales bajo el método SPE (Resultados y Estética).\n\n¿De qué negocio o idea de producto te gustaría conversar hoy?'
+      }
+    ]);
+  };
+
+  const handleLoadConversation = (conv: any) => {
+    setActiveConversationId(conv.id);
+    setChatMessages(conv.messages);
+  };
+
+  const handleDeleteConversation = (id: string) => {
+    const savedConvsRaw = localStorage.getItem('futura_saved_conversations');
+    let convs = savedConvsRaw ? JSON.parse(savedConvsRaw) : [];
+    convs = convs.filter((c: any) => c.id !== id);
+    localStorage.setItem('futura_saved_conversations', JSON.stringify(convs));
+    setSavedConversations(convs);
+    
+    if (activeConversationId === id) {
+      handleNewChat();
+    }
+  };
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -172,6 +246,12 @@ export default function AdvisoryHub({
 
     setIsChatLoading(true);
 
+    let currentId = activeConversationId;
+    if (!currentId) {
+      currentId = 'conv_' + Date.now();
+      setActiveConversationId(currentId);
+    }
+
     try {
       // Validate quota before calling the Gemini AI models
       await assertHasQuota(profile.id, profile.isPremium, 'consult');
@@ -179,6 +259,7 @@ export default function AdvisoryHub({
       // Add user message to history
       const updatedMessages = [...chatMessages, { role: 'user' as const, text: promptText }];
       setChatMessages(updatedMessages);
+      saveActiveChat(currentId, updatedMessages);
 
       const brandCtx = activeBrand
         ? `MARCA ACTIVA CONECTADA: ${activeBrand.name}. ADN/DESCRIPCIÓN: ${activeBrand.description}`
@@ -186,7 +267,9 @@ export default function AdvisoryHub({
 
       const response = await chatWithAdvisor(promptText, chatMessages, brandCtx);
       const safeResponse = typeof response === 'string' ? response : (response?.response || String(response || "Respuesta recibida correctamente."));
-      setChatMessages(prev => [...prev, { role: 'model', text: safeResponse }]);
+      const finalMessages = [...updatedMessages, { role: 'model' as const, text: safeResponse }];
+      setChatMessages(finalMessages);
+      saveActiveChat(currentId, finalMessages);
 
       // Record consumption on database
       await trackActionConsumption(profile.id, profile.isPremium, 'consult');
@@ -204,24 +287,21 @@ export default function AdvisoryHub({
       const rawErrorMsg = typeof err === 'string' ? err : String(err?.message || err || 'Error desconocido');
       const isCritical = typeof rawErrorMsg === 'string' && rawErrorMsg.includes("CRÍTICO");
       
-      setChatMessages(prev => [...prev, {
-        role: 'model',
+      const errorMessages = [...chatMessages, { role: 'user' as const, text: promptText }, {
+        role: 'model' as const,
         text: isCritical 
           ? `⚠️ **Límite Alcanzado:** ${rawErrorMsg}`
           : `⚠️ **Error de conexión:** No se pudo completar la respuesta (${rawErrorMsg}). Por favor reintenta.`
-      }]);
+      }];
+      setChatMessages(errorMessages);
+      saveActiveChat(currentId, errorMessages);
     } finally {
       setIsChatLoading(false);
     }
   };
 
   const handleClearChat = () => {
-    setChatMessages([
-      {
-        role: 'model',
-        text: 'Chat de consultoría reiniciado. Dime qué desafío de negocio o campaña comercial enfrentas hoy para darte recomendaciones pragmáticas.'
-      }
-    ]);
+    handleNewChat();
   };
 
   // ==========================================
@@ -375,71 +455,125 @@ export default function AdvisoryHub({
       <div className="flex-1 min-h-0">
           {mode === 'consultation' ? (
             <div
-              key="chat-panel"
-              className="flex flex-col h-[calc(100vh-280px)] min-h-[300px] bg-surface-900/20 border border-white/5 rounded-2xl overflow-hidden"
+              key="chat-container-layout"
+              className="flex flex-col md:flex-row h-[calc(100vh-280px)] min-h-[400px] bg-surface-900/20 border border-white/5 rounded-2xl overflow-hidden animate-fade-in"
             >
-              {/* Chat messages */}
-              <div 
-                ref={chatContainerRef}
-                translate="no"
-                className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin text-xs py-4 notranslate"
-              >
-
-                <div className="space-y-4 flex flex-col w-full min-h-0">
-                  {chatMessages.map((msg, idx) => (
-                    <div 
-                      key={`msg-${idx}-${msg.role}`}
-                      translate="no"
-                      className={cn(
-                        "p-4 rounded-2xl max-w-[85%] transition-all leading-relaxed whitespace-pre-wrap text-left text-xs font-sans notranslate",
-                        msg.role === 'user'
-                          ? "bg-brand-primary/10 border border-brand-primary/20 text-white ml-auto rounded-tr-none"
-                          : "bg-white/5 border border-white/5 text-slate-300 mr-auto rounded-tl-none"
-                      )}
-                    >
-                      {renderFormattedChatMessage(msg.text)}
-                    </div>
-                  ))}
+              {/* Left Sidebar: Saved Conversations */}
+              <div className="w-full md:w-60 bg-[#070707]/95 border-b md:border-b-0 md:border-r border-white/5 flex flex-col min-h-0 shrink-0">
+                <div className="p-3.5 border-b border-white/5 flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">Historial de Chats</span>
+                  <button
+                    type="button"
+                    onClick={handleNewChat}
+                    className="text-[9px] font-mono font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 px-2 py-1 rounded-lg hover:bg-brand-primary/25 cursor-pointer active:scale-95 transition-all flex items-center gap-1.5"
+                  >
+                    <span>+ Nuevo</span>
+                  </button>
                 </div>
-
-                <div className={cn(
-                  "w-full flex justify-start transition-all duration-300 overflow-hidden",
-                  isChatLoading ? "opacity-100 h-auto py-2" : "opacity-0 h-0 pointer-events-none"
-                )}>
-                  <div className="bg-white/5 border border-white/5 text-slate-400 mr-auto rounded-tl-none p-4 rounded-2xl max-w-[70%] flex items-center gap-3 animate-pulse">
-                    <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
-                    <span className="text-[10px] text-brand-primary uppercase tracking-[0.25em] font-black">FUTURA está analizando...</span>
-                  </div>
+                <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin">
+                  {savedConversations.length === 0 ? (
+                    <div className="text-center py-8 px-2 text-[10px] text-slate-500 font-mono italic">
+                      Sin chats anteriores
+                    </div>
+                  ) : (
+                    savedConversations.map((conv: any) => (
+                      <div
+                        key={conv.id}
+                        className={cn(
+                          "w-full flex items-center justify-between p-2 rounded-xl group transition-all text-left border cursor-pointer",
+                          activeConversationId === conv.id
+                            ? "bg-brand-primary/10 border-brand-primary/20 text-white"
+                            : "bg-transparent border-transparent hover:bg-white/5 text-slate-400 hover:text-slate-200"
+                        )}
+                        onClick={() => handleLoadConversation(conv)}
+                      >
+                        <div className="flex items-center gap-2 truncate min-w-0 pr-1">
+                          <MessageSquare className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                          <span className="text-[11px] truncate select-none leading-none">{conv.title}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteConversation(conv.id);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1 rounded transition-opacity cursor-pointer shrink-0"
+                          title="Eliminar chat"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
-              {/* Chat Input panel */}
-              <div className="p-4 bg-[#070707] border-t border-white/5">
-                <form onSubmit={handleSendChatMessage} className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={handleClearChat}
-                    title="Reiniciar chat"
-                    className="p-3 bg-white/5 hover:bg-white/10 text-slate-400 rounded-xl transition-all cursor-pointer"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                  </button>
-                  <input
-                    type="text"
-                    placeholder={activeBrand ? `Pregunta sobre ${activeBrand.name}...` : "Escribe una pregunta para la consultoría..."}
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    className="flex-1 bg-[#0d0d0d] border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!chatInput.trim() || isChatLoading}
-                    className="px-5 bg-brand-primary hover:bg-brand-primary/85 disabled:opacity-40 text-white rounded-xl transition-all font-bold flex items-center gap-2 cursor-pointer text-xs"
-                  >
-                    <span>Enviar</span>
-                    <Send className="w-3.5 h-3.5" />
-                  </button>
-                </form>
+              {/* Right Side: Chat Panel */}
+              <div className="flex-1 flex flex-col min-w-0 h-full bg-transparent">
+                {/* Chat messages */}
+                <div 
+                  ref={chatContainerRef}
+                  translate="no"
+                  className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin text-xs py-4 notranslate"
+                >
+                  <div className="space-y-4 flex flex-col w-full min-h-0">
+                    {chatMessages.map((msg, idx) => (
+                      <div 
+                        key={`msg-${idx}-${msg.role}`}
+                        translate="no"
+                        className={cn(
+                          "p-4 rounded-2xl max-w-[85%] transition-all leading-relaxed whitespace-pre-wrap text-left text-xs font-sans notranslate",
+                          msg.role === 'user'
+                            ? "bg-brand-primary/10 border border-brand-primary/20 text-white ml-auto rounded-tr-none"
+                            : "bg-white/5 border border-white/5 text-slate-300 mr-auto rounded-tl-none"
+                        )}
+                      >
+                        {renderFormattedChatMessage(msg.text)}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className={cn(
+                    "w-full flex justify-start transition-all duration-300 overflow-hidden",
+                    isChatLoading ? "opacity-100 h-auto py-2" : "opacity-0 h-0 pointer-events-none"
+                  )}>
+                    <div className="bg-white/5 border border-white/5 text-slate-400 mr-auto rounded-tl-none p-4 rounded-2xl max-w-[70%] flex items-center gap-3 animate-pulse">
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
+                      <span className="text-[10px] text-brand-primary uppercase tracking-[0.25em] font-black">FUTURA está analizando...</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Chat Input panel */}
+                <div className="p-4 bg-[#070707] border-t border-white/5">
+                  <form onSubmit={handleSendChatMessage} className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleClearChat}
+                      title="Reiniciar chat"
+                      className="p-3 bg-white/5 hover:bg-white/10 text-slate-400 rounded-xl transition-all cursor-pointer"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </button>
+                    <input
+                      type="text"
+                      placeholder={activeBrand ? `Pregunta sobre ${activeBrand.name}...` : "Escribe una pregunta para la consultoría..."}
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      className="flex-1 bg-[#0d0d0d] border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!chatInput.trim() || isChatLoading}
+                      className="px-5 bg-brand-primary hover:bg-brand-primary/85 disabled:opacity-40 text-white rounded-xl transition-all font-bold flex items-center gap-2 cursor-pointer text-xs"
+                    >
+                      <span>Enviar</span>
+                      <Send className="w-3.5 h-3.5" />
+                    </button>
+                  </form>
+                </div>
               </div>
             </div>
           ) : (

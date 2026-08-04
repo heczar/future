@@ -27,7 +27,7 @@ import {
   Download
 } from 'lucide-react';
 import { db, auth } from '../lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { fabric } from 'fabric';
 import { cn } from '../lib/utils';
 import { generateCreativeImage } from '../services/geminiService';
@@ -57,6 +57,8 @@ export default function CreativeStudio({
   const [generatedResult, setGeneratedResult] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSendingToBrand, setIsSendingToBrand] = useState(false);
+  const [showBrandSelector, setShowBrandSelector] = useState(false);
 
   // Form State - Logos
   const [logoDescription, setLogoDescription] = useState('');
@@ -222,6 +224,39 @@ export default function CreativeStudio({
       alert('Error al guardar en la Galería.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSendToBrand = async (brandId: string) => {
+    if (!generatedResult || isSendingToBrand) return;
+    setIsSendingToBrand(true);
+
+    try {
+      const targetBrand = projectsList.find(p => p.id === brandId);
+      if (!targetBrand) {
+        alert('Marca no encontrada.');
+        return;
+      }
+
+      if (generationType === 'logos') {
+        const updatedLogos = [...(targetBrand.logos || []), generatedResult];
+        await updateDoc(doc(db, 'projects', brandId), {
+          logos: updatedLogos
+        });
+      } else {
+        const updatedMaterial = [...(targetBrand.trainingMaterial || []), generatedResult];
+        await updateDoc(doc(db, 'projects', brandId), {
+          trainingMaterial: updatedMaterial
+        });
+      }
+
+      alert(`¡Diseño agregado exitosamente a la marca "${targetBrand.name}"!`);
+      setShowBrandSelector(false);
+    } catch (err: any) {
+      console.error("Error sending design to brand project:", err);
+      alert('Error al enviar el diseño a la marca.');
+    } finally {
+      setIsSendingToBrand(false);
     }
   };
 
@@ -890,8 +925,50 @@ export default function CreativeStudio({
                     ) : (
                       <Save className="w-4 h-4 text-brand-primary" />
                     )}
-                    <span>Guardar</span>
+                    <span>Enviar a Galería</span>
                   </button>
+                  
+                  {/* Enviar a Marca Dropdown */}
+                  <div className="relative flex-1 min-w-[120px]">
+                    <button
+                      onClick={() => setShowBrandSelector(!showBrandSelector)}
+                      disabled={isSendingToBrand}
+                      className="w-full py-3 bg-[#0a0a0a] border border-white/10 hover:bg-white/5 text-slate-300 disabled:opacity-40 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      {isSendingToBrand ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
+                      ) : (
+                        <Briefcase className="w-4 h-4 text-brand-primary" />
+                      )}
+                      <span>Enviar a Marca</span>
+                    </button>
+                    
+                    {showBrandSelector && (
+                      <div className="absolute bottom-full mb-2 left-0 right-0 bg-[#0c0c0c] border border-white/10 rounded-xl shadow-2xl p-2 z-50 max-h-48 overflow-y-auto space-y-1 scrollbar-thin">
+                        <div className="text-[9px] font-mono text-slate-500 uppercase tracking-wider px-2 py-1 border-b border-white/5 mb-1 flex items-center justify-between">
+                          <span>Selecciona Marca</span>
+                          <button type="button" onClick={() => setShowBrandSelector(false)} className="text-[10px] hover:text-white font-bold cursor-pointer">×</button>
+                        </div>
+                        {projectsList.filter(p => p.id !== 'virtual-futura').length === 0 ? (
+                          <div className="text-[10px] text-slate-500 italic p-2 text-center">
+                            No tienes marcas creadas.
+                          </div>
+                        ) : (
+                          projectsList.filter(p => p.id !== 'virtual-futura').map((brand) => (
+                            <button
+                              key={brand.id}
+                              type="button"
+                              onClick={() => handleSendToBrand(brand.id)}
+                              className="w-full text-left px-3 py-2 rounded-lg text-slate-300 hover:bg-brand-primary/10 hover:text-white text-[11px] font-sans truncate transition-colors cursor-pointer"
+                            >
+                              📁 {brand.name}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   <button
                     onClick={handleDownloadImage}
                     className="flex-1 min-w-[120px] py-3 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
