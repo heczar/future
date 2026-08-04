@@ -9,7 +9,8 @@ import {
   MessageSquare,
   Briefcase,
   Sparkles,
-  FileText
+  FileText,
+  Headphones
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -46,6 +47,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: 
       items: [
         { id: 'pro', label: 'Membresía', icon: Crown },
         { id: 'profile', label: 'Mi Perfil', icon: User },
+        { id: 'support', label: 'Soporte y Atención', icon: Headphones },
       ]
     },
     {

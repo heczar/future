@@ -16,6 +16,8 @@ import AdvisoryHub from './components/AdvisoryHub';
 import CreativeStudio from './components/CreativeStudio';
 import AccountAuthPortal from './components/AccountAuthPortal';
 import DevStation from './components/DevStation';
+import SupportHub from './components/SupportHub';
+import AdminSupportConsole from './components/AdminSupportConsole';
 import { UserProfile, ProjectContext } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -23,6 +25,7 @@ import {
   Target, 
   TrendingUp, 
   Maximize, 
+  Headphones,
   Search,
   Sparkles,
   Plus,
@@ -868,6 +871,11 @@ function AppContent() {
             <Profile />
           </div>
 
+          {/* SUPPORT & HELP */}
+          <div className={cn("w-full transition-all duration-150", activeTab === 'support' ? "block opacity-100" : "hidden opacity-0")}>
+            <SupportHub profile={profile} />
+          </div>
+
           {/* ADMIN PANEL */}
           <div className={cn("w-full transition-all duration-150", activeTab === 'admin' ? "block opacity-100" : "hidden opacity-0")}>
             <AdminPanel 
@@ -997,7 +1005,7 @@ function AdminPanel({ learnedProtocols, evolution, profile, onUpdateProfile }: {
   const [users, setUsers] = React.useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [adminActiveTab, setAdminActiveTab] = React.useState<'payment_reports' | 'member_console' | 'crm' | 'advisory' | 'metrics' | 'dev_station'>('payment_reports');
+  const [adminActiveTab, setAdminActiveTab] = React.useState<'payment_reports' | 'member_console' | 'crm' | 'advisory' | 'metrics' | 'dev_station' | 'support'>('payment_reports');
   const [toastMsg, setToastMsg] = React.useState('');
   const [deleteConfirmUserId, setDeleteConfirmUserId] = React.useState<string | null>(null);
 
@@ -1456,7 +1464,19 @@ function AdminPanel({ learnedProtocols, evolution, profile, onUpdateProfile }: {
       </div>
 
       {/* ADMIN TABS ROUTER */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 border-b border-white/5 gap-2 pb-2.5 pt-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 border-b border-white/5 gap-2 pb-2.5 pt-4">
+        <button
+          onClick={() => setAdminActiveTab('support')}
+          className={`px-3 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            adminActiveTab === 'support'
+              ? 'border-brand-primary text-brand-primary font-black bg-brand-primary/5 rounded-t-xl'
+              : 'border-transparent text-slate-400 hover:text-white hover:bg-white/[0.02] rounded-t-xl'
+          }`}
+        >
+          <Headphones className="w-3.5 h-3.5 text-brand-primary" />
+          Atención & Soporte
+        </button>
+
         <button
           onClick={() => setAdminActiveTab('payment_reports')}
           className={`px-3 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
@@ -2352,6 +2372,18 @@ function AdminPanel({ learnedProtocols, evolution, profile, onUpdateProfile }: {
             className="space-y-6 text-left"
           >
             <DevStation profile={profile} onUpdateProfile={onUpdateProfile} />
+          </motion.div>
+        )}
+
+        {adminActiveTab === 'support' && (
+          <motion.div
+            key="support_admin_tab"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="space-y-6 text-left"
+          >
+            <AdminSupportConsole />
           </motion.div>
         )}
       </AnimatePresence>
