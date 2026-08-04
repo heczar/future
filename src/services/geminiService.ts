@@ -490,13 +490,15 @@ async function executeWithFallback<T>(
       const errorStr = (error?.message || "").toLowerCase();
       console.warn(`[FUTURA HYBRID] Aviso de canal de servidor (${error?.message || 'ocupado'}). Activando protocolo de resiliencia de respaldo...`);
 
-      // Propagate key configuration errors so the user is aware of missing setups
-      if (errorStr.includes("gemini_api_key") || errorStr.includes("clave") || errorStr.includes("no está configurada") || errorStr.includes("api key") || errorStr.includes("my_gemini_api_key") || errorStr.includes("credentials")) {
-        throw error;
+      // Propagate key configuration errors so the user is aware of missing setups (except for image generation)
+      if (!apiEndpoint.includes("generateCreativeImage")) {
+        if (errorStr.includes("gemini_api_key") || errorStr.includes("clave") || errorStr.includes("no está configurada") || errorStr.includes("api key") || errorStr.includes("my_gemini_api_key") || errorStr.includes("credentials")) {
+          throw error;
+        }
       }
 
-      // Attempt client-side execution if we have client/localStorage/env keys
-      if (hasClientApiKey()) {
+      // Attempt client-side execution if we have client/localStorage/env keys or for image generation
+      if (hasClientApiKey() || apiEndpoint.includes("generateCreativeImage")) {
         try {
           console.warn(`[FUTURA] Intentando canal directo del navegador...`);
           return await fallbackFn();
@@ -506,7 +508,7 @@ async function executeWithFallback<T>(
       }
 
       // Elegant deterministic simulation fallback as the ultimate protection
-      console.warn(`[FUTURA HYBRID] Cargando respuesta estructurada de resguardo estratégico para continuar...`);
+      console.warn(`[FUTURA HYBRID] Cargando respuesta de resguardo estratégico para continuar...`);
       return getDeterministicSimulationResponse(apiEndpoint, payload) as T;
     }
   } catch (outerError: any) {
