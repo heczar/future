@@ -12,27 +12,38 @@ export default function Profile() {
   const user = auth.currentUser;
   const [apiKey, setApiKey] = useState('');
   const [showKey, setShowKey] = useState(false);
+  const [nvidiaKey, setNvidiaKey] = useState('');
+  const [showNvidiaKey, setShowNvidiaKey] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'cleared'>('idle');
   const [showKeyPanel, setShowKeyPanel] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('user_gemini_api_key') || '';
+    const savedNvidia = localStorage.getItem('user_nvidia_api_key') || '';
     setApiKey(saved);
-    if (saved) {
+    setNvidiaKey(savedNvidia);
+    if (saved || savedNvidia) {
       setShowKeyPanel(true);
     }
   }, []);
 
   const handleSaveKey = () => {
-    const trimmed = apiKey.trim();
-    if (!trimmed) {
+    const trimmedGemini = apiKey.trim();
+    const trimmedNvidia = nvidiaKey.trim();
+    
+    if (!trimmedGemini) {
       localStorage.removeItem('user_gemini_api_key');
-      setSaveStatus('cleared');
     } else {
-      localStorage.setItem('user_gemini_api_key', trimmed);
-      setSaveStatus('success');
+      localStorage.setItem('user_gemini_api_key', trimmedGemini);
     }
     
+    if (!trimmedNvidia) {
+      localStorage.removeItem('user_nvidia_api_key');
+    } else {
+      localStorage.setItem('user_nvidia_api_key', trimmedNvidia);
+    }
+    
+    setSaveStatus('success');
     setTimeout(() => {
       setSaveStatus('idle');
     }, 3000);
@@ -40,7 +51,9 @@ export default function Profile() {
 
   const handleClearKey = () => {
     localStorage.removeItem('user_gemini_api_key');
+    localStorage.removeItem('user_nvidia_api_key');
     setApiKey('');
+    setNvidiaKey('');
     setSaveStatus('cleared');
     setTimeout(() => {
       setSaveStatus('idle');
@@ -186,6 +199,38 @@ export default function Profile() {
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-mono font-black text-slate-500 uppercase tracking-widest block">
+                      CLAVE PERSONAL DE NVIDIA BUILD (QWEN-IMAGE)
+                    </label>
+                    <a
+                      href="https://build.nvidia.com/qwen/qwen-image"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[9px] text-brand-primary hover:underline flex items-center gap-0.5"
+                    >
+                      Obtener clave gratis <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showNvidiaKey ? "text" : "password"}
+                      value={nvidiaKey}
+                      onChange={(e) => setNvidiaKey(e.target.value)}
+                      placeholder="nvapi-..."
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-zinc-700 focus:outline-none focus:border-brand-primary/50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNvidiaKey(!showNvidiaKey)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                    >
+                      {showNvidiaKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleSaveKey}
@@ -197,29 +242,29 @@ export default function Profile() {
                       </>
                     ) : (
                       <>
-                        <Save className="w-4 h-4" /> GUARDAR CLAVE
+                        <Save className="w-4 h-4" /> GUARDAR CONFIGURACIÓN
                       </>
                     )}
                   </button>
 
-                  {localStorage.getItem('user_gemini_api_key') && (
+                  {(localStorage.getItem('user_gemini_api_key') || localStorage.getItem('user_nvidia_api_key')) && (
                     <button
                       onClick={handleClearKey}
                       className="px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-bold uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-red-500/10 font-sans"
                     >
-                      <Trash className="w-4 h-4" /> ELIMINAR LLAVE
+                      <Trash className="w-4 h-4" /> ELIMINAR LLAVES
                     </button>
                   )}
                 </div>
 
                 {saveStatus === 'success' && (
                   <p className="text-[10px] text-emerald-400 font-mono text-center">
-                    ✓ Sistema reconfigurado. FUTURA está operando bajo tu Llave de API Personal de forma directa.
+                    ✓ Sistema reconfigurado. FUTURA está operando bajo tus llaves personales de forma directa.
                   </p>
                 )}
                 {saveStatus === 'cleared' && (
                   <p className="text-[10px] text-amber-400 font-mono text-center">
-                    ✓ Llave eliminada. El sistema ha reajustado los llamados a la clave de API global del servidor o variables de Vercel.
+                    ✓ Llaves eliminadas. El sistema ha reajustado los llamados a la clave de API global del servidor o variables de Vercel.
                   </p>
                 )}
               </div>

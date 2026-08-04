@@ -15,7 +15,8 @@ export default async function handler(req: any, res: any) {
     return res.status(200).end();
   }
 
-  const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
+  const customKey = req.headers['x-gemini-api-key'] || "";
+  const nvidiaKey = req.headers['x-nvidia-api-key'] || "";
   const { 
     prompt, 
     aspectRatio, 
@@ -28,6 +29,52 @@ export default async function handler(req: any, res: any) {
     customMockupDesc
   } = req.body || {};
   let model = "imagen-3.0-generate-002";
+
+  // Check if NVIDIA API key is provided and route to Qwen-Image on NVIDIA NIM
+  if (nvidiaKey) {
+    console.log("[FUTURA SERVER] Routing image generation request to NVIDIA NIM using qwen/qwen-image...");
+    try {
+      const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
+      const cleanPrompt = isLogo 
+        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
+        : `A high-resolution, premium editorial product photograph. ${prompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
+
+      const response = await fetch("https://integrate.api.nvidia.com/v1/images/generations", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${nvidiaKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "qwen/qwen-image",
+          prompt: cleanPrompt,
+          response_format: "b64_json"
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const b64 = data?.data?.[0]?.b64_json;
+        const url = data?.data?.[0]?.url;
+        if (b64) {
+          return res.status(200).json({ imageUrl: `data:image/png;base64,${b64}` });
+        } else if (url) {
+          try {
+            const imageB64 = await fetchImageAsBase64(url);
+            return res.status(200).json({ imageUrl: imageB64 });
+          } catch (urlErr) {
+            return res.status(200).json({ imageUrl: url });
+          }
+        }
+      } else {
+        const errText = await response.text();
+        console.error("[FUTURA SERVER] NVIDIA NIM error response:", errText);
+      }
+    } catch (nvidiaErr) {
+      console.error("[FUTURA SERVER] Failed to query NVIDIA NIM API:", nvidiaErr);
+    }
+    // If it fails, we fall back to standard pipeline below
+  }
 
   try {
     const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");

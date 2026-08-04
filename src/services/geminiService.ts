@@ -441,9 +441,13 @@ async function executeWithFallback<T>(
 
     try {
       const userKey = localStorage.getItem("user_gemini_api_key") || "";
+      const nvidiaKey = localStorage.getItem("user_nvidia_api_key") || "";
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (userKey.trim().length > 0) {
         headers["x-gemini-api-key"] = userKey.trim();
+      }
+      if (nvidiaKey.trim().length > 0) {
+        headers["x-nvidia-api-key"] = nvidiaKey.trim();
       }
 
       const res = await fetch(apiEndpoint, {
@@ -658,6 +662,41 @@ export async function generateCreativeImage(
   };
 
   const clientFallback = async () => {
+    // If NVIDIA API key is available client-side, query NVIDIA NIM directly from the browser!
+    const nvidiaKey = localStorage.getItem("user_nvidia_api_key") || "";
+    if (nvidiaKey.trim().length > 0) {
+      console.log("[FUTURA CLIENT] NVIDIA API Key detected in client fallback. Calling NVIDIA NIM directly...");
+      try {
+        const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
+        const cleanPrompt = isLogo 
+          ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
+          : `A high-resolution, premium editorial product photograph. ${prompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
+
+        const response = await fetch("https://integrate.api.nvidia.com/v1/images/generations", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${nvidiaKey.trim()}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "qwen/qwen-image",
+            prompt: cleanPrompt,
+            response_format: "b64_json"
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const b64 = data?.data?.[0]?.b64_json;
+          if (b64) {
+            return `data:image/png;base64,${b64}`;
+          }
+        }
+      } catch (nvidiaErr) {
+        console.warn("Direct client call to NVIDIA NIM failed, falling back to other models:", nvidiaErr);
+      }
+    }
+
     // We cannot easily run client-side Image Generation if keys are missing or model not activated on free tier.
     // Instead we will try to make a safe call or trigger client SDK gemini-3.1-flash-image
     const ai = getClientAi();
@@ -880,9 +919,47 @@ export async function generateCreativeImage(
   );
 
   // If the result is the local SVG fallback (meaning the server failed to generate a real image and fell back to vector mockup),
-  // let's intercept it and get a real image from Pollinations AI directly in the browser!
+  // let's intercept it and get a real image from NVIDIA NIM or Pollinations AI directly in the browser!
   if (result && result.startsWith('data:image/svg+xml')) {
-    console.log("[FUTURA] Server returned SVG fallback. Intercepting and fetching real image from Pollinations AI...");
+    console.log("[FUTURA] Server returned SVG fallback. Intercepting...");
+    
+    // Check client-side NVIDIA key
+    const nvidiaKey = localStorage.getItem("user_nvidia_api_key") || "";
+    if (nvidiaKey.trim().length > 0) {
+      console.log("[FUTURA] Intercepted. Fetching real image from NVIDIA NIM directly...");
+      try {
+        const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
+        const cleanPrompt = isLogo 
+          ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
+          : `A high-resolution, premium editorial product photograph. ${prompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
+
+        const response = await fetch("https://integrate.api.nvidia.com/v1/images/generations", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${nvidiaKey.trim()}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "qwen/qwen-image",
+            prompt: cleanPrompt,
+            response_format: "b64_json"
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const b64 = data?.data?.[0]?.b64_json;
+          if (b64) {
+            return `data:image/png;base64,${b64}`;
+          }
+        }
+      } catch (nvidiaErr) {
+        console.warn("Client NVIDIA interception fallback failed:", nvidiaErr);
+      }
+    }
+
+    // Default to Pollinations AI if no NVIDIA key is set or if it failed
+    console.log("[FUTURA] Fetching real image from Pollinations AI...");
     try {
       const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
       
