@@ -33,15 +33,18 @@ export default async function handler(req: any, res: any) {
 
   // Check if NVIDIA API key is provided and route to NVIDIA NIM
   if (nvidiaKey) {
-    // Map selected model or default to black-forest-labs/flux.1-dev
-    let targetModel = "black-forest-labs/flux.1-dev";
-    if (requestedModel === "qwen/qwen-image") {
-      targetModel = "qwen/qwen-image";
-    }
+    // Automatically select the best model:
+    // If the prompt is a logo, icon, or symbol, use qwen/qwen-image (since it renders text and emblems perfectly).
+    // Otherwise, use black-forest-labs/flux.1-dev (flagship model for scenes/products/illustrations).
+    const isLogo = (prompt || "").toLowerCase().includes("logo") || 
+                   (prompt || "").toLowerCase().includes("icon") || 
+                   (prompt || "").toLowerCase().includes("symbol") || 
+                   (prompt || "").toLowerCase().includes("isotipo") || 
+                   (prompt || "").toLowerCase().includes("logotipo");
+    const targetModel = isLogo ? "qwen/qwen-image" : "black-forest-labs/flux.1-dev";
 
-    console.log(`[FUTURA SERVER] Routing image generation request to NVIDIA NIM using model: ${targetModel}...`);
+    console.log(`[FUTURA SERVER] Routing image generation request to NVIDIA NIM using auto-selected model: ${targetModel}...`);
     try {
-      const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
       const cleanPrompt = isLogo 
         ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
         : `A high-resolution, premium editorial product photograph. ${prompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;

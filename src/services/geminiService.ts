@@ -680,7 +680,7 @@ export async function generateCreativeImage(
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: metadata?.model === "qwen/qwen-image" ? "qwen/qwen-image" : "black-forest-labs/flux.1-dev",
+            model: isLogo ? "qwen/qwen-image" : "black-forest-labs/flux.1-dev",
             prompt: cleanPrompt,
             response_format: "b64_json"
           })
@@ -941,7 +941,7 @@ export async function generateCreativeImage(
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: metadata?.model === "qwen/qwen-image" ? "qwen/qwen-image" : "black-forest-labs/flux.1-dev",
+            model: isLogo ? "qwen/qwen-image" : "black-forest-labs/flux.1-dev",
             prompt: cleanPrompt,
             response_format: "b64_json"
           })
