@@ -64,44 +64,53 @@ export default async function handler(req: any, res: any) {
     : `A high-resolution, premium editorial product photograph. ${englishPrompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
 
   // ═══════════════════════════════════════════
-  // PRIORITY 1: NVIDIA NIM (if key available)
+  // PRIORITY 1: NVIDIA NIM (with Key Rotation support)
   // ═══════════════════════════════════════════
-  if (nvidiaKey && nvidiaKey.trim().length > 5) {
-    console.log(`[FUTURA SERVER] Trying NVIDIA NIM (flux.1-dev)...`);
-    try {
-      const nvidiaResponse = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${nvidiaKey.trim()}`,
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          prompt: enhancedPrompt,
-          mode: "base",
-          seed: Math.floor(Math.random() * 1000000),
-          steps: 28
-        })
-      });
+  const nvidiaKeys = (nvidiaKey || "").split(',').map(k => k.trim()).filter(Boolean);
+  if (nvidiaKeys.length > 0) {
+    for (let i = 0; i < nvidiaKeys.length; i++) {
+      const activeKey = nvidiaKeys[i];
+      if (activeKey.length < 5) continue;
+      
+      console.log(`[FUTURA SERVER] Trying NVIDIA NIM key [${i + 1}/${nvidiaKeys.length}] (${activeKey.substring(0, 15)}...)...`);
+      try {
+        const nvidiaResponse = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${activeKey}`,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({
+            prompt: enhancedPrompt,
+            mode: "base",
+            seed: Math.floor(Math.random() * 1000000),
+            steps: 28
+          })
+        });
 
-      if (nvidiaResponse.ok) {
-        const data = await nvidiaResponse.json();
-        const b64 = data?.artifacts?.[0]?.base64 || data?.data?.[0]?.b64_json || data?.b64_json || data?.image;
-        if (b64) {
-          console.log("[FUTURA SERVER] ✅ NVIDIA NIM returned image successfully");
-          const prefix = b64.startsWith('data:image') ? '' : 'data:image/png;base64,';
-          return res.status(200).json({ imageUrl: `${prefix}${b64}` });
+        if (nvidiaResponse.ok) {
+          const data = await nvidiaResponse.json();
+          const b64 = data?.artifacts?.[0]?.base64 || data?.data?.[0]?.b64_json || data?.b64_json || data?.image;
+          if (b64) {
+            console.log(`[FUTURA SERVER] ✅ NVIDIA NIM key [${i + 1}] returned image successfully`);
+            const prefix = b64.startsWith('data:image') ? '' : 'data:image/png;base64,';
+            return res.status(200).json({ imageUrl: `${prefix}${b64}` });
+          }
+          const url = data?.data?.[0]?.url;
+          if (url) {
+            console.log(`[FUTURA SERVER] ✅ NVIDIA NIM key [${i + 1}] returned image URL successfully`);
+            return res.status(200).json({ imageUrl: url });
+          }
+        } else {
+          const errText = await nvidiaResponse.text();
+          console.warn(`[FUTURA SERVER] NVIDIA NIM key [${i + 1}] returned error status ${nvidiaResponse.status}:`, errText.substring(0, 100));
         }
-        const url = data?.data?.[0]?.url;
-        if (url) {
-          return res.status(200).json({ imageUrl: url });
-        }
-      } else {
-        console.warn("[FUTURA SERVER] NVIDIA NIM error:", nvidiaResponse.status);
+      } catch (nvidiaErr: any) {
+        console.warn(`[FUTURA SERVER] NVIDIA NIM key [${i + 1}] failed:`, nvidiaErr?.message);
       }
-    } catch (nvidiaErr: any) {
-      console.warn("[FUTURA SERVER] NVIDIA NIM failed:", nvidiaErr?.message);
     }
+    console.warn("[FUTURA SERVER] All available NVIDIA NIM keys were exhausted or failed. Falling back...");
   }
 
   // ═══════════════════════════════════════════

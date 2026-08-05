@@ -657,40 +657,46 @@ export async function generateCreativeImage(
 
   const clientFallback = async () => {
     // If NVIDIA API key is available client-side, query NVIDIA NIM directly from the browser!
-    const nvidiaKey = localStorage.getItem("user_nvidia_api_key") || "";
-    if (nvidiaKey.trim().length > 0) {
-      console.log("[FUTURA CLIENT] NVIDIA API Key detected in client fallback. Calling NVIDIA NIM directly...");
-      try {
-        const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
-        const cleanPrompt = isLogo 
-          ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
-          : `A high-resolution, premium editorial product photograph. ${prompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
+    const nvidiaKeys = (nvidiaKey || "").split(',').map(k => k.trim()).filter(Boolean);
+    if (nvidiaKeys.length > 0) {
+      console.log(`[FUTURA CLIENT] NVIDIA API Keys detected (${nvidiaKeys.length}). Trying direct NVIDIA NIM calls...`);
+      for (let i = 0; i < nvidiaKeys.length; i++) {
+        const activeKey = nvidiaKeys[i];
+        if (activeKey.length < 5) continue;
+        
+        try {
+          const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
+          const cleanPrompt = isLogo 
+            ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
+            : `A high-resolution, premium editorial product photograph. ${prompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
 
-        const response = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${nvidiaKey.trim()}`,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-          },
-          body: JSON.stringify({
-            prompt: cleanPrompt,
-            mode: "base",
-            seed: Math.floor(Math.random() * 1000000),
-            steps: 28
-          })
-        });
+          const response = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${activeKey}`,
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            body: JSON.stringify({
+              prompt: cleanPrompt,
+              mode: "base",
+              seed: Math.floor(Math.random() * 1000000),
+              steps: 28
+            })
+          });
 
-        if (response.ok) {
-          const data = await response.json();
-          const b64 = data?.artifacts?.[0]?.base64 || data?.data?.[0]?.b64_json || data?.b64_json || data?.image;
-          if (b64) {
-            const prefix = b64.startsWith('data:image') ? '' : 'data:image/png;base64,';
-            return `${prefix}${b64}`;
+          if (response.ok) {
+            const data = await response.json();
+            const b64 = data?.artifacts?.[0]?.base64 || data?.data?.[0]?.b64_json || data?.b64_json || data?.image;
+            if (b64) {
+              console.log(`[FUTURA CLIENT] ✅ Direct NVIDIA NIM key [${i + 1}] returned image successfully`);
+              const prefix = b64.startsWith('data:image') ? '' : 'data:image/png;base64,';
+              return `${prefix}${b64}`;
+            }
           }
+        } catch (nvidiaErr) {
+          console.warn(`Direct client call to NVIDIA NIM key [${i + 1}] failed:`, nvidiaErr);
         }
-      } catch (nvidiaErr) {
-        console.warn("Direct client call to NVIDIA NIM failed, falling back to other models:", nvidiaErr);
       }
     }
 
