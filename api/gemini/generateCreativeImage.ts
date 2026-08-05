@@ -30,27 +30,46 @@ export default async function handler(req: any, res: any) {
     customMockupDesc,
     model: requestedModel
   } = req.body || {};
-  let model = "imagen-3.0-generate-002";
+  const isLogo = (prompt || "").toLowerCase().includes("logo") || 
+                 (prompt || "").toLowerCase().includes("icon") || 
+                 (prompt || "").toLowerCase().includes("symbol") || 
+                 (prompt || "").toLowerCase().includes("isotipo") || 
+                 (prompt || "").toLowerCase().includes("logotipo");
 
-  // Check if NVIDIA API key is provided and route to NVIDIA NIM
-  if (nvidiaKey) {
-    // Automatically select the best model:
-    // If the prompt is a logo, icon, or symbol, use qwen/qwen-image (since it renders text and emblems perfectly).
-    // Otherwise, use black-forest-labs/flux.1-dev (flagship model for scenes/products/illustrations).
-    const isLogo = (prompt || "").toLowerCase().includes("logo") || 
-                   (prompt || "").toLowerCase().includes("icon") || 
-                   (prompt || "").toLowerCase().includes("symbol") || 
-                   (prompt || "").toLowerCase().includes("isotipo") || 
-                   (prompt || "").toLowerCase().includes("logotipo");
-    const targetModel = isLogo ? "qwen/qwen-image" : "black-forest-labs/flux.1-dev";
+  // Build the English-optimized prompt
+  let englishPrompt = prompt || "professional brand design";
+  try {
+    console.log(`[FUTURA SERVER] Translating/optimizing prompt: "${prompt}"`);
+    const transResponse = await getAiClient(customKey).models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `You are an expert prompt engineer for AI image generators (FLUX/Imagen). Translate and optimize this Spanish image or logo design request into a clean, highly descriptive, professional English prompt.
+      - Translate all terms to English.
+      - Remove all conversational text, examples, notes (e.g., "Si tienes...", "por ejemplo...").
+      - Focus ONLY on describing the visual subject, style, composition, lighting, and colors.
+      - Return ONLY the optimized English prompt text. No quotes, no introductory sentences.
+      
+      Spanish Request: "${prompt}"`
+    });
+    if (transResponse.text) {
+      englishPrompt = transResponse.text.trim();
+      console.log(`[FUTURA SERVER] Optimized prompt: "${englishPrompt}"`);
+    }
+  } catch (transErr) {
+    console.warn("[FUTURA SERVER] Prompt optimization failed, using original:", transErr);
+  }
 
-    console.log(`[FUTURA SERVER] Routing image generation request to NVIDIA NIM using auto-selected model: ${targetModel}...`);
+  // Build enhanced prompt
+  const enhancedPrompt = isLogo
+    ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
+    : `A high-resolution, premium editorial product photograph. ${englishPrompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
+
+  // ═══════════════════════════════════════════
+  // PRIORITY 1: NVIDIA NIM (if key available)
+  // ═══════════════════════════════════════════
+  if (nvidiaKey && nvidiaKey.trim().length > 5) {
+    console.log(`[FUTURA SERVER] Trying NVIDIA NIM (flux.1-dev)...`);
     try {
-      const cleanPrompt = isLogo 
-        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
-        : `A high-resolution, premium editorial product photograph. ${prompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
-
-      const response = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
+      const nvidiaResponse = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${nvidiaKey.trim()}`,
@@ -58,7 +77,7 @@ export default async function handler(req: any, res: any) {
           "Accept": "application/json"
         },
         body: JSON.stringify({
-          prompt: cleanPrompt,
+          prompt: enhancedPrompt,
           aspect_ratio: aspectRatio || "1:1",
           seed: Math.floor(Math.random() * 1000000),
           num_inference_steps: 28,
@@ -66,145 +85,60 @@ export default async function handler(req: any, res: any) {
         })
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      if (nvidiaResponse.ok) {
+        const data = await nvidiaResponse.json();
         const b64 = data?.artifacts?.[0]?.base64 || data?.data?.[0]?.b64_json || data?.b64_json || data?.image;
-        const url = data?.data?.[0]?.url;
         if (b64) {
+          console.log("[FUTURA SERVER] ✅ NVIDIA NIM returned image successfully");
           const prefix = b64.startsWith('data:image') ? '' : 'data:image/png;base64,';
           return res.status(200).json({ imageUrl: `${prefix}${b64}` });
-        } else if (url) {
-          try {
-            const imageB64 = await fetchImageAsBase64(url);
-            return res.status(200).json({ imageUrl: imageB64 });
-          } catch (urlErr) {
-            return res.status(200).json({ imageUrl: url });
-          }
+        }
+        const url = data?.data?.[0]?.url;
+        if (url) {
+          return res.status(200).json({ imageUrl: url });
         }
       } else {
-        const errText = await response.text();
-        console.error("[FUTURA SERVER] NVIDIA NIM error response:", response.status, errText);
+        console.warn("[FUTURA SERVER] NVIDIA NIM error:", nvidiaResponse.status);
       }
-    } catch (nvidiaErr) {
-      console.error("[FUTURA SERVER] Failed to query NVIDIA NIM API:", nvidiaErr);
+    } catch (nvidiaErr: any) {
+      console.warn("[FUTURA SERVER] NVIDIA NIM failed:", nvidiaErr?.message);
     }
-    // If it fails, we fall back to standard pipeline below
   }
 
+  // ═══════════════════════════════════════════
+  // PRIORITY 2: Gemini Nano Banana (generateContent with image output)
+  // ═══════════════════════════════════════════
   try {
-    const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
-    
-    // Optimize and translate prompt from Spanish to English using Gemini Flash
-    let englishPrompt = prompt;
-    try {
-      console.log(`[FUTURA SERVER] Translating/optimizing prompt: "${prompt}"`);
-      const transResponse = await getAiClient(customKey).models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: `You are an expert prompt engineer for AI image generators (FLUX/Imagen). Translate and optimize this Spanish image or logo design request into a clean, highly descriptive, professional English prompt.
-        - Translate all terms to English.
-        - Crucially, remove all conversational text, examples, notes, and meta-instructions (e.g., "Si tienes...", "por ejemplo...", "como referencia de vibra", list bullet points).
-        - Focus ONLY on describing the visual subject, style, composition, lighting, and colors.
-        - Return ONLY the optimized English prompt text. Do not add quotes or introductory sentences.
-        
-        Spanish Request: "${prompt}"`
-      });
-      if (transResponse.text) {
-        englishPrompt = transResponse.text.trim();
-        console.log(`[FUTURA SERVER] Optimized prompt: "${englishPrompt}"`);
-      }
-    } catch (transErr) {
-      console.warn("[FUTURA SERVER] Prompt optimization failed, using original prompt:", transErr);
-    }
+    console.log("[FUTURA SERVER] Trying Gemini Nano Banana (gemini-3.1-flash-image)...");
+    const ai = getAiClient(customKey);
+    const imageResponse = await ai.models.generateContent({
+      model: "gemini-3.1-flash-image",
+      contents: enhancedPrompt,
+    });
 
-    // Create an incredibly descriptive high-quality prompt wrapper
-    let enhancedPrompt = "";
-    if (isLogo) {
-      enhancedPrompt = `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid flat background, sharp vector wireframe balance, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. Suitable for luxury and high-converting modern digital brands. Strictly NO blurry gradients, NO complex drop shadows.`;
-    } else {
-      enhancedPrompt = `A high-resolution, premium editorial product photograph. ${englishPrompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling.`;
-    }
-
-    // Prohibit unrequested texts or gibberish that image generators often output
-    enhancedPrompt += " Ensure extremely high rendering quality with professional studio presentation. Strictly NO written text, misspelled generic words, garbled logos or letters unless requested.";
-
-    console.log(`[FUTURA SERVER] Final enhanced prompt sent to Imagen 3.0: "${enhancedPrompt}"`);
-
-    let response = null;
-    let quotaDetected = false;
-
-    // Use official Google GenAI Imagen 3.0 image generation model
-    try {
-      response = await callWithRetry(async () => {
-        return await getAiClient(customKey).models.generateImages({
-          model: "imagen-3.0-generate-002",
-          prompt: enhancedPrompt,
-          config: {
-            numberOfImages: 1,
-            aspectRatio: (aspectRatio || "1:1") as any,
-          },
-        });
-      }, 1, 1000);
-    } catch (modelErr: any) {
-      const errStr = (modelErr?.message || "").toLowerCase();
-      if (errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit")) {
-        quotaDetected = true;
-        console.log("[FUTURA] Imagen model hit quota/limits.");
-      } else {
-        console.warn("[FUTURA] imagen-3.0-generate-002 failed. Serving ultra-polished Vector SVG mockup fallback...", modelErr?.message || modelErr);
+    if (imageResponse?.candidates?.[0]?.content?.parts) {
+      for (const part of imageResponse.candidates[0].content.parts) {
+        if (part.inlineData && part.inlineData.data) {
+          const mime = part.inlineData.mimeType || "image/png";
+          console.log("[FUTURA SERVER] ✅ Gemini Nano Banana returned image successfully");
+          return res.status(200).json({ imageUrl: `data:${mime};base64,${part.inlineData.data}` });
+        }
       }
     }
-
-    let imageUrl: string | null = null;
-
-    // Parse image from generateImages response
-    if (response && response.generatedImages?.[0]?.imageBytes) {
-      imageUrl = `data:image/jpeg;base64,${response.generatedImages[0].imageBytes}`;
-    }
-
-    // Default elegant fallback if zero bytes found or quota was hit
-    if (!imageUrl || quotaDetected) {
-      try {
-        console.log(`[FUTURA SERVER] Falling back to Pollinations AI for prompt: ${prompt}`);
-        const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`;
-        imageUrl = await fetchImageAsBase64(pollinationsUrl);
-      } catch (pollinationsErr) {
-        console.error("[FUTURA] Pollinations fallback failed:", pollinationsErr);
-      }
-    }
-
-    if (!imageUrl) {
-      imageUrl = getContextualFallback(prompt, brandName, niche, colors, logoStyle, mockupType, customMockupDesc);
-    }
-
-    return res.status(200).json({ imageUrl });
-  } catch (error: any) {
-    const errStr = (error?.message || "").toLowerCase();
-    if (errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit")) {
-      console.log("[FUTURA] Server Image Generation rate/quota limited. Responding with elegant design placeholder.");
-    } else {
-      const cleanMsg = (error?.message || String(error)).slice(0, 100);
-      console.log("[FUTURA] Server Image Generation exception. Serving elegant design placeholder.", cleanMsg);
-    }
-    
-    let imageUrl: string | null = null;
-    try {
-      console.log(`[FUTURA SERVER ERROR FALLBACK] Falling back to Pollinations AI for prompt: ${prompt}`);
-      const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo");
-      let fallbackPrompt = isLogo 
-        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
-        : `A high-resolution, premium editorial product photograph. ${prompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
-      
-      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fallbackPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`;
-      imageUrl = await fetchImageAsBase64(pollinationsUrl);
-    } catch (pollinationsErr) {
-      console.error("[FUTURA] Pollinations fallback from catch failed, using SVG.", pollinationsErr);
-    }
-
-    if (!imageUrl) {
-      imageUrl = getContextualFallback(prompt, brandName, niche, colors, logoStyle, mockupType, customMockupDesc);
-    }
-    return res.status(200).json({ imageUrl });
+    console.warn("[FUTURA SERVER] Gemini Nano Banana responded but no image data in parts");
+  } catch (geminiErr: any) {
+    console.warn("[FUTURA SERVER] Gemini Nano Banana failed:", geminiErr?.message?.substring(0, 100));
   }
+
+  // ═══════════════════════════════════════════
+  // PRIORITY 3: Pollinations AI (return URL directly — browser loads it natively)
+  // NOTE: We do NOT download the image server-side (causes 429 rate-limit).
+  // Instead we return the URL and let the browser's <img> tag fetch it.
+  // ═══════════════════════════════════════════
+  console.log("[FUTURA SERVER] Returning Pollinations AI URL for browser-side rendering...");
+  const seed = Math.floor(Math.random() * 1000000);
+  const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&seed=${seed}&nologo=true`;
+  return res.status(200).json({ imageUrl: pollinationsUrl });
 }
 
 function getContextualFallback(

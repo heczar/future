@@ -733,10 +733,11 @@ export async function generateCreativeImage(
       console.warn("Client image model failed, falling back to Pollinations AI...", apiErr);
     }
 
-    try {
+    // Return Pollinations URL directly — the browser's <img> tag loads it natively.
+    // Do NOT try to fetch as blob (causes 429 rate-limit / 500 errors).
+    {
       const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
       
-      // Optimize and translate prompt from Spanish to English using client-side Gemini Flash
       let englishPrompt = prompt;
       try {
         const ai = getClientAi();
@@ -759,69 +760,10 @@ export async function generateCreativeImage(
         ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
         : `A high-resolution, premium editorial product photograph. ${englishPrompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
       
-      // Add a 30-second timeout to prevent hanging
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
-      const response = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(pollinationsPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`, {
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      
-      if (response.ok) {
-        const blob = await response.blob();
-        const base64Data = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = () => reject(new Error("Error reading image data"));
-          reader.readAsDataURL(blob);
-        });
-        return base64Data;
-      }
-    } catch (pollinationsErr) {
-      console.warn("Client Pollinations fallback failed, using Unsplash source fallback", pollinationsErr);
+      const seed = Math.floor(Math.random() * 1000000);
+      return `https://image.pollinations.ai/prompt/${encodeURIComponent(pollinationsPrompt)}?width=1024&height=1024&seed=${seed}&nologo=true`;
     }
 
-    // Final fallback: Unsplash source (always available, no API key, real photos)
-    const text = (prompt || "").toLowerCase();
-    const mappings: { [key: string]: string } = {
-      "dental": "dental,dentist,smile",
-      "dentist": "dental,dentist,smile",
-      "odontolo": "dental,dentist,clinic",
-      "cafe": "coffee,cafe,bean",
-      "coffee": "coffee,cafe,cup",
-      "gourmet": "gourmet,cuisine,food",
-      "food": "food,culinary,gourmet",
-      "comid": "food,culinary,dish",
-      "restauran": "restaurant,dining",
-      "tech": "technology,digital",
-      "software": "code,programming,developer",
-      "digital": "digital,abstract",
-      "belleza": "beauty,spa,cosmetics",
-      "spa": "spa,wellness,bamboo",
-      "cosmetic": "cosmetics,makeup,skincare",
-      "house": "architecture,interior,house",
-      "inmobil": "realestate,property,luxury-home",
-      "fitness": "fitness,gym",
-      "zapato": "shoes,sneakers,fashion",
-      "ropa": "clothing,fashion",
-      "moda": "fashion,style",
-      "auto": "car,automotive,sportscar",
-      "perro": "dog,cute-pet",
-      "gato": "cat,cute-pet",
-      "viaje": "travel,adventure,destination",
-      "playa": "beach,ocean,relax",
-      "hotel": "luxury-hotel,resort",
-      "marketing": "marketing,business,office",
-      "negocio": "business,workspace,meeting",
-      "salud": "health,wellness",
-      "logo": "abstract,geometric,minimal",
-      "brand": "branding,design,minimal",
-      "logotipo": "abstract,geometric,design",
-      "isotipo": "abstract,geometric,design"
-    };
-
-    return getDeterministicSimulationResponse("generateCreativeImage", { prompt });
   };
 
   const result = await executeWithFallback<string | null>(
@@ -829,104 +771,6 @@ export async function generateCreativeImage(
     payload,
     clientFallback
   );
-
-  // If the result is the local SVG fallback (meaning the server failed to generate a real image and fell back to vector mockup),
-  // let's intercept it and get a real image from NVIDIA NIM or Pollinations AI directly in the browser!
-  if (result && result.startsWith('data:image/svg+xml')) {
-    console.log("[FUTURA] Server returned SVG fallback. Intercepting...");
-    
-    // Check client-side NVIDIA key
-    const nvidiaKey = localStorage.getItem("user_nvidia_api_key") || "";
-    if (nvidiaKey.trim().length > 0) {
-      console.log("[FUTURA] Intercepted. Fetching real image from NVIDIA NIM directly...");
-      try {
-        const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
-        const cleanPrompt = isLogo 
-          ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
-          : `A high-resolution, premium editorial product photograph. ${prompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
-
-        const response = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${nvidiaKey.trim()}`,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-          },
-          body: JSON.stringify({
-            prompt: cleanPrompt,
-            aspect_ratio: aspectRatio || "1:1",
-            seed: Math.floor(Math.random() * 1000000),
-            num_inference_steps: 28,
-            guidance_scale: 3.5
-          })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const b64 = data?.artifacts?.[0]?.base64 || data?.data?.[0]?.b64_json || data?.b64_json || data?.image;
-          if (b64) {
-            const prefix = b64.startsWith('data:image') ? '' : 'data:image/png;base64,';
-            return `${prefix}${b64}`;
-          }
-        }
-      } catch (nvidiaErr) {
-        console.warn("Client NVIDIA interception fallback failed:", nvidiaErr);
-      }
-    }
-
-    // Default to Pollinations AI if no NVIDIA key is set or if it failed
-    console.log("[FUTURA] Fetching real image from Pollinations AI...");
-    try {
-      const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
-      
-      // Translate/optimize the prompt using client-side Gemini Flash
-      let englishPrompt = prompt;
-      try {
-        const ai = getClientAi();
-        const transResponse = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: {
-            parts: [{
-              text: `You are an expert prompt engineer. Translate and optimize this Spanish image or logo design request into a highly descriptive English prompt. Remove all conversational noise, instructions, examples. Return ONLY the optimized English visual description. Do not add quotes. Request: "${prompt}"`
-            }]
-          }
-        });
-        if (transResponse.candidates?.[0]?.content?.parts?.[0]?.text) {
-          englishPrompt = transResponse.candidates[0].content.parts[0].text.trim();
-        }
-      } catch (err) {
-        console.warn("Client prompt translation failed during interception:", err);
-      }
-
-      const pollinationsPrompt = isLogo 
-        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
-        : `A high-resolution, premium editorial product photograph. ${englishPrompt}. Soap/cosmetics clean bottle, minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
-      
-      // Add a 30-second timeout to prevent hanging
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
-      const response = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(pollinationsPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=false`, {
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      
-      if (response.ok) {
-        const blob = await response.blob();
-        const base64Data = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = () => reject(new Error("Error reading image data"));
-          reader.readAsDataURL(blob);
-        });
-        return base64Data;
-      }
-    } catch (pollinationsErr) {
-      console.warn("[FUTURA] Client Pollinations interception fallback failed:", pollinationsErr);
-    }
-
-    return getDeterministicSimulationResponse("generateCreativeImage", { prompt });
-  }
 
   return result;
 }

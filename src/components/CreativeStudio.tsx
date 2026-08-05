@@ -286,19 +286,44 @@ export default function CreativeStudio({
     }
   };
 
-  const handleDownloadImage = () => {
+  const handleDownloadImage = async () => {
     if (!generatedResult) return;
-    const link = document.createElement('a');
     const dateStr = new Date().toISOString().slice(0, 10);
     const isSvg = generatedResult.startsWith('data:image/svg+xml');
     const extension = isSvg ? 'svg' : (generationType === 'logos' ? 'png' : 'jpg');
     const filename = `futura-${generationType === 'logos' ? 'logo' : 'diseno'}-${dateStr}.${extension}`;
     
-    link.download = filename;
-    link.href = generatedResult;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // For base64 data URIs, download directly
+    if (generatedResult.startsWith('data:')) {
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = generatedResult;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+    
+    // For external URLs (e.g. Pollinations), fetch as blob then download
+    try {
+      const response = await fetch(generatedResult);
+      if (response.ok) {
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = blobUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+      } else {
+        // Fallback: open in new tab for manual save
+        window.open(generatedResult, '_blank');
+      }
+    } catch {
+      window.open(generatedResult, '_blank');
+    }
   };
 
   // ==========================================
