@@ -657,6 +657,7 @@ export async function generateCreativeImage(
 
   const clientFallback = async () => {
     // If NVIDIA API key is available client-side, query NVIDIA NIM directly from the browser!
+    const nvidiaKey = localStorage.getItem("user_nvidia_api_key") || "";
     const nvidiaKeys = (nvidiaKey || "").split(',').map(k => k.trim()).filter(Boolean);
     if (nvidiaKeys.length > 0) {
       console.log(`[FUTURA CLIENT] NVIDIA API Keys detected (${nvidiaKeys.length}). Trying direct NVIDIA NIM calls...`);
@@ -688,10 +689,23 @@ export async function generateCreativeImage(
           if (response.ok) {
             const data = await response.json();
             const b64 = data?.artifacts?.[0]?.base64 || data?.data?.[0]?.b64_json || data?.b64_json || data?.image;
-            if (b64) {
+            if (b64 && typeof b64 === 'string') {
               console.log(`[FUTURA CLIENT] ✅ Direct NVIDIA NIM key [${i + 1}] returned image successfully`);
-              const prefix = b64.startsWith('data:image') ? '' : 'data:image/png;base64,';
-              return `${prefix}${b64}`;
+              const cleanB64 = b64.replace(/\s/g, '');
+              if (cleanB64.startsWith('data:image')) {
+                return cleanB64;
+              }
+              let mime = 'image/png';
+              if (cleanB64.startsWith('/9j/')) {
+                mime = 'image/jpeg';
+              } else if (cleanB64.startsWith('iVBORw')) {
+                mime = 'image/png';
+              } else if (cleanB64.startsWith('R0lGOD')) {
+                mime = 'image/gif';
+              } else if (cleanB64.startsWith('PHN2Zy')) {
+                mime = 'image/svg+xml';
+              }
+              return `data:${mime};base64,${cleanB64}`;
             }
           }
         } catch (nvidiaErr) {

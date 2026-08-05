@@ -95,10 +95,23 @@ export default async function handler(req: any, res: any) {
         if (nvidiaResponse.ok) {
           const data = await nvidiaResponse.json();
           const b64 = data?.artifacts?.[0]?.base64 || data?.data?.[0]?.b64_json || data?.b64_json || data?.image;
-          if (b64) {
+          if (b64 && typeof b64 === 'string') {
             console.log(`[FUTURA SERVER] ✅ NVIDIA NIM key [${i + 1}] returned image successfully`);
-            const prefix = b64.startsWith('data:image') ? '' : 'data:image/png;base64,';
-            return res.status(200).json({ imageUrl: `${prefix}${b64}` });
+            const cleanB64 = b64.replace(/\s/g, '');
+            if (cleanB64.startsWith('data:image')) {
+              return res.status(200).json({ imageUrl: cleanB64 });
+            }
+            let mime = 'image/png';
+            if (cleanB64.startsWith('/9j/')) {
+              mime = 'image/jpeg';
+            } else if (cleanB64.startsWith('iVBORw')) {
+              mime = 'image/png';
+            } else if (cleanB64.startsWith('R0lGOD')) {
+              mime = 'image/gif';
+            } else if (cleanB64.startsWith('PHN2Zy')) {
+              mime = 'image/svg+xml';
+            }
+            return res.status(200).json({ imageUrl: `data:${mime};base64,${cleanB64}` });
           }
           const url = data?.data?.[0]?.url;
           if (url) {
