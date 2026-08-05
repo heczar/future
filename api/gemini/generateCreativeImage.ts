@@ -17,7 +17,10 @@ export default async function handler(req: any, res: any) {
   }
 
   const customKey = req.headers['x-gemini-api-key'] || "";
-  const nvidiaKey = req.headers['x-nvidia-api-key'] || process.env.NVIDIA_API_KEY || "";
+  let nvidiaKey = req.headers['x-nvidia-api-key'] || process.env.NVIDIA_API_KEY || "";
+  if (!nvidiaKey || nvidiaKey.trim().length < 5) {
+    nvidiaKey = "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,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";
+  }
   const { 
     prompt, 
     aspectRatio, 
@@ -130,12 +133,20 @@ export default async function handler(req: any, res: any) {
   }
 
   // ═══════════════════════════════════════════
-  // PRIORITY 2: Pollinations AI (return URL directly with free FLUX model)
+  // PRIORITY 2: High-Fidelity Local Vector SVG Fallback
   // ═══════════════════════════════════════════
-  console.log("[FUTURA SERVER] Returning Pollinations AI URL (FLUX) for browser-side rendering...");
-  const seed = Math.floor(Math.random() * 1000000);
-  const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
-  return res.status(200).json({ imageUrl: pollinationsUrl });
+  console.log("[FUTURA SERVER] NVIDIA keys exhausted. Generating dynamic SVG fallback...");
+  const svg = generateAdvancedDynamicSVG(
+    prompt,
+    brandName,
+    niche,
+    colors,
+    logoStyle,
+    mockupType,
+    customMockupDesc
+  );
+  const svgBase64 = Buffer.from(svg).toString('base64');
+  return res.status(200).json({ imageUrl: `data:image/svg+xml;base64,${svgBase64}` });
 }
 
 function getContextualFallback(

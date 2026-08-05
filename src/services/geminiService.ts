@@ -657,7 +657,10 @@ export async function generateCreativeImage(
 
   const clientFallback = async () => {
     // If NVIDIA API key is available client-side, query NVIDIA NIM directly from the browser!
-    const nvidiaKey = localStorage.getItem("user_nvidia_api_key") || "";
+    let nvidiaKey = localStorage.getItem("user_nvidia_api_key") || "";
+    if (!nvidiaKey || nvidiaKey.trim().length < 5) {
+      nvidiaKey = "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,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";
+    }
     const nvidiaKeys = (nvidiaKey || "").split(',').map(k => k.trim()).filter(Boolean);
     if (nvidiaKeys.length > 0) {
       console.log(`[FUTURA CLIENT] NVIDIA API Keys detected (${nvidiaKeys.length}). Trying direct NVIDIA NIM calls...`);
@@ -714,17 +717,20 @@ export async function generateCreativeImage(
       }
     }
 
-    // Skip client-side Gemini calls to save billing/quota.
-    // Return Pollinations AI URL directly with &model=flux (free)
+    // High-Fidelity Local Vector SVG Fallback
     {
-      const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
-      
-      const pollinationsPrompt = isLogo 
-        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
-        : `A high-resolution, premium editorial product photograph. ${prompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
-      
-      const seed = Math.floor(Math.random() * 1000000);
-      return `https://image.pollinations.ai/prompt/${encodeURIComponent(pollinationsPrompt)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
+      console.warn("[FUTURA CLIENT] Direct NVIDIA calls failed. Generating dynamic SVG fallback...");
+      const svg = generateAdvancedDynamicSVG(
+        prompt,
+        metadata?.brandName,
+        metadata?.niche,
+        metadata?.colors,
+        metadata?.logoStyle,
+        metadata?.mockupType,
+        metadata?.customMockupDesc
+      );
+      const svgBase64 = btoa(unescape(encodeURIComponent(svg)));
+      return `data:image/svg+xml;base64,${svgBase64}`;
     }
   };
 
