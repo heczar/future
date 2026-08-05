@@ -78,10 +78,9 @@ export default async function handler(req: any, res: any) {
         },
         body: JSON.stringify({
           prompt: enhancedPrompt,
-          aspect_ratio: aspectRatio || "1:1",
+          mode: "base",
           seed: Math.floor(Math.random() * 1000000),
-          num_inference_steps: 28,
-          guidance_scale: 3.5
+          steps: 28
         })
       });
 

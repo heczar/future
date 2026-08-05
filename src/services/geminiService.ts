@@ -675,10 +675,9 @@ export async function generateCreativeImage(
           },
           body: JSON.stringify({
             prompt: cleanPrompt,
-            aspect_ratio: aspectRatio || "1:1",
+            mode: "base",
             seed: Math.floor(Math.random() * 1000000),
-            num_inference_steps: 28,
-            guidance_scale: 3.5
+            steps: 28
           })
         });
 
