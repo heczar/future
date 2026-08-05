@@ -134,7 +134,7 @@ function getDeterministicSimulationResponse(apiEndpoint: string, payload: any): 
       : `A high resolution editorial commercial product photograph of ${rawPrompt}, studio soft lighting, sharp focus, 8k resolution, professional commercial styling, no watermark`;
 
     const randomSeed = Math.floor(Math.random() * 1000000);
-    return `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanEn)}?width=1024&height=1024&seed=${randomSeed}&nologo=true`;
+    return `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanEn)}?width=1024&height=1024&seed=${randomSeed}&model=flux&nologo=true`;
   }
 
   // 1. Sector recognition (supports Spanish NLP keywords)
@@ -695,75 +695,18 @@ export async function generateCreativeImage(
       }
     }
 
-    // We cannot easily run client-side Image Generation if keys are missing or model not activated on free tier.
-    // Instead we will try to make a safe call or trigger client SDK gemini-3.1-flash-image
-    const ai = getClientAi();
-    try {
-      const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo");
-      const clientPrompt = isLogo 
-        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. Strictly NO blurry gradients, NO complex drop shadows.`
-        : `A high-resolution, premium editorial product photograph. ${prompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling.`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3.1-flash-image",
-        contents: {
-          parts: [{ text: clientPrompt }]
-        },
-        config: {
-          imageConfig: {
-            aspectRatio: (aspectRatio || "1:1") as any,
-            imageSize: "1K"
-          }
-        }
-      });
-
-      let imgBytes = "";
-      if (response && response.candidates?.[0]?.content?.parts) {
-        for (const part of response.candidates[0].content.parts) {
-          if (part.inlineData) {
-            imgBytes = part.inlineData.data;
-            break;
-          }
-        }
-      }
-      if (imgBytes) {
-        return `data:image/jpeg;base64,${imgBytes}`;
-      }
-    } catch (apiErr) {
-      console.warn("Client image model failed, falling back to Pollinations AI...", apiErr);
-    }
-
-    // Return Pollinations URL directly — the browser's <img> tag loads it natively.
-    // Do NOT try to fetch as blob (causes 429 rate-limit / 500 errors).
+    // Skip client-side Gemini calls to save billing/quota.
+    // Return Pollinations AI URL directly with &model=flux (free)
     {
       const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
       
-      let englishPrompt = prompt;
-      try {
-        const ai = getClientAi();
-        const transResponse = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: {
-            parts: [{
-              text: `You are an expert prompt engineer. Translate and optimize this Spanish image or logo design request into a highly descriptive English prompt. Remove all conversational noise, instructions, examples (like "Si tienes...", "por ejemplo..."). Return ONLY the optimized English visual description. Do not add quotes. Request: "${prompt}"`
-            }]
-          }
-        });
-        if (transResponse.candidates?.[0]?.content?.parts?.[0]?.text) {
-          englishPrompt = transResponse.candidates[0].content.parts[0].text.trim();
-        }
-      } catch (err) {
-        console.warn("Client prompt translation failed:", err);
-      }
-
       const pollinationsPrompt = isLogo 
-        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
-        : `A high-resolution, premium editorial product photograph. ${englishPrompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
+        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
+        : `A high-resolution, premium editorial product photograph. ${prompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
       
       const seed = Math.floor(Math.random() * 1000000);
-      return `https://image.pollinations.ai/prompt/${encodeURIComponent(pollinationsPrompt)}?width=1024&height=1024&seed=${seed}&nologo=true`;
+      return `https://image.pollinations.ai/prompt/${encodeURIComponent(pollinationsPrompt)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
     }
-
   };
 
   const result = await executeWithFallback<string | null>(

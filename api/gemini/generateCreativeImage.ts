@@ -106,38 +106,11 @@ export default async function handler(req: any, res: any) {
   }
 
   // ═══════════════════════════════════════════
-  // PRIORITY 2: Gemini Nano Banana (generateContent with image output)
+  // PRIORITY 2: Pollinations AI (return URL directly with free FLUX model)
   // ═══════════════════════════════════════════
-  try {
-    console.log("[FUTURA SERVER] Trying Gemini Nano Banana (gemini-3.1-flash-image)...");
-    const ai = getAiClient(customKey);
-    const imageResponse = await ai.models.generateContent({
-      model: "gemini-3.1-flash-image",
-      contents: enhancedPrompt,
-    });
-
-    if (imageResponse?.candidates?.[0]?.content?.parts) {
-      for (const part of imageResponse.candidates[0].content.parts) {
-        if (part.inlineData && part.inlineData.data) {
-          const mime = part.inlineData.mimeType || "image/png";
-          console.log("[FUTURA SERVER] ✅ Gemini Nano Banana returned image successfully");
-          return res.status(200).json({ imageUrl: `data:${mime};base64,${part.inlineData.data}` });
-        }
-      }
-    }
-    console.warn("[FUTURA SERVER] Gemini Nano Banana responded but no image data in parts");
-  } catch (geminiErr: any) {
-    console.warn("[FUTURA SERVER] Gemini Nano Banana failed:", geminiErr?.message?.substring(0, 100));
-  }
-
-  // ═══════════════════════════════════════════
-  // PRIORITY 3: Pollinations AI (return URL directly — browser loads it natively)
-  // NOTE: We do NOT download the image server-side (causes 429 rate-limit).
-  // Instead we return the URL and let the browser's <img> tag fetch it.
-  // ═══════════════════════════════════════════
-  console.log("[FUTURA SERVER] Returning Pollinations AI URL for browser-side rendering...");
+  console.log("[FUTURA SERVER] Returning Pollinations AI URL (FLUX) for browser-side rendering...");
   const seed = Math.floor(Math.random() * 1000000);
-  const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&seed=${seed}&nologo=true`;
+  const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
   return res.status(200).json({ imageUrl: pollinationsUrl });
 }
 
@@ -162,7 +135,7 @@ function getContextualFallback(
     : `A high resolution editorial commercial product photograph of ${rawPrompt}, studio soft lighting, sharp focus, 8k resolution, professional commercial styling, no watermark`;
 
   const randomSeed = Math.floor(Math.random() * 1000000);
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanEn)}?width=1024&height=1024&seed=${randomSeed}&nologo=true`;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanEn)}?width=1024&height=1024&seed=${randomSeed}&model=flux&nologo=true`;
 }
 
 export function generateAdvancedDynamicSVG(
