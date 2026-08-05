@@ -39,29 +39,32 @@ export default async function handler(req: any, res: any) {
   // Build the English-optimized prompt
   let englishPrompt = prompt || "professional brand design";
   try {
-    console.log(`[FUTURA SERVER] Translating/optimizing prompt: "${prompt}"`);
+    console.log(`[FUTURA SERVER] Translating/optimizing prompt using Open Design aesthetics: "${prompt}"`);
     const transResponse = await getAiClient(customKey).models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `You are an expert prompt engineer for AI image generators (FLUX/Imagen). Translate and optimize this Spanish image or logo design request into a clean, highly descriptive, professional English prompt.
+      contents: `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX/Imagen).
+      Translate this Spanish request into a premium English prompt, reinforcing its creative design style using high-end tech-brand aesthetics:
       - Translate all terms to English.
-      - Remove all conversational text, examples, notes (e.g., "Si tienes...", "por ejemplo...").
-      - Focus ONLY on describing the visual subject, style, composition, lighting, and colors.
-      - Return ONLY the optimized English prompt text. No quotes, no introductory sentences.
+      - Remove conversational noise.
+      - Inject aesthetic rules: Clean spacing grid, high contrast, elegant typography, WCAG AA contrast ratio compliance, and refined visual hierarchy (inspired by Vercel/Linear/Stripe).
+      - For physical products: Use bright premium studio lighting, soft commercial shadows, and crisp lens focus.
+      - For brand marks/isotypes: Emphasize symmetrical geometry, flat vector art, and sharp lines.
+      - Return ONLY the optimized English visual description. No quotes, no intro text.
       
       Spanish Request: "${prompt}"`
     });
     if (transResponse.text) {
       englishPrompt = transResponse.text.trim();
-      console.log(`[FUTURA SERVER] Optimized prompt: "${englishPrompt}"`);
+      console.log(`[FUTURA SERVER] Optimized Open Design prompt: "${englishPrompt}"`);
     }
   } catch (transErr) {
     console.warn("[FUTURA SERVER] Prompt optimization failed, using original:", transErr);
   }
 
-  // Build enhanced prompt
+  // Build enhanced prompt using curated Open Design contracts
   const enhancedPrompt = isLogo
-    ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
-    : `A high-resolution, premium editorial product photograph. ${englishPrompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
+    ? `A professional corporate brand isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid background, symmetrical modern geometry, sleek vector curves, sharp flat edges, inspired by Linear design system. No text, no watermark, rule of thirds layout.`
+    : `A premium editorial commercial product photograph. ${englishPrompt}. Soft studio lighting, atmospheric depth, warm ambient shadows, high-contrast crisp details, sharp lens focus, premium commercial styling inspired by Stripe design language. No text, no watermark.`;
 
   // ═══════════════════════════════════════════
   // PRIORITY 1: NVIDIA NIM (with Key Rotation support)

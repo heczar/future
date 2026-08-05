@@ -87,10 +87,37 @@ const SKILL_INSTRUCTIONS: Record<string, string> = {
 - Define brand personality with 3-5 adjectives. Include Quick Reference Card.`,
 
   'video-social-short': `VIDEO SOCIAL SHORT SKILL (Open Design / HyperFrames):
-- Structure: Hook (0-3s) → Problem (3-8s) → Solution (8-20s) → CTA (20-30s).
+- Structure: Hook (0-3s) --> Problem (3-8s) --> Solution (8-20s) --> CTA (20-30s).
 - Hook types: Pattern interrupt, Bold claim, Before/After, "Wait for it", Direct question.
 - Include: Shot list, Text overlay cues, Music/SFX, Transitions.
-- Optimize: Sound-off (captions), Vertical 9:16, Loop-worthy endings.`
+- Optimize: Sound-off (captions), Vertical 9:16, Loop-worthy endings.`,
+
+  'stripe-aesthetic': `STRIPE AESTHETIC SKILL (Open Design):
+- Visual Direction: Ultra-premium light mode design with subtle, soft colorful gradient backdrops.
+- Styling: High-contrast typography (sans-serif like Inter or Outfit) combined with elegant offset panels.
+- Colors: Soft pastel tones (lavender, slate, warm cream, light indigo) paired with vibrant primary accents.
+- Composition: Dynamic angles (oblique grids, perspective shifts), thin borders (1px) with high opacity, and elegant drop shadows.
+- Photography: Bright, studio lighting, clean glass-morphic reflections, premium editorial styling.`,
+
+  'linear-aesthetic': `LINEAR AESTHETIC SKILL (Open Design):
+- Visual Direction: Dark mode layout with neon-accented borders and tactile glowing components.
+- Styling: Clean geometric structure, ultra-sharp vector corners, solid dark backgrounds (#0b0c10 or #080710).
+- Colors: Deep charcoal, midnight blue, slate gray, with localized glowing highlights in neon aqua, purple, or warm amber.
+- Composition: Flat, clean isometric mockups, symmetrical layouts, fine structural grid lines, high-contrast crisp text.
+- Details: Symmetrical geometry, sleek vector curves, sharp flat edges. Strictly no blurry gradients or watermarks.`,
+
+  'vercel-aesthetic': `VERCEL AESTHETIC SKILL (Open Design):
+- Visual Direction: Minimalist monochrome design (high-contrast black & white).
+- Styling: Flat geometry (triangles, rectangles), ultra-clean borders, heavy reliance on whitespace.
+- Colors: Pure white (#FFFFFF), deep black (#000000), light gray accents (#EAEAEA or #111111).
+- Typography: Monospace details (JetBrains Mono) for tags or metrics, combined with bold sans-serif headlines.
+- Composition: Asymmetrical framing, extreme simplicity, no decorative elements without direct structural purpose.`,
+
+  'design-contract': `DESIGN CONTRACT SKILL (Open Design - DESIGN.md):
+- Core concept: Treat design rules as a contract (DESIGN.md) for the visual output.
+- Parameters: Define exact HSL color tokens, typography hierarchy scales, spacing grids, and border radius formulas.
+- Rule: Always enforce the brand DNA (colors, niche, style) strictly onto the canvas or image prompt.
+- Layout: Align elements using standard visual divisions (Rule of Thirds, Golden Ratio).`
 };
 
 export function getSkillInstruction(skillName: string): string | null {
