@@ -185,7 +185,13 @@ export default function CreativeStudio({
     'Minimalista Orgánico',
     'Primer Plano Comercial nítido',
     'Fantasía Conceptual / Sci-Fi',
-    'Bodegón de Producto / Mockup Escénico'
+    'Bodegón de Producto / Mockup Escénico',
+    'Mockup de Camisetas / Ropa (Merchandising)',
+    'Mockup de Vasos y Tazas de Café',
+    'Mockup de Empaques y Cajas (Packaging)',
+    'Mockup de Bolsas de Papel / Tela (Tote)',
+    'Mockup de Valla / Letrero Comercial',
+    'Mockup de Dispositivos / Pantallas (UI)'
   ];
 
   // Helper to draw watermark logo client-side
@@ -342,9 +348,17 @@ export default function CreativeStudio({
       
       let fullPrompt = "";
       if (type === 'flyers') {
-        fullPrompt = `Diseño de flyer publicitario profesional y folleto de marketing digital para redes sociales. Tema: ${promptText}. Estilo visual y dirección de arte: ${styleName}. ${brandContext} Alta resolución, limpio, sin marcas de agua externas.`;
+        if (styleName.includes('Mockup') || styleName.includes('Maqueta') || styleName.includes('Poster')) {
+          fullPrompt = `A professional high-end graphic design flyer and advertisement mockup for ${promptText}. Art style: ${styleName}. Clean geometric grids, professional typography layout, realistic paper texture with subtle drop shadows, minimalist desk background.`;
+        } else {
+          fullPrompt = `Diseño de flyer publicitario profesional y folleto de marketing digital para redes sociales. Tema: ${promptText}. Estilo visual y dirección de arte: ${styleName}. ${brandContext} Alta resolución, limpio, sin marcas de agua externas.`;
+        }
       } else {
-        fullPrompt = `Fotografía comercial de producto premium y modelos profesionales. Sujeto/Concepto: ${promptText}. Estilo de render e iluminación de estudio: ${styleName}. ${brandContext} Alta resolución, enfoque nítido, sin textos escritos extraños ni marcas de agua.`;
+        if (styleName.startsWith('Mockup de')) {
+          fullPrompt = `A professional high-quality product branding mockup of ${promptText}. Visual style: ${styleName}. Clean minimalist studio background, soft realistic shadow casting, sharp focus, high-end commercial presentation, suitable for applying a logo.`;
+        } else {
+          fullPrompt = `Fotografía comercial de producto premium y modelos profesionales. Sujeto/Concepto: ${promptText}. Estilo de render e iluminación de estudio: ${styleName}. ${brandContext} Alta resolución, enfoque nítido, sin textos escritos extraños ni marcas de agua.`;
+        }
       }
 
       const colors = activeBrand?.brandGuidelines 
