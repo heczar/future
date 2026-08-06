@@ -171,7 +171,9 @@ export default function CreativeStudio({
     'Elegante y Minimalista (Luxury)',
     'Llamativo con Neón y Contraste (Eventos)',
     'Vectorial Limpio e Ilustrado',
-    'Estilo Banner Corporativo Limpio'
+    'Estilo Banner Corporativo Limpio',
+    'Maqueta de Folleto / Mockup Profesional',
+    'Póster Colgante / Hanging Poster'
   ];
 
   const productStyles = [
@@ -179,7 +181,8 @@ export default function CreativeStudio({
     'Estilo de Vida Urbano (Modelo)',
     'Minimalista Orgánico',
     'Primer Plano Comercial nítido',
-    'Fantasía Conceptual / Sci-Fi'
+    'Fantasía Conceptual / Sci-Fi',
+    'Bodegón de Producto / Mockup Escénico'
   ];
 
   // Helper to draw watermark logo client-side
