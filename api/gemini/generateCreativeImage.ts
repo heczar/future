@@ -78,18 +78,26 @@ export default async function handler(req: any, res: any) {
   let englishPrompt = prompt || "professional brand design";
   try {
     console.log(`[FUTURA SERVER] Translating/optimizing prompt using Open Design aesthetics: "${prompt}"`);
+    
+    const optimizerInstruction = isLogo
+      ? `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
+         Your job is to translate the user's logo request into a highly optimized English prompt for generating a graphic logo, isotype, monogram, symbol, or emblem.
+         MANDATORY RULES:
+         - The output MUST describe a graphic, vector-style icon, badge, monogram, or mark on a solid clean background.
+         - NEVER describe realistic rooms, interior spaces, offices, buildings, or realistic scenes, even if the user's business is about interior design, decoration, architecture, or real estate.
+         - Translate business concepts into abstract geometric symbols (e.g., for 'interior design' or 'decoracion de interiores', describe a symmetrical elegant geometric icon composed of clean intersecting lines or art deco shapes).
+         - Keep it minimal, corporate, and clean. No realistic physical environments.
+         - Return ONLY the optimized English visual description. No quotes, no explanations.`
+      : `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
+         Translate the user's design request into a premium English prompt for a photograph, flyer, or mockup.
+         MANDATORY RULES:
+         - If it's a mockup (e.g., t-shirt, cup, flyer mockup), describe a clean, realistic blank mockup template with soft shadows on a minimalist studio background, suitable for overlaying logos.
+         - If it's a product, describe a high-end commercial editorial product photograph with professional lighting and crisp focus.
+         - Return ONLY the optimized English visual description. No quotes, no explanations.`;
+
     const transResponse = await getAiClient(customKey).models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX/Imagen).
-      Translate this Spanish request into a premium English prompt, reinforcing its creative design style using high-end tech-brand aesthetics:
-      - Translate all terms to English.
-      - Remove conversational noise.
-      - Inject aesthetic rules: Clean spacing grid, high contrast, elegant typography, WCAG AA contrast ratio compliance, and refined visual hierarchy (inspired by Vercel/Linear/Stripe).
-      - For physical products: Use bright premium studio lighting, soft commercial shadows, and crisp lens focus.
-      - For brand marks/isotypes: Emphasize symmetrical geometry, flat vector art, and sharp lines.
-      - Return ONLY the optimized English visual description. No quotes, no intro text.
-      
-      Spanish Request: "${prompt}"`
+      contents: `${optimizerInstruction}\n\nSpanish Request: "${prompt}"`
     });
     if (transResponse.text) {
       englishPrompt = transResponse.text.trim();
