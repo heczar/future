@@ -76,6 +76,7 @@ export default function CreativeStudio({
 
   // Form State - Logos
   const [logoDescription, setLogoDescription] = useState('');
+  const [logoBrandName, setLogoBrandName] = useState('');
   const [selectedLogoStyle, setSelectedLogoStyle] = useState('Simétrico y Geométrico de Lujo');
 
   // Form State - Flyers
@@ -86,6 +87,10 @@ export default function CreativeStudio({
   // Form State - Products
   const [productPrompt, setProductPrompt] = useState('');
   const [selectedProductStyle, setSelectedProductStyle] = useState('Estudio Fotográfico Premium');
+
+  // Brand Creation States (post-generation)
+  const [isCreatingNewBrand, setIsCreatingNewBrand] = useState(false);
+  const [newBrandName, setNewBrandName] = useState('');
 
   // Set default brand vault on load
   useEffect(() => {
@@ -270,7 +275,7 @@ export default function CreativeStudio({
       await assertHasQuota(profile.id, profile.isPremium, 'image');
       setIsGenerating(true);
 
-      const brandName = activeBrand ? activeBrand.name : 'Mi Negocio';
+      const brandName = logoBrandName.trim() || (activeBrand ? activeBrand.name : 'Mi Negocio');
       const colors = activeBrand?.brandGuidelines 
         ? [
             { hex: activeBrand.brandGuidelines.primaryColor, name: 'Primario' },
@@ -425,6 +430,35 @@ export default function CreativeStudio({
     } catch (err) {
       console.error(err);
       alert('Error al asignar el logo a la marca.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCreateBrandAndSave = async () => {
+    if (!newBrandName.trim() || !generatedResult || !auth.currentUser || isSaving) return;
+    setIsSaving(true);
+    try {
+      const isLogoGen = generationType === 'logos';
+      const newProject = {
+        name: newBrandName,
+        description: `Misión: Dominar el nicho de mercado con impacto y efectividad.\nVisión: Sistema de conversión SPE.\nValores: Autenticidad, Métricas Claras.\nTono: Persuasivo de alta conversión.`,
+        logos: isLogoGen ? [generatedResult] : [],
+        trainingMaterial: isLogoGen ? [] : [generatedResult],
+        methodology: 'SPE',
+        ownerId: auth.currentUser.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      
+      const docRef = await addDoc(collection(db, 'projects'), newProject);
+      setSelectedBrandId(docRef.id);
+      setNewBrandName('');
+      setIsCreatingNewBrand(false);
+      alert(`¡Marca "${newProject.name}" creada y diseño vinculado con éxito!`);
+    } catch (err) {
+      console.error("Error creating brand and saving:", err);
+      alert("Error al crear la marca. Asegúrate de iniciar sesión.");
     } finally {
       setIsSaving(false);
     }
@@ -991,23 +1025,20 @@ export default function CreativeStudio({
               </button>
             </div>
 
-            {/* Select Brand Workspace */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-mono text-slate-400">Bóveda de Marca Activa</label>
-              <select
-                value={selectedBrandId}
-                onChange={(e) => setSelectedBrandId(e.target.value)}
-                className="w-full bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-brand-primary/40 cursor-pointer"
-              >
-                {projectsList.map((brand) => (
-                  <option key={brand.id} value={brand.id}>📁 {brand.name}</option>
-                ))}
-              </select>
-            </div>
-
             {generationType === 'logos' && (
               /* LOGO BUILDER FORM */
               <div className="space-y-4 pt-1">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-mono text-slate-400">Nombre de la Marca / Negocio</label>
+                  <input
+                    type="text"
+                    placeholder="Ejemplo: Café Místico"
+                    value={logoBrandName}
+                    onChange={(e) => setLogoBrandName(e.target.value)}
+                    className="w-full bg-[#090909] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors"
+                  />
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-mono text-slate-400">¿De qué es tu marca o negocio?</label>
                   <textarea
@@ -1512,15 +1543,15 @@ export default function CreativeStudio({
                 </div>
               </div>
             ) : generatedResult ? (
-              <div className="flex-1 flex flex-col min-h-0">
+              <div className="flex-1 flex flex-col min-h-0 overflow-y-auto pr-1 space-y-4 scrollbar-thin">
                 {generatedResult.startsWith('data:image/svg+xml;base64,') && (
-                  <div className="mb-3 p-3 bg-brand-primary/10 border border-brand-primary/20 rounded-xl text-[10px] text-brand-primary font-bold uppercase tracking-wider flex items-center justify-center gap-2 text-center">
+                  <div className="p-3 bg-brand-primary/10 border border-brand-primary/20 rounded-xl text-[10px] text-brand-primary font-bold uppercase tracking-wider flex items-center justify-center gap-2 text-center shrink-0">
                     <Info className="w-4 h-4 shrink-0" />
                     <span>Diseño vectorial de muestra. Intenta de nuevo para renderizar versión fotorrealista.</span>
                   </div>
                 )}
                 {/* Image Display */}
-                <div className="flex-1 bg-[#090909] border border-white/10 rounded-xl overflow-hidden flex items-center justify-center p-3 relative group">
+                <div className="w-full aspect-square max-h-[350px] bg-[#090909] border border-white/10 rounded-xl overflow-hidden flex items-center justify-center p-3 relative group shrink-0">
                   <img
                     src={generatedResult}
                     alt="IA Output"
@@ -1529,12 +1560,12 @@ export default function CreativeStudio({
                 </div>
 
                 {/* Actions Bar */}
-                <div className="flex gap-2.5 mt-4 shrink-0 flex-wrap sm:flex-nowrap">
+                <div className="flex gap-2 mt-1 shrink-0 flex-wrap">
                   <button
                     onClick={() => setIsEditingInCanvas(true)}
-                    className="flex-1 min-w-[100px] py-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 border border-white/5 cursor-pointer"
+                    className="flex-1 min-w-[90px] py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 border border-white/5 cursor-pointer"
                   >
-                    <Edit3 className="w-4 h-4 text-brand-primary" />
+                    <Edit3 className="w-3.5 h-3.5 text-brand-primary" />
                     <span>Editar</span>
                   </button>
                   
@@ -1542,9 +1573,9 @@ export default function CreativeStudio({
                     <button
                       onClick={handleSetAsOfficialLogo}
                       disabled={isSaving}
-                      className="flex-1 min-w-[120px] py-3 bg-[#0a0a0a] border border-brand-primary/20 hover:bg-brand-primary/10 text-brand-primary disabled:opacity-40 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                      className="flex-1 min-w-[110px] py-2.5 bg-[#0a0a0a] border border-brand-primary/20 hover:bg-brand-primary/10 text-brand-primary disabled:opacity-40 rounded-xl text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                     >
-                      <Check className="w-4 h-4" />
+                      <Check className="w-3.5 h-3.5" />
                       <span>Logo Oficial</span>
                     </button>
                   )}
@@ -1552,29 +1583,29 @@ export default function CreativeStudio({
                   <button
                     onClick={handleSaveToGallery}
                     disabled={isSaving}
-                    className="flex-1 min-w-[120px] py-3 bg-[#0a0a0a] border border-white/10 hover:bg-white/5 text-slate-300 disabled:opacity-40 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 min-w-[90px] py-2.5 bg-[#0a0a0a] border border-white/10 hover:bg-white/5 text-slate-300 disabled:opacity-40 rounded-xl text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     {isSaving ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-primary" />
                     ) : (
-                      <Save className="w-4 h-4 text-brand-primary" />
+                      <Save className="w-3.5 h-3.5 text-brand-primary" />
                     )}
                     <span>A Galería</span>
                   </button>
                   
                   {/* Enviar a Marca Dropdown */}
-                  <div className="relative flex-1 min-w-[120px]">
+                  <div className="relative flex-1 min-w-[90px]">
                     <button
                       onClick={() => setShowBrandSelector(!showBrandSelector)}
                       disabled={isSendingToBrand}
-                      className="w-full py-3 bg-[#0a0a0a] border border-white/10 hover:bg-white/5 text-slate-300 disabled:opacity-40 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full py-2.5 bg-[#0a0a0a] border border-white/10 hover:bg-white/5 text-slate-300 disabled:opacity-40 rounded-xl text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       {isSendingToBrand ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-primary" />
                       ) : (
-                        <Briefcase className="w-4 h-4 text-brand-primary" />
+                        <Briefcase className="w-3.5 h-3.5 text-brand-primary" />
                       )}
-                      <span>A Marca</span>
+                      <span>A Bóveda</span>
                     </button>
                     
                     {showBrandSelector && (
@@ -1605,11 +1636,171 @@ export default function CreativeStudio({
 
                   <button
                     onClick={handleDownloadImage}
-                    className="flex-1 min-w-[120px] py-3 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 min-w-[95px] py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <Download className="w-4 h-4" />
+                    <Download className="w-3.5 h-3.5" />
                     <span>Descargar</span>
                   </button>
+                </div>
+
+                {/* BRAND BINDING & CREATION BLOCK */}
+                <div className="border-t border-white/5 pt-4 space-y-4 shrink-0">
+                  <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[11px] font-mono font-bold text-slate-300 uppercase tracking-wider">
+                        Vincular a Bóveda de Marca
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => setIsCreatingNewBrand(!isCreatingNewBrand)}
+                        className="text-[10px] text-brand-primary hover:text-brand-primary/80 font-bold underline cursor-pointer"
+                      >
+                        {isCreatingNewBrand ? "Ver existentes" : "+ Crear Nueva Marca"}
+                      </button>
+                    </div>
+
+                    {isCreatingNewBrand ? (
+                      /* Create New Brand Flow */
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-mono text-slate-500">Nombre de la Nueva Marca</label>
+                          <input
+                            type="text"
+                            placeholder="Ej. Café Ritual"
+                            value={newBrandName}
+                            onChange={(e) => setNewBrandName(e.target.value)}
+                            className="w-full bg-[#090909] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary/40"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleCreateBrandAndSave}
+                          disabled={!newBrandName.trim() || isSaving}
+                          className="w-full py-2 bg-brand-primary hover:bg-brand-primary/95 text-white disabled:opacity-40 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                        >
+                          {isSaving ? "Creando..." : "Crear y Vincular Diseño"}
+                        </button>
+                      </div>
+                    ) : (
+                      /* Bind to Existing Brand Flow */
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-mono text-slate-500">Seleccionar Marca Existente</label>
+                          <select
+                            value={selectedBrandId}
+                            onChange={(e) => setSelectedBrandId(e.target.value)}
+                            className="w-full bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2 outline-none focus:border-brand-primary/40 cursor-pointer"
+                          >
+                            <option value="">-- Elige una Marca --</option>
+                            {projectsList.map((brand) => (
+                              <option key={brand.id} value={brand.id}>📁 {brand.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {selectedBrandId && (
+                          <div className="flex gap-2">
+                            {generationType === 'logos' && (
+                              <button
+                                type="button"
+                                onClick={handleSetAsOfficialLogo}
+                                disabled={isSaving}
+                                className="flex-1 py-2 bg-brand-primary/10 border border-brand-primary text-brand-primary hover:bg-brand-primary/20 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                              >
+                                Asignar Logo Oficial
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleSendToBrand(selectedBrandId)}
+                              disabled={isSaving}
+                              className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                            >
+                              Guardar en Referencias
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Watermarking controls inside result block if logo available */}
+                  {selectedBrandId && activeBrand?.logos && activeBrand.logos.length > 0 && (
+                    <div className="bg-[#0c0c0c] border border-white/5 rounded-xl p-3.5 space-y-3.5">
+                      <div className="flex items-center justify-between select-none">
+                        <label className="text-[11px] font-mono text-slate-400 cursor-pointer flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={applyLogo}
+                            onChange={(e) => setApplyLogo(e.target.checked)}
+                            className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary"
+                          />
+                          <span>Aplicar Logo de Marca ({activeBrand.name})</span>
+                        </label>
+                      </div>
+
+                      {applyLogo && (
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-mono text-slate-500">Posición del Logo</label>
+                            <div className="grid grid-cols-2 gap-1">
+                              {[
+                                { id: 'top-left', label: 'Arriba Izq' },
+                                { id: 'top-right', label: 'Arriba Der' },
+                                { id: 'bottom-left', label: 'Abajo Izq' },
+                                { id: 'bottom-right', label: 'Abajo Der' }
+                              ].map(pos => (
+                                <button
+                                  key={pos.id}
+                                  type="button"
+                                  onClick={() => setLogoPosition(pos.id as any)}
+                                  className={cn(
+                                    "py-1 rounded text-[9px] font-mono border text-center transition-all cursor-pointer",
+                                    logoPosition === pos.id
+                                      ? "bg-brand-primary/10 border-brand-primary text-white"
+                                      : "bg-black/10 border-white/5 text-slate-500 hover:text-slate-300"
+                                  )}
+                                >
+                                  {pos.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[9px] font-mono text-slate-500">
+                              <span>Opacidad</span>
+                              <span>{Math.round(logoOpacity * 100)}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="0.1"
+                              max="1"
+                              step="0.05"
+                              value={logoOpacity}
+                              onChange={(e) => setLogoOpacity(parseFloat(e.target.value))}
+                              className="w-full accent-brand-primary h-1"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[9px] font-mono text-slate-500">
+                              <span>Tamaño</span>
+                              <span>{logoSizePercent}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="8"
+                              max="35"
+                              step="1"
+                              value={logoSizePercent}
+                              onChange={(e) => setLogoSizePercent(parseInt(e.target.value))}
+                              className="w-full accent-brand-primary h-1"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
