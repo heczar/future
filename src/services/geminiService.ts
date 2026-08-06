@@ -441,11 +441,16 @@ async function executeWithFallback<T>(
         headers["x-nvidia-api-key"] = nvidiaKey.trim();
       }
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 9500); // 9.5 seconds timeout
+
       const res = await fetch(apiEndpoint, {
         method: "POST",
         headers,
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       // 404 indicates server route is not present (standard static host like Vercel)
       if (res.status === 404) {
@@ -720,9 +725,41 @@ export async function generateCreativeImage(
       }
     }
 
-    // High-Fidelity Local Vector SVG Fallback
+    // Direct Pollinations FLUX Fallback from the browser
+    try {
+      console.warn("[FUTURA CLIENT] Direct NVIDIA calls failed. Trying direct browser Pollinations FLUX fallback...");
+      const seed = Math.floor(Math.random() * 1000000);
+      const isLogo = (prompt || "").toLowerCase().includes("logo") || (prompt || "").toLowerCase().includes("icon") || (prompt || "").toLowerCase().includes("symbol") || (prompt || "").toLowerCase().includes("isotipo") || (prompt || "").toLowerCase().includes("logotipo");
+      
+      const cleanPrompt = isLogo 
+        ? `A premium professional corporate brand logo isotype, flat vector design graphic, ultra-minimalist style. ${prompt}. Clean solid flat background, modern logo system, symmetrical geometry, sleek vector curves, sharp edges. No text, no watermark.`
+        : `A high-resolution, premium editorial product photograph. ${prompt}. Minimalist setup, studio soft lighting, moody atmospheric depth, warm ambient shadows, high-contrast details, sharp focus, premium commercial styling. No text, no watermark.`;
+
+      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
+      const response = await fetch(pollinationsUrl);
+      if (response.ok) {
+        const blob = await response.blob();
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (reader.result && typeof reader.result === 'string') {
+              console.log("[FUTURA CLIENT] ✅ Direct browser Pollinations FLUX returned image successfully");
+              resolve(reader.result);
+            } else {
+              reject(new Error("Empty reader result"));
+            }
+          };
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(blob);
+        });
+      }
+    } catch (pollErr) {
+      console.warn("[FUTURA CLIENT] Direct browser Pollinations fallback failed:", pollErr);
+    }
+
+    // High-Fidelity Local Vector SVG Fallback (Last Resort)
     {
-      console.warn("[FUTURA CLIENT] Direct NVIDIA calls failed. Generating dynamic SVG fallback...");
+      console.warn("[FUTURA CLIENT] All image engines exhausted. Generating dynamic SVG fallback...");
       const svg = generateAdvancedDynamicSVG(
         prompt,
         metadata?.brandName,
