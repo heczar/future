@@ -293,7 +293,7 @@ export default function CreativeStudio({
       return;
     }
 
-    if (applyLogo && customUploadedLogo) {
+    if (applyLogo && customUploadedLogo && generationType !== 'logos') {
       applyBrandLogoOverlay(rawImageResult, customUploadedLogo, logoPosition, logoOpacity, logoSizePercent)
         .then(composited => {
           if (active) setGeneratedResult(composited);
@@ -305,7 +305,7 @@ export default function CreativeStudio({
     return () => {
       active = false;
     };
-  }, [rawImageResult, applyLogo, logoPosition, logoOpacity, logoSizePercent, customUploadedLogo]);
+  }, [rawImageResult, applyLogo, logoPosition, logoOpacity, logoSizePercent, customUploadedLogo, generationType]);
 
   // ==========================================
   // IA GENERATION FUNCTIONS
@@ -633,8 +633,8 @@ export default function CreativeStudio({
           internalCanvas.add(img);
           internalCanvas.sendToBack(img);
 
-          // Add active brand logo as a layer if available
-          if (customUploadedLogo) {
+          // Add active brand logo as a layer if available (only for flyers and products)
+          if (customUploadedLogo && generationType !== 'logos') {
              const isBase64 = customUploadedLogo.startsWith('data:');
              fabric.Image.fromURL(customUploadedLogo, (logoImg) => {
                if (!internalCanvas) return;
@@ -1876,8 +1876,8 @@ export default function CreativeStudio({
                     )}
                   </div>
 
-                  {/* Watermarking controls inside result block if logo available */}
-                  {customUploadedLogo && (
+                  {/* Watermarking controls inside result block if logo available (only for flyers and products) */}
+                  {customUploadedLogo && generationType !== 'logos' && (
                     <div className="bg-[#0c0c0c] border border-white/5 rounded-xl p-3.5 space-y-3.5">
                       <div className="flex items-center justify-between select-none">
                         <label className="text-[11px] font-mono text-slate-400 cursor-pointer flex items-center gap-2">
