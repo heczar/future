@@ -163,7 +163,10 @@ export default function CreativeStudio({
     'Tecnológico Moderno',
     'Heráldico / Emblema Corporativo',
     'Modern Bold Streetwear (Urbano)',
-    'Vintage / Industrial Rústico'
+    'Vintage / Industrial Rústico',
+    'Mascota / Esports Gaming (Ilustrado)',
+    'Letrero Metálico 3D / Relieve en Textura',
+    'Sello Circular / Insignia de Negocio'
   ];
 
   const flyerStyles = [
