@@ -799,6 +799,82 @@ export async function generateCreativeImage(
   };
 
   const clientFallback = async () => {
+    // 1. Direct DeepInfra FLUX call from browser if key is available
+    const deepinfraKey = localStorage.getItem("user_deepinfra_api_key") || ((import.meta as any).env?.VITE_DEEPINFRA_API_KEY) || "";
+    if (deepinfraKey && deepinfraKey.trim().length > 5) {
+      console.log("[FUTURA CLIENT] Trying direct browser DeepInfra FLUX call...");
+      try {
+        const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
+        const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors);
+        const cleanPrompt = `${prefix} ${prompt}. ${suffix}`;
+
+        const response = await fetch("https://api.deepinfra.com/v1/openai/images/generations", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${deepinfraKey.trim()}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "black-forest-labs/FLUX-1-schnell",
+            prompt: cleanPrompt,
+            size: "1024x1024",
+            n: 1,
+            response_format: "b64_json"
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const b64 = data?.data?.[0]?.b64_json;
+          if (b64 && typeof b64 === 'string') {
+            console.log("[FUTURA CLIENT] ✅ Direct browser DeepInfra FLUX returned image successfully");
+            return `data:image/jpeg;base64,${b64.replace(/\s/g, '')}`;
+          }
+        }
+      } catch (err) {
+        console.warn("Direct browser DeepInfra FLUX call failed:", err);
+      }
+    }
+
+    // 2. Direct Together AI FLUX call from browser if key is available
+    const togetherKey = localStorage.getItem("user_together_api_key") || ((import.meta as any).env?.VITE_TOGETHER_API_KEY) || "";
+    if (togetherKey && togetherKey.trim().length > 5) {
+      console.log("[FUTURA CLIENT] Trying direct browser Together AI FLUX call...");
+      try {
+        const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
+        const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors);
+        const cleanPrompt = `${prefix} ${prompt}. ${suffix}`;
+
+        const response = await fetch("https://api.together.ai/v1/images/generations", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${togetherKey.trim()}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "black-forest-labs/FLUX.1-schnell",
+            prompt: cleanPrompt,
+            width: 1024,
+            height: 1024,
+            steps: 4,
+            n: 1,
+            response_format: "b64_json"
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const b64 = data?.data?.[0]?.b64_json;
+          if (b64 && typeof b64 === 'string') {
+            console.log("[FUTURA CLIENT] ✅ Direct browser Together AI FLUX returned image successfully");
+            return `data:image/jpeg;base64,${b64.replace(/\s/g, '')}`;
+          }
+        }
+      } catch (err) {
+        console.warn("Direct browser Together AI FLUX call failed:", err);
+      }
+    }
+
     // If NVIDIA API key is available client-side, query NVIDIA NIM directly from the browser!
     let nvidiaKey = localStorage.getItem("user_nvidia_api_key") || "";
     if (!nvidiaKey || nvidiaKey.trim().length < 5) {
