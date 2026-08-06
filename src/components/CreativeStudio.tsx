@@ -374,7 +374,8 @@ export default function CreativeStudio({
         niche: promptText,
         colors,
         referenceImage: referenceImage || undefined,
-        generationType: type
+        generationType: type,
+        mockupType: type === 'flyers' ? selectedFlyerStyle : selectedProductStyle
       });
 
       if (result) {

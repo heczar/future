@@ -82,6 +82,139 @@ export default async function handler(req: any, res: any) {
     }
   }
 
+  // Helper to wrap prompts based on design style and brand color palette
+  function getStyledPromptWrappers(
+    generationType: 'logos' | 'flyers' | 'products' | undefined,
+    styleName: string | undefined,
+    colors?: { hex: string; name: string }[]
+  ): { prefix: string; suffix: string } {
+    let prefix = "";
+    let suffix = "";
+
+    // Prepare color instruction if available
+    let colorInstruction = "";
+    if (colors && colors.length > 0) {
+      const colorDesc = colors.map(c => `${c.name} (${c.hex})`).join(", ");
+      colorInstruction = `Use a professional color palette featuring: ${colorDesc}.`;
+    }
+
+    const isLogo = generationType === 'logos';
+    const isFlyer = generationType === 'flyers';
+
+    if (isLogo) {
+      const style = styleName || "";
+      if (style.includes("Simétrico") || style.includes("Geométrico")) {
+        prefix = "A premium luxury symmetrical corporate logo, minimal geometric icon.";
+        suffix = `Modern clean geometry, sleek curves, sharp edges, dark solid background, vector graphic style, premium corporate branding. ${colorInstruction} No text, no watermark, rule of thirds layout.`;
+      } else if (style.includes("Monograma") || style.includes("Siglas")) {
+        prefix = "A sophisticated luxury typographic monogram logo design, clean monogram isotype.";
+        suffix = `Elegant modern typography, interlocking initials, clean solid background, minimal vector branding, high-end design. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Orgánico") || style.includes("Natural") || style.includes("Botánico")) {
+        prefix = "A delicate organic botanical branding icon, hand-drawn vector logo.";
+        suffix = `Minimalist floral illustration, fine lines, raw aesthetic, solid background, clean vector graphics, boutique branding. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Tecnológico")) {
+        prefix = "A futuristic tech logo isotype, cybernetic network node symbol.";
+        suffix = `Neon accent glow, modern geometric shapes, high-tech abstract symbol, dark background, vector art, sleek digital branding. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Heráldico") || style.includes("Emblema")) {
+        prefix = "A classic heraldic shield emblem logo, minimalist corporate coat of arms.";
+        suffix = `Symmetrical luxury shield badge, bold lines, professional corporate authority, solid clean background, vector style, elite branding. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Streetwear") || style.includes("Urbano")) {
+        prefix = "A bold streetwear fashion badge logo, urban culture brand design.";
+        suffix = `Edgy modern typography, raw graphic icon, high-contrast, modern streetwear clothing label aesthetic, vector style, solid background. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Vintage") || style.includes("Industrial")) {
+        prefix = "A vintage industrial badge logo design, retro heritage stamp emblem.";
+        suffix = `Distressed texture, classic typography, rustic design elements, vector illustration, solid background, authentic craft brand. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Mascota") || style.includes("Esports") || style.includes("Ilustrado")) {
+        prefix = "An esports mascot gaming vector logo, bold character illustration.";
+        suffix = `Dynamic action pose, vibrant colors, thick outlines, gaming team crest style, vector mascot art, solid background, high-contrast detail. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Letrero Metálico") || style.includes("3D") || style.includes("Relieve")) {
+        prefix = "A realistic 3D metallic logo sign, premium embossed logo, depth perspective.";
+        suffix = `Polished chrome and gold metal reflections, realistic bevel edges, cast shadows, mounted on a textured luxury dark grey marble wall, architectural presentation mockup, studio spot lighting. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Sello Circular") || style.includes("Insignia")) {
+        prefix = "A professional circular seal logo badge, corporate warranty stamp.";
+        suffix = `Concentric rings, clean typography, business authority, flat vector design, solid background. ${colorInstruction} No text, no watermark.`;
+      } else {
+        // Default Logo
+        prefix = "A professional corporate brand isotype, flat vector design graphic, ultra-minimalist style.";
+        suffix = `Clean solid background, symmetrical modern geometry, sleek vector curves, sharp flat edges, inspired by premium design systems. ${colorInstruction} No text, no watermark, rule of thirds layout.`;
+      }
+    } else if (isFlyer) {
+      const style = styleName || "";
+      if (style.includes("Moderno") && style.includes("Negocios")) {
+        prefix = "A professional high-end corporate business flyer design.";
+        suffix = `Clean modern layout, structured text columns, professional layout, geometric design elements, high-contrast, marketing presentation. ${colorInstruction} No text watermark.`;
+      } else if (style.includes("Elegante") || style.includes("Minimalista") || style.includes("Luxury")) {
+        prefix = "A luxury minimalist flyer design, premium editorial advertisement layout.";
+        suffix = `Clean high-end typography layout, spacious margins, sophisticated composition, high-contrast detail, aesthetic editorial styling. ${colorInstruction} No text watermark.`;
+      } else if (style.includes("Llamativo") || style.includes("Neón")) {
+        prefix = "A vibrant nightclub event flyer design, modern party poster.";
+        suffix = `Neon glowing accents, high-contrast dark background, energetic typography layout, modern party layout, digital flyer. ${colorInstruction} No text watermark.`;
+      } else if (style.includes("Vectorial") || style.includes("Ilustrado")) {
+        prefix = "An illustrated creative vector flyer design, artistic marketing layout.";
+        suffix = `Clean vector illustrations, creative shapes, playful modern layout, flat design, creative marketing banner. ${colorInstruction} No text watermark.`;
+      } else if (style.includes("Banner")) {
+        prefix = "A clean corporate marketing banner layout, professional ad design.";
+        suffix = `Balanced alignment, modern professional design, call-to-actions placeholders, business color palette. ${colorInstruction} No text watermark.`;
+      } else if (style.includes("Folleto") || style.includes("Mockup")) {
+        prefix = "A professional paper flyer mockup template, branding showcase.";
+        suffix = `An A4 paper flyer sheet lying flat on a minimalist concrete table surface, soft ambient shadows, photo-realistic paper texture, professional branding showcase. ${colorInstruction} No text watermark.`;
+      } else if (style.includes("Póster") || style.includes("Colgante") || style.includes("Hanging")) {
+        prefix = "A premium vertical poster mockup template, design showcase.";
+        suffix = `A poster sheet hanging from small metal clips on a clean raw concrete wall, realistic paper curl and wrinkles, subtle drop shadows, professional design showcase. ${colorInstruction} No text watermark.`;
+      } else {
+        // Default Flyer
+        prefix = "A high-end professional graphic design layout flyer and digital advertisement.";
+        suffix = `Modern layout, balanced spacing, clean alignment, high-contrast details. ${colorInstruction} No text watermark, ready for marketing production.`;
+      }
+    } else {
+      // Products / Mockups
+      const style = styleName || "";
+      if (style.includes("Ropa") || style.includes("Camisetas") || style.includes("Merchandising")) {
+        prefix = "A professional high-quality blank apparel merchandising mockup template.";
+        suffix = `A clean blank t-shirt or clothing item lying flat on a neutral background or displayed in a minimalist studio setting, realistic fabric wrinkles, soft shadows, ready for branding logo placement. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Vasos") || style.includes("Café") || style.includes("Coffee Cup")) {
+        prefix = "A professional blank coffee cup mockup template.";
+        suffix = `A matte paper coffee cup standing on a minimalist wooden counter, neutral studio background, realistic paper texture, soft shadows, perfect for applying a brand logo. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Empaques") || style.includes("Cajas") || style.includes("Packaging")) {
+        prefix = "A premium luxury blank packaging box mockup template.";
+        suffix = `A clean cardboard box standing in a studio setting, matte finish, realistic paper texture, soft drop shadow, neutral studio background. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Bolsas") || style.includes("Tote")) {
+        prefix = "A professional blank paper shopping bag mockup template.";
+        suffix = `Clean paper shopping bag with handles standing on a minimalist studio surface, soft shadows, realistic texture, suitable for overlaying logos. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Valla") || style.includes("Letrero")) {
+        prefix = "A realistic highway billboard mockup template, or urban store signage mockup.";
+        suffix = `Clean blank metal frame billboard in a modern city street, daytime, soft lighting, sharp focus, photo-realistic environment. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Dispositivos") || style.includes("Pantallas") || style.includes("UI")) {
+        prefix = "A premium mobile app UI mockup, branding screen preview.";
+        suffix = `A modern smartphone displaying a blank screen or minimalist screen design, lying on a desk with aesthetic props, cozy ambient lighting, sharp focus. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Estudio Fotográfico Premium")) {
+        prefix = "A professional studio product photograph of a commercial item.";
+        suffix = `Soft lighting, minimalist solid background, realistic shadow, sharp lens focus, studio lighting, commercial design presentation. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Estilo de Vida")) {
+        prefix = "An editorial streetwear lifestyle photograph.";
+        suffix = `A professional model wearing the commercial apparel in a clean modern city street background, natural lighting, sharp lens focus, editorial style. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Minimalista Orgánico")) {
+        prefix = "A minimalist organic product photograph.";
+        suffix = `Wood and stone textures, natural leaves, warm ambient lighting, high-contrast details, organic aesthetic. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Primer Plano")) {
+        prefix = "A crisp macro close-up commercial product photograph.";
+        suffix = `Focus on texture, material detail, professional studio lighting, macro lens. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Fantasía Conceptual")) {
+        prefix = "A conceptual futuristic sci-fi product presentation.";
+        suffix = `Holographic details, cybernetic environment, dramatic neon lighting, epic styling, creative conceptual background. ${colorInstruction} No text, no watermark.`;
+      } else if (style.includes("Bodegón") || style.includes("Mockup Escénico")) {
+        prefix = "A premium scenic product staging photograph, mockup scene.";
+        suffix = `Clean minimalist geometric blocks, elegant arrangement, studio drop shadows, product presentation. ${colorInstruction} No text, no watermark.`;
+      } else {
+        // Default Product
+        prefix = "A premium editorial commercial product photograph or branding mockup template.";
+        suffix = `Soft studio lighting, atmospheric depth, warm ambient shadows, high-contrast crisp details, sharp lens focus, premium commercial styling. ${colorInstruction} No text, no watermark.`;
+      }
+    }
+
+    return { prefix, suffix };
+  }
+
   // Build the English-optimized prompt
   let englishPrompt = prompt || "professional brand design";
   try {
@@ -89,29 +222,35 @@ export default async function handler(req: any, res: any) {
     
     let optimizerInstruction = "";
     if (isLogo) {
+      const is3D = logoStyle && (logoStyle.includes("3D") || logoStyle.includes("Relieve") || logoStyle.includes("Letrero"));
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
-         Your job is to translate the user's logo request into a highly optimized English prompt for generating a graphic logo, isotype, monogram, symbol, or emblem.
+         Your job is to translate the user's logo request into a highly optimized English prompt for generating a logo.
          MANDATORY RULES:
-         - The output MUST describe a graphic, vector-style icon, badge, monogram, or mark on a solid clean background.
-         - NEVER describe realistic rooms, interior spaces, offices, buildings, or realistic scenes, even if the user's business is about interior design, decoration, architecture, or real estate.
-         - Translate business concepts into abstract geometric symbols (e.g., describe a symmetrical elegant geometric icon composed of clean intersecting lines or art deco shapes).
-         - Keep it minimal, corporate, and clean. No realistic physical environments.
+         - The output MUST describe a graphic icon, badge, monogram, emblem, or mark.
+         ${is3D 
+           ? `- The logo should be described as a 3D physical object with depth, metallic shine (chrome, gold, or silver), and realistic bevels, mounted on a modern dark wall texture (marble, slate, concrete).`
+           : `- The output MUST describe a flat vector-style design on a clean solid background.
+              - NEVER describe realistic rooms, interior spaces, offices, buildings, or realistic scenes, even if the user's business is about interior design, decoration, architecture, or real estate.`}
+         - Translate business concepts into clean geometric symbols or elegant outlines.
          - Return ONLY the optimized English visual description. No quotes, no explanations.`;
     } else if (isFlyer) {
+      const isMockupStyle = mockupType && (mockupType.includes("Mockup") || mockupType.includes("Maqueta") || mockupType.includes("Poster") || mockupType.includes("Póster"));
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
-         Your job is to translate the user's flyer or ad request into a highly optimized English prompt for generating a graphic layout, marketing flyer, or visual advertisement template.
+         Your job is to translate the user's flyer or ad request into a highly optimized English prompt.
          MANDATORY RULES:
-         - The output MUST describe a graphic design layout, flyer page, poster layout, or marketing banner.
-         - Describe the placement of headlines, call-to-actions, grids, graphic decorations, and color schemes.
-         - If a mockup or paper presentation is requested (e.g., A4 flyer, poster mockup), describe it as a realistic paper flyer lying on a clean surface with soft drop shadows.
-         - NEVER generate just a plain photo of a person or a simple product image without the graphic design context of a flyer, poster, or banner layout.
+         ${isMockupStyle
+           ? `- The output MUST describe a mockup of a flyer or poster page sheet.
+              - Describe the physical sheet (e.g. A4 paper lying flat on a surface with shadows, or hanging on a concrete wall with metal clips).`
+           : `- The output MUST describe a clean graphic design layout, flyer page, poster layout, or marketing banner.
+              - Describe the placement of headlines, call-to-actions, grids, graphic decorations, and color schemes.`}
+         - NEVER generate just a plain photo of a person or a simple product image without the graphic design context.
          - Return ONLY the optimized English visual description. No quotes, no explanations.`;
     } else {
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
          Your job is to translate the user's request into a premium English prompt for a commercial product photograph or merchandise mockup.
          MANDATORY RULES:
-         - The output MUST describe a commercial product itself (e.g., bottle, coffee cup, packaging box, t-shirt, hoodie) in a studio setting or worn by a model.
-         - For mockups (e.g., t-shirt, mug, bag, packaging), describe a clean, realistic blank mockup template with soft shadows on a minimalist studio background, suitable for overlaying logos.
+         - The output MUST describe the commercial product itself (e.g., bottle, coffee cup, packaging box, t-shirt, hoodie) in a studio setting or worn by a model.
+         - For mockups (e.g., t-shirt, mug, bag, packaging), describe a clean, realistic blank mockup template with soft shadows on a minimalist background, suitable for overlaying logos.
          - Focus on the texture of the material, realistic fabric wrinkles, soft shadows, studio lighting, and sharp focus.
          - NEVER generate unrelated graphic logos or full text-based flyer pages here; focus strictly on the physical product or packaging template.
          - Return ONLY the optimized English visual description. No quotes, no explanations.`;
@@ -129,15 +268,10 @@ export default async function handler(req: any, res: any) {
     console.warn("[FUTURA SERVER] Prompt optimization failed, using original:", transErr);
   }
 
-  // Build enhanced prompt using curated Open Design contracts
-  let enhancedPrompt = "";
-  if (isLogo) {
-    enhancedPrompt = `A professional corporate brand isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid background, symmetrical modern geometry, sleek vector curves, sharp flat edges, inspired by Linear design system. No text, no watermark, rule of thirds layout.`;
-  } else if (isFlyer) {
-    enhancedPrompt = `A high-end professional graphic design layout flyer and digital advertisement. ${englishPrompt}. Modern layout, balanced spacing, clean alignment, high-contrast details. No text watermark, ready for marketing production.`;
-  } else {
-    enhancedPrompt = `A premium editorial commercial product photograph or branding mockup template. ${englishPrompt}. Soft studio lighting, atmospheric depth, warm ambient shadows, high-contrast crisp details, sharp lens focus, premium commercial styling. No text, no watermark.`;
-  }
+  // Build enhanced prompt using curated Open Design contracts and style templates
+  const activeStyleName = isLogo ? logoStyle : mockupType;
+  const { prefix, suffix } = getStyledPromptWrappers(generationType as any, activeStyleName, colors);
+  let enhancedPrompt = `${prefix} ${englishPrompt}. ${suffix}`;
 
   if (styleGuidance) {
     enhancedPrompt += ` The image style and aesthetics should be closely inspired by the following: ${styleGuidance}.`;
