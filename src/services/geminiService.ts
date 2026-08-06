@@ -799,10 +799,40 @@ export async function generateCreativeImage(
   };
 
   const clientFallback = async () => {
-    // 1. Direct DeepInfra FLUX call from browser if key is available
+    // 1. Direct Pollinations FLUX (Free, unlimited) - RUN THIS FIRST
+    try {
+      console.log("[FUTURA CLIENT] Trying direct browser Pollinations FLUX (Free) first...");
+      const seed = Math.floor(Math.random() * 1000000);
+      const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
+      const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors);
+      const cleanPrompt = `${prefix} ${prompt}. ${suffix}`;
+
+      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
+      const response = await fetch(pollinationsUrl);
+      if (response.ok) {
+        const blob = await response.blob();
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (reader.result && typeof reader.result === 'string') {
+              console.log("[FUTURA CLIENT] ✅ Direct browser Pollinations FLUX returned image successfully");
+              resolve(reader.result);
+            } else {
+              reject(new Error("Empty reader result"));
+            }
+          };
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(blob);
+        });
+      }
+    } catch (pollErr) {
+      console.warn("[FUTURA CLIENT] Direct browser Pollinations fallback failed:", pollErr);
+    }
+
+    // 2. Direct DeepInfra FLUX call from browser if key is available (Paid Backup)
     const deepinfraKey = localStorage.getItem("user_deepinfra_api_key") || ((import.meta as any).env?.VITE_DEEPINFRA_API_KEY) || "";
     if (deepinfraKey && deepinfraKey.trim().length > 5) {
-      console.log("[FUTURA CLIENT] Trying direct browser DeepInfra FLUX call...");
+      console.log("[FUTURA CLIENT] Trying direct browser DeepInfra FLUX call (Paid Backup)...");
       try {
         const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
         const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors);
@@ -836,10 +866,10 @@ export async function generateCreativeImage(
       }
     }
 
-    // 2. Direct Together AI FLUX call from browser if key is available
+    // 3. Direct Together AI FLUX call from browser if key is available (Paid Backup)
     const togetherKey = localStorage.getItem("user_together_api_key") || ((import.meta as any).env?.VITE_TOGETHER_API_KEY) || "";
     if (togetherKey && togetherKey.trim().length > 5) {
-      console.log("[FUTURA CLIENT] Trying direct browser Together AI FLUX call...");
+      console.log("[FUTURA CLIENT] Trying direct browser Together AI FLUX call (Paid Backup)...");
       try {
         const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
         const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors);
@@ -875,14 +905,14 @@ export async function generateCreativeImage(
       }
     }
 
-    // If NVIDIA API key is available client-side, query NVIDIA NIM directly from the browser!
+    // 4. Direct NVIDIA NIM call from browser if key is available (Paid Backup)
     let nvidiaKey = localStorage.getItem("user_nvidia_api_key") || "";
     if (!nvidiaKey || nvidiaKey.trim().length < 5) {
       nvidiaKey = "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,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";
     }
     const nvidiaKeys = (nvidiaKey || "").split(',').map(k => k.trim()).filter(Boolean);
     if (nvidiaKeys.length > 0) {
-      console.log(`[FUTURA CLIENT] NVIDIA API Keys detected (${nvidiaKeys.length}). Trying direct NVIDIA NIM calls...`);
+      console.log(`[FUTURA CLIENT] NVIDIA API Keys detected (${nvidiaKeys.length}). Trying direct NVIDIA NIM calls (Paid Backup)...`);
       for (let i = 0; i < nvidiaKeys.length; i++) {
         const activeKey = nvidiaKeys[i];
         if (activeKey.length < 5) continue;
@@ -933,36 +963,6 @@ export async function generateCreativeImage(
           console.warn(`Direct client call to NVIDIA NIM key [${i + 1}] failed:`, nvidiaErr);
         }
       }
-    }
-
-    // Direct Pollinations FLUX Fallback from the browser
-    try {
-      console.warn("[FUTURA CLIENT] Direct NVIDIA calls failed. Trying direct browser Pollinations FLUX fallback...");
-      const seed = Math.floor(Math.random() * 1000000);
-      const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
-      const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors);
-      const cleanPrompt = `${prefix} ${prompt}. ${suffix}`;
-
-      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
-      const response = await fetch(pollinationsUrl);
-      if (response.ok) {
-        const blob = await response.blob();
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            if (reader.result && typeof reader.result === 'string') {
-              console.log("[FUTURA CLIENT] ✅ Direct browser Pollinations FLUX returned image successfully");
-              resolve(reader.result);
-            } else {
-              reject(new Error("Empty reader result"));
-            }
-          };
-          reader.onerror = () => reject(reader.error);
-          reader.readAsDataURL(blob);
-        });
-      }
-    } catch (pollErr) {
-      console.warn("[FUTURA CLIENT] Direct browser Pollinations fallback failed:", pollErr);
     }
 
     // High-Fidelity Local Vector SVG Fallback (Last Resort)

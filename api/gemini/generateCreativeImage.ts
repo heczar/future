@@ -278,11 +278,37 @@ export default async function handler(req: any, res: any) {
   }
 
   // ═══════════════════════════════════════════
-  // PRIORITY 0A: DeepInfra FLUX (Ultra-fast, commercial)
+  // PRIORITY 1: Pollinations FLUX (Free, unlimited, same FLUX model)
+  // ═══════════════════════════════════════════
+  try {
+    console.log("[FUTURA SERVER] Trying Pollinations FLUX (Free)...");
+    const pollinationsPrompt = encodeURIComponent(enhancedPrompt);
+    const seed = Math.floor(Math.random() * 1000000);
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/${pollinationsPrompt}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
+    
+    const pollinationsResponse = await fetch(pollinationsUrl);
+    if (pollinationsResponse.ok) {
+      const contentType = pollinationsResponse.headers.get('content-type') || 'image/jpeg';
+      if (contentType.startsWith('image/')) {
+        const arrayBuffer = await pollinationsResponse.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const b64 = buffer.toString('base64');
+        const mime = contentType.split(';')[0];
+        console.log(`[FUTURA SERVER] ✅ Pollinations FLUX returned image successfully (${Math.round(buffer.length / 1024)}KB)`);
+        return res.status(200).json({ imageUrl: `data:${mime};base64,${b64}` });
+      }
+    }
+    console.warn(`[FUTURA SERVER] Pollinations returned status ${pollinationsResponse.status}`);
+  } catch (pollErr: any) {
+    console.warn("[FUTURA SERVER] Pollinations FLUX failed:", pollErr?.message);
+  }
+
+  // ═══════════════════════════════════════════
+  // PRIORITY 2: DeepInfra FLUX (Ultra-fast, commercial backup)
   // ═══════════════════════════════════════════
   const deepinfraKey = process.env.DEEPINFRA_API_KEY || process.env.DEEP_INFRA_API_KEY || "";
   if (deepinfraKey && deepinfraKey.trim().length > 5) {
-    console.log("[FUTURA SERVER] Trying DeepInfra FLUX...");
+    console.log("[FUTURA SERVER] Trying DeepInfra FLUX backup...");
     try {
       const response = await fetch("https://api.deepinfra.com/v1/openai/images/generations", {
         method: "POST",
@@ -316,11 +342,11 @@ export default async function handler(req: any, res: any) {
   }
 
   // ═══════════════════════════════════════════
-  // PRIORITY 0B: Together AI FLUX (Ultra-fast, commercial)
+  // PRIORITY 3: Together AI FLUX (Ultra-fast, commercial backup)
   // ═══════════════════════════════════════════
   const togetherKey = process.env.TOGETHER_API_KEY || process.env.TOGETHER_AI_API_KEY || "";
   if (togetherKey && togetherKey.trim().length > 5) {
-    console.log("[FUTURA SERVER] Trying Together AI FLUX...");
+    console.log("[FUTURA SERVER] Trying Together AI FLUX backup...");
     try {
       const response = await fetch("https://api.together.ai/v1/images/generations", {
         method: "POST",
@@ -356,7 +382,7 @@ export default async function handler(req: any, res: any) {
   }
 
   // ═══════════════════════════════════════════
-  // PRIORITY 1: NVIDIA NIM (with Key Rotation support)
+  // PRIORITY 4: NVIDIA NIM (with Key Rotation support)
   // ═══════════════════════════════════════════
   const nvidiaKeys = (nvidiaKey || "").split(',').map(k => k.trim()).filter(Boolean);
   if (nvidiaKeys.length > 0) {
@@ -419,33 +445,7 @@ export default async function handler(req: any, res: any) {
   }
 
   // ═══════════════════════════════════════════
-  // PRIORITY 2: Pollinations FLUX (Free, unlimited, same FLUX model)
-  // ═══════════════════════════════════════════
-  try {
-    console.log("[FUTURA SERVER] Trying Pollinations FLUX fallback...");
-    const pollinationsPrompt = encodeURIComponent(enhancedPrompt);
-    const seed = Math.floor(Math.random() * 1000000);
-    const pollinationsUrl = `https://image.pollinations.ai/prompt/${pollinationsPrompt}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
-    
-    const pollinationsResponse = await fetch(pollinationsUrl);
-    if (pollinationsResponse.ok) {
-      const contentType = pollinationsResponse.headers.get('content-type') || 'image/jpeg';
-      if (contentType.startsWith('image/')) {
-        const arrayBuffer = await pollinationsResponse.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const b64 = buffer.toString('base64');
-        const mime = contentType.split(';')[0];
-        console.log(`[FUTURA SERVER] ✅ Pollinations FLUX returned image successfully (${Math.round(buffer.length / 1024)}KB)`);
-        return res.status(200).json({ imageUrl: `data:${mime};base64,${b64}` });
-      }
-    }
-    console.warn(`[FUTURA SERVER] Pollinations returned status ${pollinationsResponse.status}`);
-  } catch (pollErr: any) {
-    console.warn("[FUTURA SERVER] Pollinations FLUX fallback failed:", pollErr?.message);
-  }
-
-  // ═══════════════════════════════════════════
-  // PRIORITY 3: High-Fidelity Local Vector SVG Fallback (Last Resort)
+  // PRIORITY 5: High-Fidelity Local Vector SVG Fallback (Last Resort)
   // ═══════════════════════════════════════════
   console.log("[FUTURA SERVER] All image engines exhausted. Generating dynamic SVG fallback...");
   const svg = generateAdvancedDynamicSVG(
