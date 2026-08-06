@@ -60,6 +60,9 @@ export default function CreativeStudio({
   // Reference Image Upload State
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
 
+  // Active brand logo (either generated in-session, uploaded, or loaded from Firestore)
+  const [customUploadedLogo, setCustomUploadedLogo] = useState<string | null>(null);
+
   // Auto watermark state
   const [applyLogo, setApplyLogo] = useState(false);
   const [logoPosition, setLogoPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'>('bottom-right');
@@ -101,6 +104,13 @@ export default function CreativeStudio({
       }
     }
   }, [projectsList]);
+
+  // Sync customUploadedLogo with activeBrand logo when changing brands
+  useEffect(() => {
+    if (activeBrand?.logos && activeBrand.logos.length > 0) {
+      setCustomUploadedLogo(activeBrand.logos[0]);
+    }
+  }, [selectedBrandId, activeBrand]);
 
   useEffect(() => {
     if (initialPrompt && initialPrompt.trim()) {
@@ -194,6 +204,29 @@ export default function CreativeStudio({
     'Mockup de Dispositivos / Pantallas (UI)'
   ];
 
+  const quickSuggestionsLogos = [
+    { text: '☕ Café Especial', prompt: 'Cafetería gourmet y ritual de café artesanal oscuro y premium', brand: 'Café Místico' },
+    { text: '🍔 Burger Grill', prompt: 'Hamburguesería artesanal de carne asada al carbón, estilo rústico', brand: 'Hangar Grill' },
+    { text: '🦷 Dental Art', prompt: 'Clínica odontológica moderna, estética dental y sonrisa saludable', brand: 'Dental Art' },
+    { text: '⚡ Streetwear', prompt: 'Marca de ropa urbana, skate y cultura juvenil callejera', brand: 'KRONOS' },
+    { text: '💻 Tech / SaaS', prompt: 'Plataforma de software inteligente y computación en la nube', brand: 'Nebula Cloud' }
+  ];
+
+  const quickSuggestionsFlyers = [
+    { text: '🎉 Apertura 50%', prompt: 'Gran apertura de nuestra nueva sucursal con 50% de descuento en la primera compra de todos los productos' },
+    { text: '🍕 Pizza 2x1', prompt: 'Jueves de pizza 2x1 en sabores seleccionados, servicio a domicilio gratis' },
+    { text: '💆 Relajación Spa', prompt: 'Descuento especial de fin de semana en masajes terapéuticos y tratamientos faciales de spa' },
+    { text: '🏋️ Pase Gym', prompt: 'Prueba una semana gratis en nuestras instalaciones de entrenamiento funcional y crossfit' }
+  ];
+
+  const quickSuggestionsProducts = [
+    { text: '👕 Camiseta', prompt: 'Una camiseta de algodón de color negro premium' },
+    { text: '☕ Vaso Café', prompt: 'Un vaso de papel kraft ecológico para café para llevar' },
+    { text: '📦 Caja Empaque', prompt: 'Una caja de empaque de cartón kraft con acabado mate' },
+    { text: '👜 Bolsa Kraft', prompt: 'Una bolsa de papel kraft de compras de lujo standing' },
+    { text: '📱 Pantalla App', prompt: 'Una pantalla de teléfono móvil mostrando una interfaz limpia' }
+  ];
+
   // Helper to draw watermark logo client-side
   const applyBrandLogoOverlay = (baseImageSrc: string, logoSrc: string, position: string, opacityVal: number, sizePercent: number): Promise<string> => {
     return new Promise((resolve) => {
@@ -260,9 +293,8 @@ export default function CreativeStudio({
       return;
     }
 
-    if (applyLogo && activeBrand?.logos && activeBrand.logos.length > 0) {
-      const logoUrl = activeBrand.logos[0];
-      applyBrandLogoOverlay(rawImageResult, logoUrl, logoPosition, logoOpacity, logoSizePercent)
+    if (applyLogo && customUploadedLogo) {
+      applyBrandLogoOverlay(rawImageResult, customUploadedLogo, logoPosition, logoOpacity, logoSizePercent)
         .then(composited => {
           if (active) setGeneratedResult(composited);
         });
@@ -273,7 +305,7 @@ export default function CreativeStudio({
     return () => {
       active = false;
     };
-  }, [rawImageResult, applyLogo, logoPosition, logoOpacity, logoSizePercent, activeBrand]);
+  }, [rawImageResult, applyLogo, logoPosition, logoOpacity, logoSizePercent, customUploadedLogo]);
 
   // ==========================================
   // IA GENERATION FUNCTIONS
@@ -308,6 +340,7 @@ export default function CreativeStudio({
       
       if (result) {
         setRawImageResult(result);
+        setCustomUploadedLogo(result); // Set as active session logo
       }
 
       await trackActionConsumption(profile.id, profile.isPremium, 'image');
@@ -601,26 +634,24 @@ export default function CreativeStudio({
           internalCanvas.sendToBack(img);
 
           // Add active brand logo as a layer if available
-          if (activeBrand?.logos && activeBrand.logos.length > 0) {
-            activeBrand.logos.forEach((logoUrl, i) => {
-              const isBase64 = logoUrl.startsWith('data:');
-              fabric.Image.fromURL(logoUrl, (logoImg) => {
-                if (!internalCanvas) return;
-                logoImg.scaleToWidth(100);
-                logoImg.set({
-                  left: 30 + (i * 120),
-                  top: 30,
-                  cornerColor: '#f43f5e',
-                  cornerSize: 10,
-                  transparentCorners: false,
-                  padding: 4
-                });
-                internalCanvas.add(logoImg);
-                internalCanvas.bringToFront(logoImg);
-                internalCanvas.renderAll();
-              }, isBase64 ? undefined : { crossOrigin: 'anonymous' });
-            });
-          }
+          if (customUploadedLogo) {
+             const isBase64 = customUploadedLogo.startsWith('data:');
+             fabric.Image.fromURL(customUploadedLogo, (logoImg) => {
+               if (!internalCanvas) return;
+               logoImg.scaleToWidth(100);
+               logoImg.set({
+                 left: 30,
+                 top: 30,
+                 cornerColor: '#f43f5e',
+                 cornerSize: 10,
+                 transparentCorners: false,
+                 padding: 4
+               });
+               internalCanvas.add(logoImg);
+               internalCanvas.bringToFront(logoImg);
+               internalCanvas.renderAll();
+             }, isBase64 ? undefined : { crossOrigin: 'anonymous' });
+           }
 
           internalCanvas.renderAll();
         }, { crossOrigin: 'anonymous' });
@@ -1048,6 +1079,66 @@ export default function CreativeStudio({
               </button>
             </div>
 
+            {/* Active Branding Widget */}
+            <div className="bg-black/30 border border-white/5 rounded-xl p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold">Identidad de Marca Activa</span>
+                {customUploadedLogo && (
+                  <button
+                    type="button"
+                    onClick={() => setCustomUploadedLogo(null)}
+                    className="text-[9px] text-rose-400 hover:text-rose-300 font-bold underline cursor-pointer"
+                  >
+                    Quitar logo
+                  </button>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-3">
+                {customUploadedLogo ? (
+                  <img
+                    src={customUploadedLogo}
+                    alt="Logo Activo"
+                    className="w-11 h-11 object-contain rounded bg-black/60 border border-white/10 p-1.5 shadow-inner"
+                  />
+                ) : (
+                  <div className="w-11 h-11 rounded bg-white/5 border border-dashed border-white/10 flex items-center justify-center text-slate-600">
+                    <ImageIcon className="w-5 h-5" />
+                  </div>
+                )}
+                
+                <div className="flex-1 min-w-0">
+                  {customUploadedLogo ? (
+                    <>
+                      <p className="text-[11px] font-bold text-slate-200 truncate font-sans">Logotipo Cargado</p>
+                      <p className="text-[9px] text-brand-primary font-mono leading-none">Listo para aplicar a tus diseños</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-[11px] font-bold text-slate-400 font-sans">Sin logotipo activo</p>
+                      <label className="text-[9px] text-brand-primary hover:underline cursor-pointer font-semibold block mt-0.5 select-none font-sans">
+                        Subir tu propio logo (PNG/JPG)
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const files = e.target.files;
+                            if (files && files[0]) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => setCustomUploadedLogo(reader.result as string);
+                              reader.readAsDataURL(files[0]);
+                            }
+                            e.target.value = '';
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {generationType === 'logos' && (
               /* LOGO BUILDER FORM */
               <div className="space-y-4 pt-1">
@@ -1071,6 +1162,21 @@ export default function CreativeStudio({
                     onChange={(e) => setLogoDescription(e.target.value)}
                     className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors resize-none font-sans"
                   />
+                  <div className="flex flex-wrap gap-1.5 mt-1.5 select-none">
+                    {quickSuggestionsLogos.map((s) => (
+                      <button
+                        key={s.text}
+                        type="button"
+                        onClick={() => {
+                          setLogoDescription(s.prompt);
+                          setLogoBrandName(s.brand);
+                        }}
+                        className="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/5 text-[9px] font-sans transition-all cursor-pointer"
+                      >
+                        {s.text}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">
@@ -1158,6 +1264,18 @@ export default function CreativeStudio({
                     onChange={(e) => setFlyerPrompt(e.target.value)}
                     className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors resize-none font-sans"
                   />
+                  <div className="flex flex-wrap gap-1.5 mt-1.5 select-none">
+                    {quickSuggestionsFlyers.map((s) => (
+                      <button
+                        key={s.text}
+                        type="button"
+                        onClick={() => setFlyerPrompt(s.prompt)}
+                        className="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/5 text-[9px] font-sans transition-all cursor-pointer"
+                      >
+                        {s.text}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Format Selector */}
@@ -1250,12 +1368,12 @@ export default function CreativeStudio({
                   </div>
                   {applyLogo && (
                     <div className="bg-black/25 border border-white/5 rounded-xl p-3 space-y-3 mt-1.5">
-                      {activeBrand?.logos && activeBrand.logos.length > 0 ? (
+                      {customUploadedLogo ? (
                         <>
                           <div className="flex items-center gap-3">
-                            <img src={activeBrand.logos[0]} alt="Brand Logo" className="w-10 h-10 object-contain rounded bg-black/40 border border-white/10 p-1" />
+                            <img src={customUploadedLogo} alt="Brand Logo" className="w-10 h-10 object-contain rounded bg-black/40 border border-white/10 p-1" />
                             <div className="min-w-0">
-                              <p className="text-[9px] font-mono text-slate-400 font-bold truncate">Logo de {activeBrand.name}</p>
+                              <p className="text-[9px] font-mono text-slate-400 font-bold truncate">Logotipo de Marca Activo</p>
                               <p className="text-[8px] text-slate-500">Superposición automática activada</p>
                             </div>
                           </div>
@@ -1320,7 +1438,7 @@ export default function CreativeStudio({
                         </>
                       ) : (
                         <p className="text-[9px] text-amber-500/80 italic font-sans leading-relaxed">
-                          ⚠️ La marca seleccionada no tiene logos. Genera un logo primero en la pestaña 'Logos' y asígnalo.
+                          ⚠️ No hay ningún logotipo activo. Genera uno en 'Logos' o súbelo en el panel de arriba.
                         </p>
                       )}
                     </div>
@@ -1360,6 +1478,18 @@ export default function CreativeStudio({
                     onChange={(e) => setProductPrompt(e.target.value)}
                     className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors resize-none font-sans"
                   />
+                  <div className="flex flex-wrap gap-1.5 mt-1.5 select-none">
+                    {quickSuggestionsProducts.map((s) => (
+                      <button
+                        key={s.text}
+                        type="button"
+                        onClick={() => setProductPrompt(s.prompt)}
+                        className="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/5 text-[9px] font-sans transition-all cursor-pointer"
+                      >
+                        {s.text}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Format Selector */}
@@ -1452,12 +1582,12 @@ export default function CreativeStudio({
                   </div>
                   {applyLogo && (
                     <div className="bg-black/25 border border-white/5 rounded-xl p-3 space-y-3 mt-1.5">
-                      {activeBrand?.logos && activeBrand.logos.length > 0 ? (
+                      {customUploadedLogo ? (
                         <>
                           <div className="flex items-center gap-3">
-                            <img src={activeBrand.logos[0]} alt="Brand Logo" className="w-10 h-10 object-contain rounded bg-black/40 border border-white/10 p-1" />
+                            <img src={customUploadedLogo} alt="Brand Logo" className="w-10 h-10 object-contain rounded bg-black/40 border border-white/10 p-1" />
                             <div className="min-w-0">
-                              <p className="text-[9px] font-mono text-slate-400 font-bold truncate">Logo de {activeBrand.name}</p>
+                              <p className="text-[9px] font-mono text-slate-400 font-bold truncate">Logotipo de Marca Activo</p>
                               <p className="text-[8px] text-slate-500">Superposición automática activada</p>
                             </div>
                           </div>
@@ -1522,7 +1652,7 @@ export default function CreativeStudio({
                         </>
                       ) : (
                         <p className="text-[9px] text-amber-500/80 italic font-sans leading-relaxed">
-                          ⚠️ La marca seleccionada no tiene logos. Genera un logo primero en la pestaña 'Logos' y asígnalo.
+                          ⚠️ No hay ningún logotipo activo. Genera uno en 'Logos' o súbelo en el panel de arriba.
                         </p>
                       )}
                     </div>
@@ -1747,7 +1877,7 @@ export default function CreativeStudio({
                   </div>
 
                   {/* Watermarking controls inside result block if logo available */}
-                  {selectedBrandId && activeBrand?.logos && activeBrand.logos.length > 0 && (
+                  {customUploadedLogo && (
                     <div className="bg-[#0c0c0c] border border-white/5 rounded-xl p-3.5 space-y-3.5">
                       <div className="flex items-center justify-between select-none">
                         <label className="text-[11px] font-mono text-slate-400 cursor-pointer flex items-center gap-2">
@@ -1757,7 +1887,7 @@ export default function CreativeStudio({
                             onChange={(e) => setApplyLogo(e.target.checked)}
                             className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary"
                           />
-                          <span>Aplicar Logo de Marca ({activeBrand.name})</span>
+                          <span>Aplicar Logotipo Activo</span>
                         </label>
                       </div>
 
