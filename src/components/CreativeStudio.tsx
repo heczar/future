@@ -302,7 +302,8 @@ export default function CreativeStudio({
         logoStyle: selectedLogoStyle,
         niche: logoDescription,
         colors,
-        referenceImage: referenceImage || undefined
+        referenceImage: referenceImage || undefined,
+        generationType: 'logos'
       });
       
       if (result) {
@@ -372,7 +373,8 @@ export default function CreativeStudio({
         brandName,
         niche: promptText,
         colors,
-        referenceImage: referenceImage || undefined
+        referenceImage: referenceImage || undefined,
+        generationType: type
       });
 
       if (result) {

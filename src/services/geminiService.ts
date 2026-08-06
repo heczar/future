@@ -644,6 +644,7 @@ export async function generateCreativeImage(
     mockupType?: string;
     customMockupDesc?: string;
     referenceImage?: string;
+    generationType?: 'logos' | 'flyers' | 'products';
     model?: string;
   }
 ): Promise<string | null> {
@@ -660,6 +661,7 @@ export async function generateCreativeImage(
     mockupType: metadata?.mockupType,
     customMockupDesc: metadata?.customMockupDesc,
     referenceImage: metadata?.referenceImage,
+    generationType: metadata?.generationType,
     model: metadata?.model
   };
 

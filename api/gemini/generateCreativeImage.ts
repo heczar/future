@@ -32,13 +32,21 @@ export default async function handler(req: any, res: any) {
     mockupType,
     customMockupDesc,
     referenceImage,
+    generationType,
     model: requestedModel
   } = req.body || {};
-  const isLogo = (prompt || "").toLowerCase().includes("logo") || 
+  const isLogo = generationType === 'logos' ||
+                 (prompt || "").toLowerCase().includes("logo") || 
                  (prompt || "").toLowerCase().includes("icon") || 
                  (prompt || "").toLowerCase().includes("symbol") || 
                  (prompt || "").toLowerCase().includes("isotipo") || 
                  (prompt || "").toLowerCase().includes("logotipo");
+
+  const isFlyer = generationType === 'flyers' ||
+                  (prompt || "").toLowerCase().includes("flyer") ||
+                  (prompt || "").toLowerCase().includes("folleto") ||
+                  (prompt || "").toLowerCase().includes("anuncio") ||
+                  (prompt || "").toLowerCase().includes("banner");
 
   // Analyze reference image if provided to guide style
   let styleGuidance = "";
@@ -79,21 +87,35 @@ export default async function handler(req: any, res: any) {
   try {
     console.log(`[FUTURA SERVER] Translating/optimizing prompt using Open Design aesthetics: "${prompt}"`);
     
-    const optimizerInstruction = isLogo
-      ? `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
+    let optimizerInstruction = "";
+    if (isLogo) {
+      optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
          Your job is to translate the user's logo request into a highly optimized English prompt for generating a graphic logo, isotype, monogram, symbol, or emblem.
          MANDATORY RULES:
          - The output MUST describe a graphic, vector-style icon, badge, monogram, or mark on a solid clean background.
          - NEVER describe realistic rooms, interior spaces, offices, buildings, or realistic scenes, even if the user's business is about interior design, decoration, architecture, or real estate.
-         - Translate business concepts into abstract geometric symbols (e.g., for 'interior design' or 'decoracion de interiores', describe a symmetrical elegant geometric icon composed of clean intersecting lines or art deco shapes).
+         - Translate business concepts into abstract geometric symbols (e.g., describe a symmetrical elegant geometric icon composed of clean intersecting lines or art deco shapes).
          - Keep it minimal, corporate, and clean. No realistic physical environments.
-         - Return ONLY the optimized English visual description. No quotes, no explanations.`
-      : `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
-         Translate the user's design request into a premium English prompt for a photograph, flyer, or mockup.
-         MANDATORY RULES:
-         - If it's a mockup (e.g., t-shirt, cup, flyer mockup), describe a clean, realistic blank mockup template with soft shadows on a minimalist studio background, suitable for overlaying logos.
-         - If it's a product, describe a high-end commercial editorial product photograph with professional lighting and crisp focus.
          - Return ONLY the optimized English visual description. No quotes, no explanations.`;
+    } else if (isFlyer) {
+      optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
+         Your job is to translate the user's flyer or ad request into a highly optimized English prompt for generating a graphic layout, marketing flyer, or visual advertisement template.
+         MANDATORY RULES:
+         - The output MUST describe a graphic design layout, flyer page, poster layout, or marketing banner.
+         - Describe the placement of headlines, call-to-actions, grids, graphic decorations, and color schemes.
+         - If a mockup or paper presentation is requested (e.g., A4 flyer, poster mockup), describe it as a realistic paper flyer lying on a clean surface with soft drop shadows.
+         - NEVER generate just a plain photo of a person or a simple product image without the graphic design context of a flyer, poster, or banner layout.
+         - Return ONLY the optimized English visual description. No quotes, no explanations.`;
+    } else {
+      optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
+         Your job is to translate the user's request into a premium English prompt for a commercial product photograph or merchandise mockup.
+         MANDATORY RULES:
+         - The output MUST describe a commercial product itself (e.g., bottle, coffee cup, packaging box, t-shirt, hoodie) in a studio setting or worn by a model.
+         - For mockups (e.g., t-shirt, mug, bag, packaging), describe a clean, realistic blank mockup template with soft shadows on a minimalist studio background, suitable for overlaying logos.
+         - Focus on the texture of the material, realistic fabric wrinkles, soft shadows, studio lighting, and sharp focus.
+         - NEVER generate unrelated graphic logos or full text-based flyer pages here; focus strictly on the physical product or packaging template.
+         - Return ONLY the optimized English visual description. No quotes, no explanations.`;
+    }
 
     const transResponse = await getAiClient(customKey).models.generateContent({
       model: "gemini-2.5-flash",
@@ -108,9 +130,14 @@ export default async function handler(req: any, res: any) {
   }
 
   // Build enhanced prompt using curated Open Design contracts
-  let enhancedPrompt = isLogo
-    ? `A professional corporate brand isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid background, symmetrical modern geometry, sleek vector curves, sharp flat edges, inspired by Linear design system. No text, no watermark, rule of thirds layout.`
-    : `A premium editorial commercial product photograph. ${englishPrompt}. Soft studio lighting, atmospheric depth, warm ambient shadows, high-contrast crisp details, sharp lens focus, premium commercial styling inspired by Stripe design language. No text, no watermark.`;
+  let enhancedPrompt = "";
+  if (isLogo) {
+    enhancedPrompt = `A professional corporate brand isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid background, symmetrical modern geometry, sleek vector curves, sharp flat edges, inspired by Linear design system. No text, no watermark, rule of thirds layout.`;
+  } else if (isFlyer) {
+    enhancedPrompt = `A high-end professional graphic design layout flyer and digital advertisement. ${englishPrompt}. Modern layout, balanced spacing, clean alignment, high-contrast details. No text watermark, ready for marketing production.`;
+  } else {
+    enhancedPrompt = `A premium editorial commercial product photograph or branding mockup template. ${englishPrompt}. Soft studio lighting, atmospheric depth, warm ambient shadows, high-contrast crisp details, sharp lens focus, premium commercial styling. No text, no watermark.`;
+  }
 
   if (styleGuidance) {
     enhancedPrompt += ` The image style and aesthetics should be closely inspired by the following: ${styleGuidance}.`;
