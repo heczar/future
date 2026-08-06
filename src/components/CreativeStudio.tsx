@@ -105,13 +105,6 @@ export default function CreativeStudio({
     }
   }, [projectsList]);
 
-  // Sync customUploadedLogo with activeBrand logo when changing brands
-  useEffect(() => {
-    if (activeBrand?.logos && activeBrand.logos.length > 0) {
-      setCustomUploadedLogo(activeBrand.logos[0]);
-    }
-  }, [selectedBrandId, activeBrand]);
-
   useEffect(() => {
     if (initialPrompt && initialPrompt.trim()) {
       const isLogoPrompt = initialPrompt.toLowerCase().includes("logo") || 
@@ -1079,65 +1072,6 @@ export default function CreativeStudio({
               </button>
             </div>
 
-            {/* Active Branding Widget */}
-            <div className="bg-black/30 border border-white/5 rounded-xl p-3.5 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold">Identidad de Marca Activa</span>
-                {customUploadedLogo && (
-                  <button
-                    type="button"
-                    onClick={() => setCustomUploadedLogo(null)}
-                    className="text-[9px] text-rose-400 hover:text-rose-300 font-bold underline cursor-pointer"
-                  >
-                    Quitar logo
-                  </button>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-3">
-                {customUploadedLogo ? (
-                  <img
-                    src={customUploadedLogo}
-                    alt="Logo Activo"
-                    className="w-11 h-11 object-contain rounded bg-black/60 border border-white/10 p-1.5 shadow-inner"
-                  />
-                ) : (
-                  <div className="w-11 h-11 rounded bg-white/5 border border-dashed border-white/10 flex items-center justify-center text-slate-600">
-                    <ImageIcon className="w-5 h-5" />
-                  </div>
-                )}
-                
-                <div className="flex-1 min-w-0">
-                  {customUploadedLogo ? (
-                    <>
-                      <p className="text-[11px] font-bold text-slate-200 truncate font-sans">Logotipo Cargado</p>
-                      <p className="text-[9px] text-brand-primary font-mono leading-none">Listo para aplicar a tus diseños</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-[11px] font-bold text-slate-400 font-sans">Sin logotipo activo</p>
-                      <label className="text-[9px] text-brand-primary hover:underline cursor-pointer font-semibold block mt-0.5 select-none font-sans">
-                        Subir tu propio logo (PNG/JPG)
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const files = e.target.files;
-                            if (files && files[0]) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => setCustomUploadedLogo(reader.result as string);
-                              reader.readAsDataURL(files[0]);
-                            }
-                            e.target.value = '';
-                          }}
-                          className="hidden"
-                        />
-                      </label>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
 
             {generationType === 'logos' && (
               /* LOGO BUILDER FORM */
