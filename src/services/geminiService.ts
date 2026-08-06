@@ -638,6 +638,8 @@ export async function generateCreativeImage(
     logoStyle?: string;
     mockupType?: string;
     customMockupDesc?: string;
+    referenceImage?: string;
+    model?: string;
   }
 ): Promise<string | null> {
 
@@ -652,6 +654,7 @@ export async function generateCreativeImage(
     logoStyle: metadata?.logoStyle,
     mockupType: metadata?.mockupType,
     customMockupDesc: metadata?.customMockupDesc,
+    referenceImage: metadata?.referenceImage,
     model: metadata?.model
   };
 
@@ -1326,6 +1329,7 @@ export async function generateSocialCopy(params: {
   userPhilosophy?: string;
   projectName?: string;
   projectDescription?: string;
+  imageUrl?: string;
 }): Promise<string> {
 
   const apiEndpoint = "/api/gemini/generateSocialCopy";

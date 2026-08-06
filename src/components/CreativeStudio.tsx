@@ -51,13 +51,23 @@ export default function CreativeStudio({
   initialPrompt,
   onPromptConsumed
 }: CreativeStudioProps) {
-  const [generationType, setGenerationType] = useState<'logos' | 'images'>('logos');
+  const [generationType, setGenerationType] = useState<'logos' | 'flyers' | 'products'>('logos');
   const [selectedBrandId, setSelectedBrandId] = useState<string>('');
 
   // Database Sync Settings
   const activeBrand = projectsList.find(p => p.id === selectedBrandId);
 
+  // Reference Image Upload State
+  const [referenceImage, setReferenceImage] = useState<string | null>(null);
+
+  // Auto watermark state
+  const [applyLogo, setApplyLogo] = useState(false);
+  const [logoPosition, setLogoPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'>('bottom-right');
+  const [logoOpacity, setLogoOpacity] = useState(0.85);
+  const [logoSizePercent, setLogoSizePercent] = useState(15);
+
   // Output State
+  const [rawImageResult, setRawImageResult] = useState<string | null>(null);
   const [generatedResult, setGeneratedResult] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -68,10 +78,24 @@ export default function CreativeStudio({
   const [logoDescription, setLogoDescription] = useState('');
   const [selectedLogoStyle, setSelectedLogoStyle] = useState('Simétrico y Geométrico de Lujo');
 
-  // Form State - Images
-  const [imagePrompt, setImagePrompt] = useState('');
+  // Form State - Flyers
+  const [flyerPrompt, setFlyerPrompt] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('1:1');
-  const [selectedImageStyle, setSelectedImageStyle] = useState('Fotorrealista Premium');
+  const [selectedFlyerStyle, setSelectedFlyerStyle] = useState('Moderno e Impactante (Negocios)');
+
+  // Form State - Products
+  const [productPrompt, setProductPrompt] = useState('');
+  const [selectedProductStyle, setSelectedProductStyle] = useState('Estudio Fotográfico Premium');
+
+  // Set default brand vault on load
+  useEffect(() => {
+    if (projectsList && projectsList.length > 0 && !selectedBrandId) {
+      const defaultBrand = projectsList.find(p => p.id !== 'futura_brand_vault') || projectsList[0];
+      if (defaultBrand && defaultBrand.id) {
+        setSelectedBrandId(defaultBrand.id);
+      }
+    }
+  }, [projectsList]);
 
   useEffect(() => {
     if (initialPrompt && initialPrompt.trim()) {
@@ -85,8 +109,18 @@ export default function CreativeStudio({
         setGenerationType('logos');
         setLogoDescription(initialPrompt);
       } else {
-        setGenerationType('images');
-        setImagePrompt(initialPrompt);
+        const isFlyer = initialPrompt.toLowerCase().includes("flyer") || 
+                        initialPrompt.toLowerCase().includes("publicidad") || 
+                        initialPrompt.toLowerCase().includes("post") || 
+                        initialPrompt.toLowerCase().includes("banner") || 
+                        initialPrompt.toLowerCase().includes("volante");
+        if (isFlyer) {
+          setGenerationType('flyers');
+          setFlyerPrompt(initialPrompt);
+        } else {
+          setGenerationType('products');
+          setProductPrompt(initialPrompt);
+        }
       }
 
       if (onPromptConsumed) {
@@ -127,13 +161,102 @@ export default function CreativeStudio({
     'Vintage / Industrial Rústico'
   ];
 
-  const imageStyles = [
-    'Fotorrealista Premium',
-    'Ilustración 3D Moderna',
-    'Arte Abstracto de Lujo',
-    'Oscuro con Neón',
-    'Estilo Vectorial Limpio'
+  const flyerStyles = [
+    'Moderno e Impactante (Negocios)',
+    'Elegante y Minimalista (Luxury)',
+    'Llamativo con Neón y Contraste (Eventos)',
+    'Vectorial Limpio e Ilustrado',
+    'Estilo Banner Corporativo Limpio'
   ];
+
+  const productStyles = [
+    'Estudio Fotográfico Premium',
+    'Estilo de Vida Urbano (Modelo)',
+    'Minimalista Orgánico',
+    'Primer Plano Comercial nítido',
+    'Fantasía Conceptual / Sci-Fi'
+  ];
+
+  // Helper to draw watermark logo client-side
+  const applyBrandLogoOverlay = (baseImageSrc: string, logoSrc: string, position: string, opacityVal: number, sizePercent: number): Promise<string> => {
+    return new Promise((resolve) => {
+      const baseImg = new Image();
+      baseImg.crossOrigin = "anonymous";
+      baseImg.onload = () => {
+        const logoImg = new Image();
+        logoImg.crossOrigin = "anonymous";
+        logoImg.onload = () => {
+          const cv = document.createElement('canvas');
+          cv.width = baseImg.width;
+          cv.height = baseImg.height;
+          const ctx = cv.getContext('2d');
+          if (!ctx) {
+            resolve(baseImageSrc);
+            return;
+          }
+          // Draw base image
+          ctx.drawImage(baseImg, 0, 0);
+
+          // Calculate logo dimensions
+          const logoWidth = baseImg.width * (sizePercent / 100);
+          const logoHeight = logoWidth * (logoImg.height / logoImg.width);
+
+          // Padding
+          const padding = baseImg.width * 0.03; // 3% padding
+
+          // Calculate positions
+          let x = baseImg.width - logoWidth - padding;
+          let y = baseImg.height - logoHeight - padding;
+
+          if (position === 'bottom-left') {
+            x = padding;
+            y = baseImg.height - logoHeight - padding;
+          } else if (position === 'top-right') {
+            x = baseImg.width - logoWidth - padding;
+            y = padding;
+          } else if (position === 'top-left') {
+            x = padding;
+            y = padding;
+          }
+
+          // Draw logo with opacity
+          ctx.save();
+          ctx.globalAlpha = opacityVal;
+          ctx.drawImage(logoImg, x, y, logoWidth, logoHeight);
+          ctx.restore();
+
+          resolve(cv.toDataURL('image/png'));
+        };
+        logoImg.onerror = () => resolve(baseImageSrc);
+        logoImg.src = logoSrc;
+      };
+      baseImg.onerror = () => resolve(baseImageSrc);
+      baseImg.src = baseImageSrc;
+    });
+  };
+
+  // Watermark Effect
+  useEffect(() => {
+    let active = true;
+    if (!rawImageResult) {
+      setGeneratedResult(null);
+      return;
+    }
+
+    if (applyLogo && activeBrand?.logos && activeBrand.logos.length > 0) {
+      const logoUrl = activeBrand.logos[0];
+      applyBrandLogoOverlay(rawImageResult, logoUrl, logoPosition, logoOpacity, logoSizePercent)
+        .then(composited => {
+          if (active) setGeneratedResult(composited);
+        });
+    } else {
+      setGeneratedResult(rawImageResult);
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [rawImageResult, applyLogo, logoPosition, logoOpacity, logoSizePercent, activeBrand]);
 
   // ==========================================
   // IA GENERATION FUNCTIONS
@@ -141,12 +264,12 @@ export default function CreativeStudio({
   const handleGenerateLogo = async () => {
     if (!logoDescription.trim() || isGenerating) return;
     setGeneratedResult(null);
+    setRawImageResult(null);
 
     try {
-      // Validate image quota first
       await assertHasQuota(profile.id, profile.isPremium, 'image');
-
       setIsGenerating(true);
+
       const brandName = activeBrand ? activeBrand.name : 'Mi Negocio';
       const colors = activeBrand?.brandGuidelines 
         ? [
@@ -161,14 +284,16 @@ export default function CreativeStudio({
         brandName,
         logoStyle: selectedLogoStyle,
         niche: logoDescription,
-        colors
+        colors,
+        referenceImage: referenceImage || undefined
       });
-      setGeneratedResult(result);
+      
+      if (result) {
+        setRawImageResult(result);
+      }
 
-      // Track successful design render consumption
       await trackActionConsumption(profile.id, profile.isPremium, 'image');
 
-      // Sync local profile state to update dashboard progress bars
       const newCons = await getUserConsumption(profile.id, profile.isPremium);
       if (onUpdateProfile) {
         onUpdateProfile({
@@ -186,28 +311,51 @@ export default function CreativeStudio({
     }
   };
 
-  const handleGenerateImage = async () => {
-    if (!imagePrompt.trim() || isGenerating) return;
+  const handleGenerateAsset = async (type: 'flyers' | 'products') => {
+    const promptText = type === 'flyers' ? flyerPrompt : productPrompt;
+    if (!promptText.trim() || isGenerating) return;
+    
     setGeneratedResult(null);
+    setRawImageResult(null);
 
     try {
-      // Validate image quota first
       await assertHasQuota(profile.id, profile.isPremium, 'image');
-
       setIsGenerating(true);
+
+      const brandName = activeBrand ? activeBrand.name : 'Mi Negocio';
       const brandContext = activeBrand 
-        ? `Mantén coherencia con la identidad de ${activeBrand.name}. Guías de marca: ${activeBrand.description}.`
+        ? `Mantén coherencia con la identidad de marca de ${activeBrand.name}. Guías de marca: ${activeBrand.description}.`
         : '';
 
-      const fullPrompt = `${imagePrompt}. Estilo visual: ${selectedImageStyle}. ${brandContext} Alta resolución, sin textos escritos.`;
+      const styleName = type === 'flyers' ? selectedFlyerStyle : selectedProductStyle;
+      
+      let fullPrompt = "";
+      if (type === 'flyers') {
+        fullPrompt = `Diseño de flyer publicitario profesional y folleto de marketing digital para redes sociales. Tema: ${promptText}. Estilo visual y dirección de arte: ${styleName}. ${brandContext} Alta resolución, limpio, sin marcas de agua externas.`;
+      } else {
+        fullPrompt = `Fotografía comercial de producto premium y modelos profesionales. Sujeto/Concepto: ${promptText}. Estilo de render e iluminación de estudio: ${styleName}. ${brandContext} Alta resolución, enfoque nítido, sin textos escritos extraños ni marcas de agua.`;
+      }
 
-      const result = await generateCreativeImage(fullPrompt, selectedFormat);
-      setGeneratedResult(result);
+      const colors = activeBrand?.brandGuidelines 
+        ? [
+            { hex: activeBrand.brandGuidelines.primaryColor, name: 'Primario' },
+            { hex: activeBrand.brandGuidelines.secondaryColor, name: 'Secundario' }
+          ]
+        : undefined;
 
-      // Track successful design render consumption
+      const result = await generateCreativeImage(fullPrompt, selectedFormat, undefined, {
+        brandName,
+        niche: promptText,
+        colors,
+        referenceImage: referenceImage || undefined
+      });
+
+      if (result) {
+        setRawImageResult(result);
+      }
+
       await trackActionConsumption(profile.id, profile.isPremium, 'image');
 
-      // Sync local profile state to update dashboard progress bars
       const newCons = await getUserConsumption(profile.id, profile.isPremium);
       if (onUpdateProfile) {
         onUpdateProfile({
@@ -219,7 +367,7 @@ export default function CreativeStudio({
       console.error(err);
       alert(err.message?.includes("CRÍTICO") 
         ? err.message 
-        : 'Error al generar la imagen. Favor de intentar nuevamente.');
+        : 'Error al generar el diseño publicitario. Favor de intentar nuevamente.');
     } finally {
       setIsGenerating(false);
     }
@@ -233,14 +381,21 @@ export default function CreativeStudio({
     setIsSaving(true);
 
     try {
+      const promptText = generationType === 'logos' 
+        ? logoDescription 
+        : (generationType === 'flyers' ? flyerPrompt : productPrompt);
+      const styleName = generationType === 'logos' 
+        ? selectedLogoStyle 
+        : (generationType === 'flyers' ? selectedFlyerStyle : selectedProductStyle);
+
       await addDoc(collection(db, 'saved_assets'), {
         ownerId: auth.currentUser.uid,
         imageUrl: generatedResult,
         strategy: generationType === 'logos' 
-          ? `Logotipo generado para: ${logoDescription}. Estilo: ${selectedLogoStyle}.`
-          : `Imagen ilustrativa generada para: ${imagePrompt}. Formato: ${selectedFormat}.`,
+          ? `Logotipo generado para: ${promptText}. Estilo: ${styleName}.`
+          : `Diseño publicitario (${generationType}) generado para: ${promptText}. Formato: ${selectedFormat}.`,
         format: generationType === 'logos' ? 'Logotipo' : selectedFormat,
-        style: generationType === 'logos' ? selectedLogoStyle : selectedImageStyle,
+        style: styleName,
         brandName: activeBrand?.name || 'Marca General',
         createdAt: serverTimestamp()
       });
@@ -248,6 +403,28 @@ export default function CreativeStudio({
     } catch (err: any) {
       console.error("Save Error:", err);
       alert('Error al guardar en la Galería.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSetAsOfficialLogo = async () => {
+    if (!generatedResult || !selectedBrandId || isSaving) return;
+    setIsSaving(true);
+    try {
+      const targetBrand = projectsList.find(p => p.id === selectedBrandId);
+      if (!targetBrand) {
+        alert('Marca seleccionada no encontrada.');
+        return;
+      }
+      
+      await updateDoc(doc(db, 'projects', selectedBrandId), {
+        logos: [generatedResult]
+      });
+      alert(`¡Logo asignado exitosamente como logo oficial de "${targetBrand.name}"!`);
+    } catch (err) {
+      console.error(err);
+      alert('Error al asignar el logo a la marca.');
     } finally {
       setIsSaving(false);
     }
@@ -774,156 +951,550 @@ export default function CreativeStudio({
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Settings panel (2 cols) */}
           <div className="lg:col-span-2 space-y-4 p-5 bg-surface-900/20 border border-white/5 rounded-2xl">
-            {/* Type Selector - simple toggle */}
-            <div className="flex bg-black/40 p-1.5 rounded-xl border border-white/5">
+            {/* Type Selector - three tabs */}
+            <div className="flex bg-black/40 p-1.5 rounded-xl border border-white/5 gap-1 select-none">
               <button
+                type="button"
                 onClick={() => setGenerationType('logos')}
                 className={cn(
-                  "flex-1 py-2 text-xs font-mono font-bold uppercase rounded-lg transition-all cursor-pointer",
+                  "flex-1 py-2 text-[10px] font-mono font-bold uppercase rounded-lg transition-all cursor-pointer text-center truncate",
                   generationType === 'logos'
                     ? "bg-brand-primary text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-300"
                 )}
               >
-                Crear Logos
+                Logos
               </button>
               <button
-                onClick={() => setGenerationType('images')}
+                type="button"
+                onClick={() => setGenerationType('flyers')}
                 className={cn(
-                  "flex-1 py-2 text-xs font-mono font-bold uppercase rounded-lg transition-all cursor-pointer",
-                  generationType === 'images'
+                  "flex-1 py-2 text-[10px] font-mono font-bold uppercase rounded-lg transition-all cursor-pointer text-center truncate",
+                  generationType === 'flyers'
                     ? "bg-brand-primary text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-300"
                 )}
               >
-                Crear Imágenes
+                Flyers & Ads
+              </button>
+              <button
+                type="button"
+                onClick={() => setGenerationType('products')}
+                className={cn(
+                  "flex-1 py-2 text-[10px] font-mono font-bold uppercase rounded-lg transition-all cursor-pointer text-center truncate",
+                  generationType === 'products'
+                    ? "bg-brand-primary text-white shadow-sm"
+                    : "text-slate-500 hover:text-slate-300"
+                )}
+              >
+                Productos
               </button>
             </div>
 
-            {generationType === 'logos' ? (
-                /* LOGO BUILDER FORM */
-                <div
-                  className="space-y-4 pt-2"
-                >
-                  {/* Brand Description */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-mono text-slate-400">¿De qué es tu marca o negocio?</label>
-                    <textarea
-                      rows={4}
-                      placeholder="Ejemplo: Una cafetería gourmet de especialidad llamada 'Café Místico' enfocada en personas que buscan un ritual de café artesanal oscuro y premium..."
-                      value={logoDescription}
-                      onChange={(e) => setLogoDescription(e.target.value)}
-                      className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors resize-none"
-                    />
-                  </div>
+            {/* Select Brand Workspace */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-mono text-slate-400">Bóveda de Marca Activa</label>
+              <select
+                value={selectedBrandId}
+                onChange={(e) => setSelectedBrandId(e.target.value)}
+                className="w-full bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-brand-primary/40 cursor-pointer"
+              >
+                {projectsList.map((brand) => (
+                  <option key={brand.id} value={brand.id}>📁 {brand.name}</option>
+                ))}
+              </select>
+            </div>
 
-                  {/* Logo Style Select */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-mono text-slate-400">Estilo del Logotipo</label>
-                    <select
-                      value={selectedLogoStyle}
-                      onChange={(e) => setSelectedLogoStyle(e.target.value)}
-                      className="w-full bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-brand-primary/40 cursor-pointer"
-                    >
-                      {logoStyles.map((style) => (
-                        <option key={style} value={style}>{style}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleGenerateLogo}
-                    disabled={!logoDescription.trim() || isGenerating}
-                    className="w-full py-3 bg-brand-primary hover:bg-brand-primary/95 disabled:opacity-40 text-white rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all mt-4 text-xs"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Diseñando tu logotipo...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4" />
-                        <span>Crear Logotipo</span>
-                      </>
-                    )}
-                  </button>
+            {generationType === 'logos' && (
+              /* LOGO BUILDER FORM */
+              <div className="space-y-4 pt-1">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-mono text-slate-400">¿De qué es tu marca o negocio?</label>
+                  <textarea
+                    rows={4}
+                    placeholder="Ejemplo: Una cafetería gourmet de especialidad llamada 'Café Místico' enfocada en personas que buscan un ritual de café artesanal oscuro y premium..."
+                    value={logoDescription}
+                    onChange={(e) => setLogoDescription(e.target.value)}
+                    className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors resize-none font-sans"
+                  />
                 </div>
-              ) : (
-                /* IMAGE BUILDER FORM */
-                <div
-                  className="space-y-4 pt-2"
-                >
-                  {/* Prompt Text */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-mono text-slate-400">¿Qué quieres ilustrar en la imagen?</label>
-                    <textarea
-                      rows={4}
-                      placeholder="Ejemplo: Una taza de café gourmet en una mesa de obsidiana oscura con granos de café esparcidos alrededor, iluminación dorada premium..."
-                      value={imagePrompt}
-                      onChange={(e) => setImagePrompt(e.target.value)}
-                      className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors resize-none"
-                    />
-                  </div>
 
-                  {/* Format Selector */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-mono text-slate-400">Tamaño de la Imagen</label>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {formats.map((fmt) => (
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-mono text-slate-400">Estilo del Logotipo</label>
+                  <select
+                    value={selectedLogoStyle}
+                    onChange={(e) => setSelectedLogoStyle(e.target.value)}
+                    className="w-full bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-brand-primary/40 cursor-pointer"
+                  >
+                    {logoStyles.map((style) => (
+                      <option key={style} value={style}>{style}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Reference Image upload component */}
+                <div className="space-y-1.5 pt-2.5 border-t border-white/5">
+                  <label className="text-[11px] font-mono text-slate-400 block">Diseño de Referencia / Inspiración (Opcional)</label>
+                  {referenceImage ? (
+                    <div className="relative w-full h-20 bg-black/40 border border-white/10 rounded-xl p-2 flex items-center gap-3">
+                      <img src={referenceImage} alt="Referencia" className="h-full w-16 object-contain rounded-lg bg-black/20" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[9px] text-slate-400 truncate">Referencia visual cargada</p>
                         <button
-                          key={fmt.id}
                           type="button"
-                          onClick={() => setSelectedFormat(fmt.id)}
-                          className={cn(
-                            "px-2.5 py-2.5 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1",
-                            selectedFormat === fmt.id
-                              ? "bg-brand-primary/10 border-brand-primary text-white"
-                              : "bg-black/20 border-white/5 text-slate-500 hover:text-slate-300"
-                          )}
+                          onClick={() => setReferenceImage(null)}
+                          className="text-[9px] text-rose-400 hover:text-rose-300 font-bold mt-1 underline block cursor-pointer"
                         >
-                          <span className="text-[11px] font-bold font-mono">{fmt.label.split(' ')[0]}</span>
-                          <span className="text-[8px] text-slate-500">{fmt.desc}</span>
+                          Eliminar referencia
                         </button>
-                      ))}
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Image Style */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-mono text-slate-400">Estilo Visual</label>
-                    <select
-                      value={selectedImageStyle}
-                      onChange={(e) => setSelectedImageStyle(e.target.value)}
-                      className="w-full bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-brand-primary/40 cursor-pointer"
-                    >
-                      {imageStyles.map((style) => (
-                        <option key={style} value={style}>{style}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleGenerateImage}
-                    disabled={!imagePrompt.trim() || isGenerating}
-                    className="w-full py-3 bg-brand-primary hover:bg-brand-primary/95 disabled:opacity-40 text-white rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all mt-4 text-xs"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Creando tu imagen...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4" />
-                        <span>Crear Imagen</span>
-                      </>
-                    )}
-                  </button>
+                  ) : (
+                    <label className="w-full h-14 bg-black/20 hover:bg-black/35 border border-white/5 border-dashed hover:border-white/15 text-slate-500 hover:text-slate-400 rounded-xl text-xs flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all select-none">
+                      <Upload className="w-3.5 h-3.5 text-slate-600" />
+                      <span className="text-[9px] font-mono">Subir imagen de referencia</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const files = e.target.files;
+                          if (files && files[0]) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => setReferenceImage(reader.result as string);
+                            reader.readAsDataURL(files[0]);
+                          }
+                          e.target.value = '';
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
                 </div>
-              )}
+
+                <button
+                  type="button"
+                  onClick={handleGenerateLogo}
+                  disabled={!logoDescription.trim() || isGenerating}
+                  className="w-full py-3 bg-brand-primary hover:bg-brand-primary/95 disabled:opacity-40 text-white rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all mt-4 text-xs"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Diseñando tu logotipo...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Crear Logotipo</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {generationType === 'flyers' && (
+              /* FLYERS & ADVERTISING FORM */
+              <div className="space-y-4 pt-1">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-mono text-slate-400">¿Qué promociona este flyer o anuncio?</label>
+                  <textarea
+                    rows={4}
+                    placeholder="Ejemplo: Gran apertura de nuestra nueva sucursal con 50% de descuento en la primera compra, fucsia eléctrico, aspecto de poster digital moderno..."
+                    value={flyerPrompt}
+                    onChange={(e) => setFlyerPrompt(e.target.value)}
+                    className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors resize-none font-sans"
+                  />
+                </div>
+
+                {/* Format Selector */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-mono text-slate-400">Tamaño del Flyer</label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {formats.map((fmt) => (
+                      <button
+                        key={fmt.id}
+                        type="button"
+                        onClick={() => setSelectedFormat(fmt.id)}
+                        className={cn(
+                          "px-2 py-2 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5",
+                          selectedFormat === fmt.id
+                            ? "bg-brand-primary/10 border-brand-primary text-white"
+                            : "bg-black/20 border-white/5 text-slate-500 hover:text-slate-300"
+                        )}
+                      >
+                        <span className="text-[10px] font-bold font-mono">{fmt.label.split(' ')[0]}</span>
+                        <span className="text-[7.5px] text-slate-500 truncate w-full">{fmt.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-mono text-slate-400">Estilo del Flyer</label>
+                  <select
+                    value={selectedFlyerStyle}
+                    onChange={(e) => setSelectedFlyerStyle(e.target.value)}
+                    className="w-full bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-brand-primary/40 cursor-pointer"
+                  >
+                    {flyerStyles.map((style) => (
+                      <option key={style} value={style}>{style}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Reference Image upload component */}
+                <div className="space-y-1.5 pt-2.5 border-t border-white/5">
+                  <label className="text-[11px] font-mono text-slate-400 block">Diseño / Inspiración de Referencia (Opcional)</label>
+                  {referenceImage ? (
+                    <div className="relative w-full h-20 bg-black/40 border border-white/10 rounded-xl p-2 flex items-center gap-3">
+                      <img src={referenceImage} alt="Referencia" className="h-full w-16 object-contain rounded-lg bg-black/20" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[9px] text-slate-400 truncate">Referencia visual cargada</p>
+                        <button
+                          type="button"
+                          onClick={() => setReferenceImage(null)}
+                          className="text-[9px] text-rose-400 hover:text-rose-300 font-bold mt-1 underline block cursor-pointer"
+                        >
+                          Eliminar referencia
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="w-full h-14 bg-black/20 hover:bg-black/35 border border-white/5 border-dashed hover:border-white/15 text-slate-500 hover:text-slate-400 rounded-xl text-xs flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all select-none">
+                      <Upload className="w-3.5 h-3.5 text-slate-600" />
+                      <span className="text-[9px] font-mono">Subir imagen de referencia</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const files = e.target.files;
+                          if (files && files[0]) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => setReferenceImage(reader.result as string);
+                            reader.readAsDataURL(files[0]);
+                          }
+                          e.target.value = '';
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* Brand watermarking controls */}
+                <div className="space-y-2 pt-2.5 border-t border-white/5">
+                  <div className="flex items-center justify-between select-none">
+                    <label className="text-[11px] font-mono text-slate-400 cursor-pointer flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={applyLogo}
+                        onChange={(e) => setApplyLogo(e.target.checked)}
+                        className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary"
+                      />
+                      <span>Aplicar Logo de Marca</span>
+                    </label>
+                  </div>
+                  {applyLogo && (
+                    <div className="bg-black/25 border border-white/5 rounded-xl p-3 space-y-3 mt-1.5">
+                      {activeBrand?.logos && activeBrand.logos.length > 0 ? (
+                        <>
+                          <div className="flex items-center gap-3">
+                            <img src={activeBrand.logos[0]} alt="Brand Logo" className="w-10 h-10 object-contain rounded bg-black/40 border border-white/10 p-1" />
+                            <div className="min-w-0">
+                              <p className="text-[9px] font-mono text-slate-400 font-bold truncate">Logo de {activeBrand.name}</p>
+                              <p className="text-[8px] text-slate-500">Superposición automática activada</p>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-mono text-slate-500">Posición en la Imagen</label>
+                            <div className="grid grid-cols-2 gap-1">
+                              {[
+                                { id: 'top-left', label: 'Arriba Izq' },
+                                { id: 'top-right', label: 'Arriba Der' },
+                                { id: 'bottom-left', label: 'Abajo Izq' },
+                                { id: 'bottom-right', label: 'Abajo Der' }
+                              ].map(pos => (
+                                <button
+                                  key={pos.id}
+                                  type="button"
+                                  onClick={() => setLogoPosition(pos.id as any)}
+                                  className={cn(
+                                    "py-0.5 rounded text-[8px] font-mono border text-center transition-all cursor-pointer",
+                                    logoPosition === pos.id
+                                      ? "bg-brand-primary/10 border-brand-primary text-white"
+                                      : "bg-black/10 border-white/5 text-slate-500 hover:text-slate-300"
+                                  )}
+                                >
+                                  {pos.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[8px] font-mono text-slate-500">
+                              <span>Opacidad del Logo</span>
+                              <span>{Math.round(logoOpacity * 100)}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="0.1"
+                              max="1"
+                              step="0.05"
+                              value={logoOpacity}
+                              onChange={(e) => setLogoOpacity(parseFloat(e.target.value))}
+                              className="w-full accent-brand-primary h-1"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[8px] font-mono text-slate-500">
+                              <span>Tamaño Proporcional</span>
+                              <span>{logoSizePercent}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="8"
+                              max="35"
+                              step="1"
+                              value={logoSizePercent}
+                              onChange={(e) => setLogoSizePercent(parseInt(e.target.value))}
+                              className="w-full accent-brand-primary h-1"
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-[9px] text-amber-500/80 italic font-sans leading-relaxed">
+                          ⚠️ La marca seleccionada no tiene logos. Genera un logo primero en la pestaña 'Logos' y asígnalo.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleGenerateAsset('flyers')}
+                  disabled={!flyerPrompt.trim() || isGenerating}
+                  className="w-full py-3 bg-brand-primary hover:bg-brand-primary/95 disabled:opacity-40 text-white rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all mt-4 text-xs"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Creando tu flyer...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Crear Flyer</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {generationType === 'products' && (
+              /* PRODUCTS & MODELS FORM */
+              <div className="space-y-4 pt-1">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-mono text-slate-400">¿Qué producto o modelo deseas fotografiar?</label>
+                  <textarea
+                    rows={4}
+                    placeholder="Ejemplo: Un frasco de sérum facial premium sobre una roca húmeda con hojas verdes tropicales alrededor, gotas de agua cristalinas, luz de sol suave..."
+                    value={productPrompt}
+                    onChange={(e) => setProductPrompt(e.target.value)}
+                    className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors resize-none font-sans"
+                  />
+                </div>
+
+                {/* Format Selector */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-mono text-slate-400">Tamaño de la Imagen</label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {formats.map((fmt) => (
+                      <button
+                        key={fmt.id}
+                        type="button"
+                        onClick={() => setSelectedFormat(fmt.id)}
+                        className={cn(
+                          "px-2 py-2 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5",
+                          selectedFormat === fmt.id
+                            ? "bg-brand-primary/10 border-brand-primary text-white"
+                            : "bg-black/20 border-white/5 text-slate-500 hover:text-slate-300"
+                        )}
+                      >
+                        <span className="text-[10px] font-bold font-mono">{fmt.label.split(' ')[0]}</span>
+                        <span className="text-[7.5px] text-slate-500 truncate w-full">{fmt.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-mono text-slate-400">Estilo de la Fotografía</label>
+                  <select
+                    value={selectedProductStyle}
+                    onChange={(e) => setSelectedProductStyle(e.target.value)}
+                    className="w-full bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-brand-primary/40 cursor-pointer"
+                  >
+                    {productStyles.map((style) => (
+                      <option key={style} value={style}>{style}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Reference Image upload component */}
+                <div className="space-y-1.5 pt-2.5 border-t border-white/5">
+                  <label className="text-[11px] font-mono text-slate-400 block">Diseño / Inspiración de Referencia (Opcional)</label>
+                  {referenceImage ? (
+                    <div className="relative w-full h-20 bg-black/40 border border-white/10 rounded-xl p-2 flex items-center gap-3">
+                      <img src={referenceImage} alt="Referencia" className="h-full w-16 object-contain rounded-lg bg-black/20" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[9px] text-slate-400 truncate">Referencia visual cargada</p>
+                        <button
+                          type="button"
+                          onClick={() => setReferenceImage(null)}
+                          className="text-[9px] text-rose-400 hover:text-rose-300 font-bold mt-1 underline block cursor-pointer"
+                        >
+                          Eliminar referencia
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="w-full h-14 bg-black/20 hover:bg-black/35 border border-white/5 border-dashed hover:border-white/15 text-slate-500 hover:text-slate-400 rounded-xl text-xs flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all select-none">
+                      <Upload className="w-3.5 h-3.5 text-slate-600" />
+                      <span className="text-[9px] font-mono">Subir imagen de referencia</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const files = e.target.files;
+                          if (files && files[0]) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => setReferenceImage(reader.result as string);
+                            reader.readAsDataURL(files[0]);
+                          }
+                          e.target.value = '';
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* Brand watermarking controls */}
+                <div className="space-y-2 pt-2.5 border-t border-white/5">
+                  <div className="flex items-center justify-between select-none">
+                    <label className="text-[11px] font-mono text-slate-400 cursor-pointer flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={applyLogo}
+                        onChange={(e) => setApplyLogo(e.target.checked)}
+                        className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary"
+                      />
+                      <span>Aplicar Logo de Marca</span>
+                    </label>
+                  </div>
+                  {applyLogo && (
+                    <div className="bg-black/25 border border-white/5 rounded-xl p-3 space-y-3 mt-1.5">
+                      {activeBrand?.logos && activeBrand.logos.length > 0 ? (
+                        <>
+                          <div className="flex items-center gap-3">
+                            <img src={activeBrand.logos[0]} alt="Brand Logo" className="w-10 h-10 object-contain rounded bg-black/40 border border-white/10 p-1" />
+                            <div className="min-w-0">
+                              <p className="text-[9px] font-mono text-slate-400 font-bold truncate">Logo de {activeBrand.name}</p>
+                              <p className="text-[8px] text-slate-500">Superposición automática activada</p>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-mono text-slate-500">Posición en la Imagen</label>
+                            <div className="grid grid-cols-2 gap-1">
+                              {[
+                                { id: 'top-left', label: 'Arriba Izq' },
+                                { id: 'top-right', label: 'Arriba Der' },
+                                { id: 'bottom-left', label: 'Abajo Izq' },
+                                { id: 'bottom-right', label: 'Abajo Der' }
+                              ].map(pos => (
+                                <button
+                                  key={pos.id}
+                                  type="button"
+                                  onClick={() => setLogoPosition(pos.id as any)}
+                                  className={cn(
+                                    "py-0.5 rounded text-[8px] font-mono border text-center transition-all cursor-pointer",
+                                    logoPosition === pos.id
+                                      ? "bg-brand-primary/10 border-brand-primary text-white"
+                                      : "bg-black/10 border-white/5 text-slate-500 hover:text-slate-300"
+                                  )}
+                                >
+                                  {pos.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[8px] font-mono text-slate-500">
+                              <span>Opacidad del Logo</span>
+                              <span>{Math.round(logoOpacity * 100)}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="0.1"
+                              max="1"
+                              step="0.05"
+                              value={logoOpacity}
+                              onChange={(e) => setLogoOpacity(parseFloat(e.target.value))}
+                              className="w-full accent-brand-primary h-1"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[8px] font-mono text-slate-500">
+                              <span>Tamaño Proporcional</span>
+                              <span>{logoSizePercent}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="8"
+                              max="35"
+                              step="1"
+                              value={logoSizePercent}
+                              onChange={(e) => setLogoSizePercent(parseInt(e.target.value))}
+                              className="w-full accent-brand-primary h-1"
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-[9px] text-amber-500/80 italic font-sans leading-relaxed">
+                          ⚠️ La marca seleccionada no tiene logos. Genera un logo primero en la pestaña 'Logos' y asígnalo.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleGenerateAsset('products')}
+                  disabled={!productPrompt.trim() || isGenerating}
+                  className="w-full py-3 bg-brand-primary hover:bg-brand-primary/95 disabled:opacity-40 text-white rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all mt-4 text-xs"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Creando tu fotografía...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Crear Fotografía</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Result view panel (3 cols) */}
@@ -966,6 +1537,18 @@ export default function CreativeStudio({
                     <Edit3 className="w-4 h-4 text-brand-primary" />
                     <span>Editar</span>
                   </button>
+                  
+                  {generationType === 'logos' && (
+                    <button
+                      onClick={handleSetAsOfficialLogo}
+                      disabled={isSaving}
+                      className="flex-1 min-w-[120px] py-3 bg-[#0a0a0a] border border-brand-primary/20 hover:bg-brand-primary/10 text-brand-primary disabled:opacity-40 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Logo Oficial</span>
+                    </button>
+                  )}
+
                   <button
                     onClick={handleSaveToGallery}
                     disabled={isSaving}
@@ -976,7 +1559,7 @@ export default function CreativeStudio({
                     ) : (
                       <Save className="w-4 h-4 text-brand-primary" />
                     )}
-                    <span>Enviar a Galería</span>
+                    <span>A Galería</span>
                   </button>
                   
                   {/* Enviar a Marca Dropdown */}
@@ -991,7 +1574,7 @@ export default function CreativeStudio({
                       ) : (
                         <Briefcase className="w-4 h-4 text-brand-primary" />
                       )}
-                      <span>Enviar a Marca</span>
+                      <span>A Marca</span>
                     </button>
                     
                     {showBrandSelector && (

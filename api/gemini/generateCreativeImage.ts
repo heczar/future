@@ -31,6 +31,7 @@ export default async function handler(req: any, res: any) {
     logoStyle,
     mockupType,
     customMockupDesc,
+    referenceImage,
     model: requestedModel
   } = req.body || {};
   const isLogo = (prompt || "").toLowerCase().includes("logo") || 
@@ -38,6 +39,40 @@ export default async function handler(req: any, res: any) {
                  (prompt || "").toLowerCase().includes("symbol") || 
                  (prompt || "").toLowerCase().includes("isotipo") || 
                  (prompt || "").toLowerCase().includes("logotipo");
+
+  // Analyze reference image if provided to guide style
+  let styleGuidance = "";
+  if (referenceImage && typeof referenceImage === 'string' && referenceImage.startsWith('data:image')) {
+    try {
+      console.log(`[FUTURA SERVER] Analyzing uploaded style reference image...`);
+      const match = referenceImage.match(/^data:(image\/[a-zA-Z+.-]+);base64,(.+)$/);
+      if (match) {
+        const mimeType = match[1];
+        const base64Data = match[2];
+        const imagePart = {
+          inlineData: {
+            data: base64Data,
+            mimeType: mimeType
+          }
+        };
+
+        const analysisResponse = await getAiClient(customKey).models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [
+            imagePart,
+            "You are a design supervisor. Analyze this reference image and describe its visual style, artistic genre, medium, lighting, color scheme, composition, and layout in a single detailed English paragraph. Do not describe the subject matter (e.g. do not say 'it is a coffee cup' or 'it is a shoe'), but rather focus strictly on the visual style, background, rendering details, textures, and aesthetic mood. Start your response immediately with the stylistic description, keeping it concise and optimized for an AI image generator (Stable Diffusion/FLUX)."
+          ]
+        });
+
+        if (analysisResponse.text) {
+          styleGuidance = analysisResponse.text.trim();
+          console.log(`[FUTURA SERVER] Reference Image Style Guidance: "${styleGuidance}"`);
+        }
+      }
+    } catch (refErr) {
+      console.warn("[FUTURA SERVER] Reference image style analysis failed:", refErr);
+    }
+  }
 
   // Build the English-optimized prompt
   let englishPrompt = prompt || "professional brand design";
@@ -65,9 +100,13 @@ export default async function handler(req: any, res: any) {
   }
 
   // Build enhanced prompt using curated Open Design contracts
-  const enhancedPrompt = isLogo
+  let enhancedPrompt = isLogo
     ? `A professional corporate brand isotype, flat vector design graphic, ultra-minimalist style. ${englishPrompt}. Clean solid background, symmetrical modern geometry, sleek vector curves, sharp flat edges, inspired by Linear design system. No text, no watermark, rule of thirds layout.`
     : `A premium editorial commercial product photograph. ${englishPrompt}. Soft studio lighting, atmospheric depth, warm ambient shadows, high-contrast crisp details, sharp lens focus, premium commercial styling inspired by Stripe design language. No text, no watermark.`;
+
+  if (styleGuidance) {
+    enhancedPrompt += ` The image style and aesthetics should be closely inspired by the following: ${styleGuidance}.`;
+  }
 
   // ═══════════════════════════════════════════
   // PRIORITY 1: NVIDIA NIM (with Key Rotation support)

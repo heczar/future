@@ -268,7 +268,7 @@ export default function AdvisoryHub({
         : "No hay marca conectada en esta sesión.";
 
       const response = await chatWithAdvisor(promptText, chatMessages, brandCtx);
-      const safeResponse = typeof response === 'string' ? response : (response?.response || String(response || "Respuesta recibida correctamente."));
+      const safeResponse = response;
       const finalMessages = [...updatedMessages, { role: 'model' as const, text: safeResponse }];
       setChatMessages(finalMessages);
       saveActiveChat(currentId, finalMessages);
