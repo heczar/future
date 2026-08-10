@@ -17,6 +17,7 @@ import generateCreativeImageHandler from "./api/gemini/generateCreativeImage.js"
 import generateSocialCopyHandler from "./api/gemini/generateSocialCopy.js";
 import refineSocialCopyHandler from "./api/gemini/refineSocialCopy.js";
 import devAgentHandler from "./api/admin/devAgent.js";
+import supportTicketsHandler from "./api/support/tickets.js";
 
 dotenv.config();
 
@@ -85,6 +86,8 @@ app.post("/api/gemini/generateCreativeImage", wrapHandler(generateCreativeImageH
 app.post("/api/gemini/generateSocialCopy", wrapHandler(generateSocialCopyHandler));
 app.post("/api/gemini/refineSocialCopy", wrapHandler(refineSocialCopyHandler));
 app.post("/api/admin/dev-agent", wrapHandler(devAgentHandler));
+app.all("/api/support/tickets", wrapHandler(supportTicketsHandler));
+app.all("/api/support", wrapHandler(supportTicketsHandler));
 
 // --- VITE DEV OR STATIC PROD SERVER ---
 

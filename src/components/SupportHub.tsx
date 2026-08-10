@@ -72,49 +72,74 @@ export default function SupportHub({ profile }: SupportHubProps) {
   const userEmail = currentUser?.email || profile.email || 'usuario@futura.ai';
   const userName = profile.name || userEmail.split('@')[0];
 
-  // Suscripción en tiempo real a Firestore para el ticket del usuario
+  // Suscripción en tiempo real a Firestore + Sincronización continua con Servidor API
   useEffect(() => {
     if (!userId || userId === 'anonymous') {
       setLoadingTicket(false);
       return;
     }
 
+    let isMounted = true;
+
+    // Función para obtener ticket desde API del Servidor
+    const fetchServerTicket = async () => {
+      try {
+        const res = await fetch(`/api/support/tickets?action=get_user_ticket&userId=${encodeURIComponent(userId)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.ticket && isMounted) {
+            setTicket((prev) => {
+              // Si el servidor tiene más mensajes o es más reciente, actualizar
+              if (!prev || (data.ticket.messages && data.ticket.messages.length >= (prev.messages?.length || 0))) {
+                return data.ticket;
+              }
+              return prev;
+            });
+            localStorage.setItem(`futura_support_${userId}`, JSON.stringify(data.ticket));
+          }
+        }
+      } catch (err) {
+        console.warn("[SUPPORT HUB] Server ticket sync warning:", err);
+      } finally {
+        if (isMounted) setLoadingTicket(false);
+      }
+    };
+
+    fetchServerTicket();
+    const interval = setInterval(fetchServerTicket, 4000);
+
+    // Suscripción a Firestore
     const ticketRef = doc(db, 'support_tickets', userId);
-    
     const unsubscribe = onSnapshot(ticketRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data() as SupportTicketData;
-        setTicket(data);
-
-        // Si hay mensajes no leídos por el usuario, marcarlos como leídos al abrir la pantalla
-        if (data.unreadByUser) {
-          setDoc(ticketRef, { unreadByUser: false }, { merge: true }).catch(console.error);
+        if (isMounted) {
+          setTicket(data);
+          if (data.unreadByUser) {
+            setDoc(ticketRef, { unreadByUser: false }, { merge: true }).catch(console.error);
+          }
         }
       } else {
-        // Cargar fallback local o dejar como nulo (se creará al enviar el primer mensaje)
         const localData = localStorage.getItem(`futura_support_${userId}`);
-        if (localData) {
-          try {
-            setTicket(JSON.parse(localData));
-          } catch (e) {
-            setTicket(null);
-          }
-        } else {
-          setTicket(null);
+        if (localData && isMounted) {
+          try { setTicket(JSON.parse(localData)); } catch (e) {}
         }
       }
-      setLoadingTicket(false);
+      if (isMounted) setLoadingTicket(false);
     }, (error) => {
-      console.warn("Firestore support ticket read warning:", error);
-      // Fallback a localStorage
+      console.warn("[SUPPORT HUB] Firestore listener warning (using Server API fallback):", error);
       const localData = localStorage.getItem(`futura_support_${userId}`);
-      if (localData) {
+      if (localData && isMounted) {
         try { setTicket(JSON.parse(localData)); } catch (e) {}
       }
-      setLoadingTicket(false);
+      if (isMounted) setLoadingTicket(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      unsubscribe();
+    };
   }, [userId]);
 
   // Auto scroll al final de la conversación
@@ -155,12 +180,29 @@ export default function SupportHub({ profile }: SupportHubProps) {
       messages: updatedMessages,
     };
 
-    // 1. Guardar localmente
+    // 1. Guardar localmente y actualizar UI instantáneamente
     setTicket(updatedTicket);
     localStorage.setItem(`futura_support_${userId}`, JSON.stringify(updatedTicket));
     setInputText('');
 
-    // 2. Guardar en Firestore para que el admin lo reciba en tiempo real
+    // 2. Enviar a la API del Servidor (Garantía 100% para consola Admin)
+    try {
+      await fetch('/api/support/tickets?action=send_message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          userEmail,
+          userName,
+          text: finalMsg,
+          category: selectedCategory
+        })
+      });
+    } catch (apiErr) {
+      console.warn("[SUPPORT HUB] Error posting message to server API:", apiErr);
+    }
+
+    // 3. Guardar en Firestore
     try {
       const ticketRef = doc(db, 'support_tickets', userId);
       await setDoc(ticketRef, {
@@ -168,7 +210,7 @@ export default function SupportHub({ profile }: SupportHubProps) {
         updatedAt: serverTimestamp(),
       }, { merge: true });
     } catch (err) {
-      console.error("Error guardando mensaje en Firestore:", err);
+      console.warn("[SUPPORT HUB] Error guardando mensaje en Firestore (usando Server API):", err);
     } finally {
       setIsSending(false);
     }

@@ -56,32 +56,79 @@ export default function AdminSupportConsole() {
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Escuchar todos los tickets de soporte en tiempo real desde Firestore
+  // Escuchar todos los tickets de soporte en tiempo real desde Servidor API y Firestore
   useEffect(() => {
+    let isMounted = true;
+
+    // 1. Polling continuo a la API del servidor
+    const fetchServerTickets = async () => {
+      try {
+        const res = await fetch('/api/support/tickets?action=list');
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.tickets && Array.isArray(data.tickets) && isMounted) {
+            setTickets((prev) => {
+              // Combinar o actualizar tickets
+              const map = new Map<string, SupportTicketData>();
+              for (const t of prev) map.set(t.id, t);
+              for (const t of data.tickets) {
+                const existing = map.get(t.id);
+                if (!existing || (t.messages && t.messages.length >= (existing.messages?.length || 0))) {
+                  map.set(t.id, t);
+                }
+              }
+              const merged = Array.from(map.values());
+              merged.sort((a, b) => new Date(b.lastMessageAt || 0).getTime() - new Date(a.lastMessageAt || 0).getTime());
+              
+              if (merged.length > 0 && !selectedTicketId) {
+                setSelectedTicketId(merged[0].id);
+              }
+              return merged;
+            });
+            setLoading(false);
+          }
+        }
+      } catch (err) {
+        console.warn("[ADMIN SUPPORT] Server tickets sync warning:", err);
+      }
+    };
+
+    fetchServerTickets();
+    const interval = setInterval(fetchServerTickets, 3000);
+
+    // 2. Suscripción a Firestore
     const q = collection(db, 'support_tickets');
-    
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const ticketList: SupportTicketData[] = snapshot.docs.map(d => ({
         id: d.id,
         ...d.data()
       } as SupportTicketData));
 
-      // Ordenar por fecha de último mensaje descendente
-      ticketList.sort((a, b) => new Date(b.lastMessageAt || 0).getTime() - new Date(a.lastMessageAt || 0).getTime());
-
-      setTickets(ticketList);
-      setLoading(false);
-
-      // Si no hay ticket seleccionado y hay tickets, seleccionar el primero
-      if (ticketList.length > 0 && !selectedTicketId) {
-        setSelectedTicketId(ticketList[0].id);
+      if (ticketList.length > 0 && isMounted) {
+        setTickets((prev) => {
+          const map = new Map<string, SupportTicketData>();
+          for (const t of prev) map.set(t.id, t);
+          for (const t of ticketList) map.set(t.id, t);
+          const merged = Array.from(map.values());
+          merged.sort((a, b) => new Date(b.lastMessageAt || 0).getTime() - new Date(a.lastMessageAt || 0).getTime());
+          
+          if (merged.length > 0 && !selectedTicketId) {
+            setSelectedTicketId(merged[0].id);
+          }
+          return merged;
+        });
       }
+      if (isMounted) setLoading(false);
     }, (err) => {
-      console.warn("Firestore admin support tickets read warning:", err);
-      setLoading(false);
+      console.warn("[ADMIN SUPPORT] Firestore listener warning (using Server API fallback):", err);
+      if (isMounted) setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      unsubscribe();
+    };
   }, []);
 
   const selectedTicket = tickets.find(t => t.id === selectedTicketId) || null;
@@ -91,11 +138,19 @@ export default function AdminSupportConsole() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [selectedTicket?.messages]);
 
-  // Al seleccionar un ticket, marcarlo como leído por el Admin en Firestore
+  // Al seleccionar un ticket, marcarlo como leído por el Admin
   useEffect(() => {
     if (selectedTicket && selectedTicket.unreadByAdmin) {
+      // 1. En servidor
+      fetch('/api/support/tickets?action=update_state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId: selectedTicket.id, unreadByAdmin: false })
+      }).catch(console.warn);
+
+      // 2. En Firestore
       const ticketRef = doc(db, 'support_tickets', selectedTicket.id);
-      setDoc(ticketRef, { unreadByAdmin: false }, { merge: true }).catch(console.error);
+      setDoc(ticketRef, { unreadByAdmin: false }, { merge: true }).catch(console.warn);
     }
   }, [selectedTicketId]);
 
@@ -116,25 +171,53 @@ export default function AdminSupportConsole() {
 
     const updatedMessages = [...(selectedTicket.messages || []), newMsg];
 
-    const updatedTicket: Partial<SupportTicketData> = {
-      lastMessage: finalReply,
-      lastMessageAt: nowISO,
-      unreadByAdmin: false,
-      unreadByUser: true, // Notifica al cliente de respuesta nueva
-      status: 'open',
-      messages: updatedMessages,
-    };
+    // Optimistic UI update
+    setTickets((prev) =>
+      prev.map((t) =>
+        t.id === selectedTicket.id
+          ? {
+              ...t,
+              lastMessage: finalReply,
+              lastMessageAt: nowISO,
+              unreadByAdmin: false,
+              unreadByUser: true,
+              messages: updatedMessages,
+            }
+          : t
+      )
+    );
 
     setInputText('');
 
+    // 1. Enviar a Servidor API
+    try {
+      await fetch('/api/support/tickets?action=admin_reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticketId: selectedTicket.id,
+          text: finalReply,
+          adminEmail: 'heczaroficial@gmail.com'
+        })
+      });
+    } catch (apiErr) {
+      console.warn("[ADMIN SUPPORT] Error replying via server API:", apiErr);
+    }
+
+    // 2. Enviar a Firestore
     try {
       const ticketRef = doc(db, 'support_tickets', selectedTicket.id);
       await setDoc(ticketRef, {
-        ...updatedTicket,
+        lastMessage: finalReply,
+        lastMessageAt: nowISO,
+        unreadByAdmin: false,
+        unreadByUser: true,
+        status: 'open',
+        messages: updatedMessages,
         updatedAt: serverTimestamp(),
       }, { merge: true });
     } catch (err) {
-      console.error("Error al enviar respuesta de admin:", err);
+      console.warn("[ADMIN SUPPORT] Error replying in Firestore (using Server API):", err);
     } finally {
       setIsSending(false);
     }
@@ -143,11 +226,25 @@ export default function AdminSupportConsole() {
   const handleToggleStatus = async () => {
     if (!selectedTicket) return;
     const newStatus = selectedTicket.status === 'resolved' ? 'open' : 'resolved';
+    
+    // UI update
+    setTickets((prev) =>
+      prev.map((t) => (t.id === selectedTicket.id ? { ...t, status: newStatus } : t))
+    );
+
+    // Servidor API
+    fetch('/api/support/tickets?action=update_state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticketId: selectedTicket.id, status: newStatus })
+    }).catch(console.warn);
+
+    // Firestore
     try {
       const ticketRef = doc(db, 'support_tickets', selectedTicket.id);
       await setDoc(ticketRef, { status: newStatus }, { merge: true });
     } catch (err) {
-      console.error("Error cambiando estado:", err);
+      console.warn("Error cambiando estado:", err);
     }
   };
 
