@@ -833,26 +833,26 @@ export default function CreativeStudio({
 
       {isEditingInCanvas ? (
         /* CANVAS EDITOR WORKSPACE */
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-340px)] min-h-[300px]">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[550px] lg:min-h-[650px]">
           {/* Canvas workspace (3 cols) */}
-          <div className="lg:col-span-3 flex flex-col bg-surface-950 border border-white/5 rounded-2xl overflow-hidden relative">
-            <div className="flex items-center justify-between p-4 bg-[#0a0a0a] border-b border-white/5">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-brand-primary" />
+          <div className="lg:col-span-3 flex flex-col bg-surface-950 border border-white/10 rounded-2xl overflow-hidden relative shadow-2xl">
+            <div className="flex items-center justify-between p-4 lg:p-5 bg-[#0a0a0a] border-b border-white/10">
+              <span className="text-xs md:text-sm font-mono font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                <Layers className="w-4 h-4 text-brand-primary" />
                 Editor de Lienzo (Capas)
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => setIsEditingInCanvas(false)}
-                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-lg text-[10px] uppercase font-mono flex items-center gap-1 cursor-pointer"
+                  className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs uppercase font-mono flex items-center gap-1.5 cursor-pointer transition-colors border border-white/5"
                 >
-                  <X className="w-3.5 h-3.5" /> Cancelar
+                  <X className="w-4 h-4" /> Cancelar
                 </button>
                 <button
                   onClick={handleApplyCanvas}
-                  className="px-4 py-1.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-lg text-[10px] uppercase font-mono flex items-center gap-1 font-bold cursor-pointer"
+                  className="px-4 py-2 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-xs uppercase font-mono flex items-center gap-1.5 font-bold cursor-pointer transition-all shadow-md shadow-brand-primary/20"
                 >
-                  <Check className="w-3.5 h-3.5" /> Aplicar Diseño
+                  <Check className="w-4 h-4" /> Aplicar Diseño
                 </button>
               </div>
             </div>
@@ -862,24 +862,24 @@ export default function CreativeStudio({
               ref={canvasContainerRef}
               className="flex-1 flex items-center justify-center p-6 bg-[#060606] overflow-hidden"
             >
-              <canvas ref={canvasRef} className="shadow-2xl border border-white/5" />
+              <canvas ref={canvasRef} className="shadow-2xl border border-white/10 rounded-lg" />
             </div>
           </div>
 
           {/* Sidebar Tools Panel (1 col) */}
-          <div className="space-y-4 p-5 bg-surface-900/20 border border-white/5 rounded-2xl overflow-y-auto">
-            <h3 className="text-[10px] uppercase font-mono font-bold tracking-wider text-slate-400 border-b border-white/5 pb-2 mb-3">
+          <div className="space-y-5 p-5 lg:p-6 bg-surface-900/30 border border-white/10 rounded-2xl overflow-y-auto">
+            <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-300 border-b border-white/10 pb-2.5 mb-3">
               Herramientas de Diseño
             </h3>
 
             {/* Mode Select */}
             <div className="space-y-2">
-              <label className="text-[10px] font-mono text-slate-500">Herramienta Activa</label>
+              <label className="text-xs font-mono text-slate-400">Herramienta Activa</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setActiveTool('select')}
                   className={cn(
-                    "px-3 py-2 text-xs font-mono font-bold rounded-xl border text-center transition-all cursor-pointer",
+                    "px-3 py-2.5 text-xs font-mono font-bold rounded-xl border text-center transition-all cursor-pointer",
                     activeTool === 'select'
                       ? "bg-brand-primary/10 border-brand-primary text-brand-primary"
                       : "bg-black/20 border-white/5 text-slate-400 hover:text-white"
@@ -890,7 +890,7 @@ export default function CreativeStudio({
                 <button
                   onClick={() => setActiveTool('pencil')}
                   className={cn(
-                    "px-3 py-2 text-xs font-mono font-bold rounded-xl border text-center transition-all cursor-pointer",
+                    "px-3 py-2.5 text-xs font-mono font-bold rounded-xl border text-center transition-all cursor-pointer",
                     activeTool === 'pencil'
                       ? "bg-brand-primary/10 border-brand-primary text-brand-primary"
                       : "bg-black/20 border-white/5 text-slate-400 hover:text-white"
@@ -903,57 +903,57 @@ export default function CreativeStudio({
 
             {/* Vector Shapes & Text */}
             <div className="space-y-2 pt-2 border-t border-white/5">
-              <label className="text-[10px] font-mono text-slate-500">Agregar Elementos</label>
+              <label className="text-xs font-mono text-slate-400">Agregar Elementos</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={addRect}
-                  className="px-3 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer border border-white/5"
+                  className="px-3 py-2.5 bg-white/5 hover:bg-white/10 text-slate-200 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer border border-white/5 transition-colors"
                 >
-                  <Square className="w-3.5 h-3.5" /> Rectángulo
+                  <Square className="w-4 h-4" /> Rectángulo
                 </button>
                 <button
                   onClick={addText}
-                  className="px-3 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer border border-white/5"
+                  className="px-3 py-2.5 bg-white/5 hover:bg-white/10 text-slate-200 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer border border-white/5 transition-colors"
                 >
-                  <Type className="w-3.5 h-3.5" /> Texto
+                  <Type className="w-4 h-4" /> Texto
                 </button>
               </div>
             </div>
 
             {/* Color selector */}
             <div className="space-y-1.5 pt-2 border-t border-white/5">
-              <label className="text-[10px] font-mono text-slate-500">Color de Relleno</label>
+              <label className="text-xs font-mono text-slate-400">Color de Relleno</label>
               <input
                 type="color"
                 value={brushColor}
                 onChange={(e) => setBrushColor(e.target.value)}
-                className="w-full h-9 rounded-lg bg-black border border-white/10 px-1 py-1 cursor-pointer"
+                className="w-full h-10 rounded-xl bg-black border border-white/10 px-1 py-1 cursor-pointer"
               />
             </div>
 
             {/* Object adjustments */}
             {selectedObject ? (
-              <div className="space-y-3 pt-3 border-t border-brand-primary/20 bg-brand-primary/5 p-3.5 rounded-xl border border-white/5">
-                <span className="text-[10px] font-mono font-bold text-brand-primary uppercase">Capa Seleccionada</span>
+              <div className="space-y-3.5 pt-3 border-t border-brand-primary/20 bg-brand-primary/5 p-4 rounded-xl border border-white/5">
+                <span className="text-xs font-mono font-bold text-brand-primary uppercase">Capa Seleccionada</span>
                 
                 {/* Size / Font adjust if text */}
                 {selectedObject.type === 'i-text' && (
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-mono text-slate-400">Tamaño del Texto ({fontSize}px)</label>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-mono text-slate-300">Tamaño del Texto ({fontSize}px)</label>
                     <input
                       type="range"
                       min="12"
                       max="120"
                       value={fontSize}
                       onChange={(e) => setFontSize(parseInt(e.target.value))}
-                      className="w-full accent-brand-primary"
+                      className="w-full accent-brand-primary h-1.5 cursor-pointer"
                     />
                   </div>
                 )}
 
                 {/* Opacity */}
-                <div className="space-y-1">
-                  <label className="text-[9px] font-mono text-slate-400">Opacidad ({Math.round(opacity * 100)}%)</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono text-slate-300">Opacidad ({Math.round(opacity * 100)}%)</label>
                   <input
                     type="range"
                     min="0"
@@ -961,37 +961,37 @@ export default function CreativeStudio({
                     step="0.05"
                     value={opacity}
                     onChange={(e) => setOpacity(parseFloat(e.target.value))}
-                    className="w-full accent-brand-primary"
+                    className="w-full accent-brand-primary h-1.5 cursor-pointer"
                   />
                 </div>
 
                 {/* Ordering */}
-                <div className="flex gap-1.5 pt-1">
+                <div className="flex gap-2 pt-1">
                   <button
                     onClick={bringToFront}
-                    className="flex-1 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[9px] font-mono flex items-center justify-center gap-1 text-slate-300 cursor-pointer"
+                    className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-mono flex items-center justify-center gap-1.5 text-slate-200 cursor-pointer border border-white/5"
                   >
-                    <ArrowUp className="w-3 h-3" /> Traer
+                    <ArrowUp className="w-3.5 h-3.5" /> Traer
                   </button>
                   <button
                     onClick={sendToBack}
-                    className="flex-1 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[9px] font-mono flex items-center justify-center gap-1 text-slate-300 cursor-pointer"
+                    className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-mono flex items-center justify-center gap-1.5 text-slate-200 cursor-pointer border border-white/5"
                   >
-                    <ArrowDown className="w-3 h-3" /> Fondo
+                    <ArrowDown className="w-3.5 h-3.5" /> Fondo
                   </button>
                 </div>
 
                 {/* Duplicate / Delete */}
-                <div className="flex gap-1.5">
+                <div className="flex gap-2">
                   <button
                     onClick={duplicateSelected}
-                    className="flex-1 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[9px] font-mono flex items-center justify-center gap-1 text-slate-300 cursor-pointer"
+                    className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-mono flex items-center justify-center gap-1.5 text-slate-200 cursor-pointer border border-white/5"
                   >
                     <Copy className="w-3.5 h-3.5" /> Duplicar
                   </button>
                   <button
                     onClick={deleteSelected}
-                    className="flex-1 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg text-[9px] font-mono flex items-center justify-center gap-1 text-rose-400 cursor-pointer"
+                    className="flex-1 py-2 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg text-xs font-mono flex items-center justify-center gap-1.5 text-rose-400 cursor-pointer border border-rose-500/20"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Eliminar
                   </button>
@@ -999,23 +999,23 @@ export default function CreativeStudio({
               </div>
             ) : activeTool === 'pencil' ? (
               <div className="space-y-1.5 pt-2 border-t border-white/5">
-                <label className="text-[10px] font-mono text-slate-500">Grosor de Dibujo ({brushSize}px)</label>
+                <label className="text-xs font-mono text-slate-400">Grosor de Dibujo ({brushSize}px)</label>
                 <input
                   type="range"
                   min="1"
                   max="40"
                   value={brushSize}
                   onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                  className="w-full accent-brand-primary"
+                  className="w-full accent-brand-primary h-1.5 cursor-pointer"
                 />
               </div>
             ) : null}
 
             {/* Upload image to canvas */}
-            <div className="space-y-1.5 pt-2 border-t border-white/5">
-              <label className="text-[10px] font-mono text-slate-500">Insertar Imagen Local</label>
-              <label className="w-full py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer border border-white/5 transition-colors">
-                <Upload className="w-3.5 h-3.5" />
+            <div className="space-y-2 pt-2 border-t border-white/5">
+              <label className="text-xs font-mono text-slate-400">Insertar Imagen Local</label>
+              <label className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-slate-200 rounded-xl text-xs font-medium flex items-center justify-center gap-2 cursor-pointer border border-white/5 transition-colors">
+                <Upload className="w-4 h-4" />
                 <span>Subir Archivo</span>
                 <input
                   type="file"
@@ -1029,19 +1029,19 @@ export default function CreativeStudio({
         </div>
       ) : (
         /* CORE GENERATORS PANEL */
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
           {/* Settings panel (2 cols) */}
-          <div className="lg:col-span-2 space-y-4 p-5 bg-surface-900/20 border border-white/5 rounded-2xl">
+          <div className="lg:col-span-2 space-y-5 p-5 lg:p-6 bg-surface-900/30 border border-white/10 rounded-2xl shadow-xl">
             {/* Type Selector - three tabs */}
-            <div className="flex bg-black/40 p-1.5 rounded-xl border border-white/5 gap-1 select-none">
+            <div className="flex bg-black/40 p-1.5 rounded-xl border border-white/10 gap-1.5 select-none">
               <button
                 type="button"
                 onClick={() => setGenerationType('logos')}
                 className={cn(
-                  "flex-1 py-2 text-[10px] font-mono font-bold uppercase rounded-lg transition-all cursor-pointer text-center truncate",
+                  "flex-1 py-2.5 text-xs md:text-sm font-mono font-bold uppercase rounded-lg transition-all cursor-pointer text-center truncate",
                   generationType === 'logos'
-                    ? "bg-brand-primary text-white shadow-sm"
-                    : "text-slate-500 hover:text-slate-300"
+                    ? "bg-brand-primary text-white shadow-md shadow-brand-primary/20"
+                    : "text-slate-400 hover:text-white"
                 )}
               >
                 Logos
@@ -1050,10 +1050,10 @@ export default function CreativeStudio({
                 type="button"
                 onClick={() => setGenerationType('flyers')}
                 className={cn(
-                  "flex-1 py-2 text-[10px] font-mono font-bold uppercase rounded-lg transition-all cursor-pointer text-center truncate",
+                  "flex-1 py-2.5 text-xs md:text-sm font-mono font-bold uppercase rounded-lg transition-all cursor-pointer text-center truncate",
                   generationType === 'flyers'
-                    ? "bg-brand-primary text-white shadow-sm"
-                    : "text-slate-500 hover:text-slate-300"
+                    ? "bg-brand-primary text-white shadow-md shadow-brand-primary/20"
+                    : "text-slate-400 hover:text-white"
                 )}
               >
                 Flyers & Ads
@@ -1062,41 +1062,40 @@ export default function CreativeStudio({
                 type="button"
                 onClick={() => setGenerationType('products')}
                 className={cn(
-                  "flex-1 py-2 text-[10px] font-mono font-bold uppercase rounded-lg transition-all cursor-pointer text-center truncate",
+                  "flex-1 py-2.5 text-xs md:text-sm font-mono font-bold uppercase rounded-lg transition-all cursor-pointer text-center truncate",
                   generationType === 'products'
-                    ? "bg-brand-primary text-white shadow-sm"
-                    : "text-slate-500 hover:text-slate-300"
+                    ? "bg-brand-primary text-white shadow-md shadow-brand-primary/20"
+                    : "text-slate-400 hover:text-white"
                 )}
               >
                 Productos
               </button>
             </div>
 
-
             {generationType === 'logos' && (
               /* LOGO BUILDER FORM */
               <div className="space-y-4 pt-1">
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-slate-400">Nombre de la Marca / Negocio</label>
+                  <label className="text-xs md:text-sm font-mono font-semibold text-slate-300">Nombre de la Marca / Negocio</label>
                   <input
                     type="text"
-                    placeholder="Ejemplo: Café Místico"
+                    placeholder="Ejemplo: Café Místico, Nexo, HAZARD..."
                     value={logoBrandName}
                     onChange={(e) => setLogoBrandName(e.target.value)}
-                    className="w-full bg-[#090909] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors"
+                    className="w-full bg-[#090909] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-brand-primary/50 transition-colors placeholder:text-slate-600"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-slate-400">¿De qué es tu marca o negocio?</label>
+                  <label className="text-xs md:text-sm font-mono font-semibold text-slate-300">¿De qué es tu marca o negocio?</label>
                   <textarea
                     rows={4}
-                    placeholder="Ejemplo: Una cafetería gourmet de especialidad llamada 'Café Místico' enfocada en personas que buscan un ritual de café artesanal oscuro y premium..."
+                    placeholder="Ejemplo: Una cafetería gourmet de especialidad enfocada en personas que buscan un ritual de café artesanal oscuro y premium..."
                     value={logoDescription}
                     onChange={(e) => setLogoDescription(e.target.value)}
-                    className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors resize-none font-sans"
+                    className="w-full bg-[#090909] border border-white/10 rounded-xl p-3.5 text-sm text-white outline-none focus:border-brand-primary/50 transition-colors resize-none font-sans placeholder:text-slate-600"
                   />
-                  <div className="flex flex-wrap gap-1.5 mt-1.5 select-none">
+                  <div className="flex flex-wrap gap-1.5 mt-2 select-none">
                     {quickSuggestionsLogos.map((s) => (
                       <button
                         key={s.text}
@@ -1105,7 +1104,7 @@ export default function CreativeStudio({
                           setLogoDescription(s.prompt);
                           setLogoBrandName(s.brand);
                         }}
-                        className="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/5 text-[9px] font-sans transition-all cursor-pointer"
+                        className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-sans transition-all cursor-pointer"
                       >
                         {s.text}
                       </button>
@@ -1114,11 +1113,11 @@ export default function CreativeStudio({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-slate-400">Estilo del Logotipo</label>
+                  <label className="text-xs md:text-sm font-mono font-semibold text-slate-300">Estilo del Logotipo</label>
                   <select
                     value={selectedLogoStyle}
                     onChange={(e) => setSelectedLogoStyle(e.target.value)}
-                    className="w-full bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-brand-primary/40 cursor-pointer"
+                    className="w-full bg-[#090909] border border-white/10 text-sm text-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand-primary/50 cursor-pointer"
                   >
                     {logoStyles.map((style) => (
                       <option key={style} value={style}>{style}</option>
@@ -1128,25 +1127,25 @@ export default function CreativeStudio({
 
                 {/* Reference Image upload component */}
                 <div className="space-y-1.5 pt-2.5 border-t border-white/5">
-                  <label className="text-[11px] font-mono text-slate-400 block">Diseño de Referencia / Inspiración (Opcional)</label>
+                  <label className="text-xs md:text-sm font-mono font-semibold text-slate-300 block">Diseño de Referencia / Inspiración (Opcional)</label>
                   {referenceImage ? (
-                    <div className="relative w-full h-20 bg-black/40 border border-white/10 rounded-xl p-2 flex items-center gap-3">
-                      <img src={referenceImage} alt="Referencia" className="h-full w-16 object-contain rounded-lg bg-black/20" />
+                    <div className="relative w-full h-22 bg-black/40 border border-white/10 rounded-xl p-2.5 flex items-center gap-3.5">
+                      <img src={referenceImage} alt="Referencia" className="h-full w-20 object-contain rounded-lg bg-black/20" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-[9px] text-slate-400 truncate">Referencia visual cargada</p>
+                        <p className="text-xs text-slate-300 font-medium truncate">Referencia visual cargada</p>
                         <button
                           type="button"
                           onClick={() => setReferenceImage(null)}
-                          className="text-[9px] text-rose-400 hover:text-rose-300 font-bold mt-1 underline block cursor-pointer"
+                          className="text-xs text-rose-400 hover:text-rose-300 font-bold mt-1 underline block cursor-pointer"
                         >
                           Eliminar referencia
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <label className="w-full h-14 bg-black/20 hover:bg-black/35 border border-white/5 border-dashed hover:border-white/15 text-slate-500 hover:text-slate-400 rounded-xl text-xs flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all select-none">
-                      <Upload className="w-3.5 h-3.5 text-slate-600" />
-                      <span className="text-[9px] font-mono">Subir imagen de referencia</span>
+                    <label className="w-full h-16 bg-black/20 hover:bg-black/35 border border-white/10 border-dashed hover:border-white/20 text-slate-400 hover:text-white rounded-xl text-xs flex flex-col items-center justify-center gap-1 cursor-pointer transition-all select-none">
+                      <Upload className="w-4 h-4 text-slate-500" />
+                      <span className="text-xs font-mono font-medium">Subir imagen de referencia</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -1169,16 +1168,16 @@ export default function CreativeStudio({
                   type="button"
                   onClick={handleGenerateLogo}
                   disabled={!logoDescription.trim() || isGenerating}
-                  className="w-full py-3 bg-brand-primary hover:bg-brand-primary/95 disabled:opacity-40 text-white rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all mt-4 text-xs"
+                  className="w-full py-4 bg-brand-primary hover:bg-brand-primary/95 disabled:opacity-40 text-white rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all mt-4 text-sm md:text-base shadow-lg shadow-brand-primary/20"
                 >
                   {isGenerating ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Diseñando tu logotipo...</span>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Diseñando tu logotipo con marca...</span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-5 h-5" />
                       <span>Crear Logotipo</span>
                     </>
                   )}
@@ -1190,21 +1189,21 @@ export default function CreativeStudio({
               /* FLYERS & ADVERTISING FORM */
               <div className="space-y-4 pt-1">
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-slate-400">¿Qué promociona este flyer o anuncio?</label>
+                  <label className="text-xs md:text-sm font-mono font-semibold text-slate-300">¿Qué promociona este flyer o anuncio?</label>
                   <textarea
                     rows={4}
                     placeholder="Ejemplo: Gran apertura de nuestra nueva sucursal con 50% de descuento en la primera compra, fucsia eléctrico, aspecto de poster digital moderno..."
                     value={flyerPrompt}
                     onChange={(e) => setFlyerPrompt(e.target.value)}
-                    className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors resize-none font-sans"
+                    className="w-full bg-[#090909] border border-white/10 rounded-xl p-3.5 text-sm text-white outline-none focus:border-brand-primary/50 transition-colors resize-none font-sans placeholder:text-slate-600"
                   />
-                  <div className="flex flex-wrap gap-1.5 mt-1.5 select-none">
+                  <div className="flex flex-wrap gap-1.5 mt-2 select-none">
                     {quickSuggestionsFlyers.map((s) => (
                       <button
                         key={s.text}
                         type="button"
                         onClick={() => setFlyerPrompt(s.prompt)}
-                        className="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/5 text-[9px] font-sans transition-all cursor-pointer"
+                        className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-sans transition-all cursor-pointer"
                       >
                         {s.text}
                       </button>
@@ -1214,33 +1213,33 @@ export default function CreativeStudio({
 
                 {/* Format Selector */}
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-slate-400">Tamaño del Flyer</label>
-                  <div className="grid grid-cols-3 gap-1.5">
+                  <label className="text-xs md:text-sm font-mono font-semibold text-slate-300">Tamaño del Flyer</label>
+                  <div className="grid grid-cols-3 gap-2">
                     {formats.map((fmt) => (
                       <button
                         key={fmt.id}
                         type="button"
                         onClick={() => setSelectedFormat(fmt.id)}
                         className={cn(
-                          "px-2 py-2 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5",
+                          "px-2.5 py-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1",
                           selectedFormat === fmt.id
                             ? "bg-brand-primary/10 border-brand-primary text-white"
-                            : "bg-black/20 border-white/5 text-slate-500 hover:text-slate-300"
+                            : "bg-black/20 border-white/5 text-slate-400 hover:text-white"
                         )}
                       >
-                        <span className="text-[10px] font-bold font-mono">{fmt.label.split(' ')[0]}</span>
-                        <span className="text-[7.5px] text-slate-500 truncate w-full">{fmt.desc}</span>
+                        <span className="text-xs font-bold font-mono">{fmt.label.split(' ')[0]}</span>
+                        <span className="text-[10px] text-slate-400 truncate w-full">{fmt.desc}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-slate-400">Estilo del Flyer</label>
+                  <label className="text-xs md:text-sm font-mono font-semibold text-slate-300">Estilo del Flyer</label>
                   <select
                     value={selectedFlyerStyle}
                     onChange={(e) => setSelectedFlyerStyle(e.target.value)}
-                    className="w-full bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-brand-primary/40 cursor-pointer"
+                    className="w-full bg-[#090909] border border-white/10 text-sm text-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand-primary/50 cursor-pointer"
                   >
                     {flyerStyles.map((style) => (
                       <option key={style} value={style}>{style}</option>
@@ -1250,25 +1249,25 @@ export default function CreativeStudio({
 
                 {/* Reference Image upload component */}
                 <div className="space-y-1.5 pt-2.5 border-t border-white/5">
-                  <label className="text-[11px] font-mono text-slate-400 block">Diseño / Inspiración de Referencia (Opcional)</label>
+                  <label className="text-xs md:text-sm font-mono font-semibold text-slate-300 block">Diseño / Inspiración de Referencia (Opcional)</label>
                   {referenceImage ? (
-                    <div className="relative w-full h-20 bg-black/40 border border-white/10 rounded-xl p-2 flex items-center gap-3">
-                      <img src={referenceImage} alt="Referencia" className="h-full w-16 object-contain rounded-lg bg-black/20" />
+                    <div className="relative w-full h-22 bg-black/40 border border-white/10 rounded-xl p-2.5 flex items-center gap-3.5">
+                      <img src={referenceImage} alt="Referencia" className="h-full w-20 object-contain rounded-lg bg-black/20" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-[9px] text-slate-400 truncate">Referencia visual cargada</p>
+                        <p className="text-xs text-slate-300 font-medium truncate">Referencia visual cargada</p>
                         <button
                           type="button"
                           onClick={() => setReferenceImage(null)}
-                          className="text-[9px] text-rose-400 hover:text-rose-300 font-bold mt-1 underline block cursor-pointer"
+                          className="text-xs text-rose-400 hover:text-rose-300 font-bold mt-1 underline block cursor-pointer"
                         >
                           Eliminar referencia
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <label className="w-full h-14 bg-black/20 hover:bg-black/35 border border-white/5 border-dashed hover:border-white/15 text-slate-500 hover:text-slate-400 rounded-xl text-xs flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all select-none">
-                      <Upload className="w-3.5 h-3.5 text-slate-600" />
-                      <span className="text-[9px] font-mono">Subir imagen de referencia</span>
+                    <label className="w-full h-16 bg-black/20 hover:bg-black/35 border border-white/10 border-dashed hover:border-white/20 text-slate-400 hover:text-white rounded-xl text-xs flex flex-col items-center justify-center gap-1 cursor-pointer transition-all select-none">
+                      <Upload className="w-4 h-4 text-slate-500" />
+                      <span className="text-xs font-mono font-medium">Subir imagen de referencia</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -1290,31 +1289,31 @@ export default function CreativeStudio({
                 {/* Brand watermarking controls */}
                 <div className="space-y-2 pt-2.5 border-t border-white/5">
                   <div className="flex items-center justify-between select-none">
-                    <label className="text-[11px] font-mono text-slate-400 cursor-pointer flex items-center gap-2">
+                    <label className="text-xs md:text-sm font-mono text-slate-300 cursor-pointer flex items-center gap-2">
                       <input
                         type="checkbox"
                         checked={applyLogo}
                         onChange={(e) => setApplyLogo(e.target.checked)}
-                        className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary"
+                        className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary w-4 h-4"
                       />
                       <span>Aplicar Logo de Marca</span>
                     </label>
                   </div>
                   {applyLogo && (
-                    <div className="bg-black/25 border border-white/5 rounded-xl p-3 space-y-3 mt-1.5">
+                    <div className="bg-black/25 border border-white/10 rounded-xl p-3.5 space-y-3 mt-1.5">
                       {customUploadedLogo ? (
                         <>
                           <div className="flex items-center gap-3">
-                            <img src={customUploadedLogo} alt="Brand Logo" className="w-10 h-10 object-contain rounded bg-black/40 border border-white/10 p-1" />
+                            <img src={customUploadedLogo} alt="Brand Logo" className="w-12 h-12 object-contain rounded bg-black/40 border border-white/10 p-1" />
                             <div className="min-w-0">
-                              <p className="text-[9px] font-mono text-slate-400 font-bold truncate">Logotipo de Marca Activo</p>
-                              <p className="text-[8px] text-slate-500">Superposición automática activada</p>
+                              <p className="text-xs font-mono text-slate-300 font-bold truncate">Logotipo de Marca Activo</p>
+                              <p className="text-[11px] text-slate-400">Superposición automática activada</p>
                             </div>
                           </div>
                           
-                          <div className="space-y-1">
-                            <label className="text-[8px] font-mono text-slate-500">Posición en la Imagen</label>
-                            <div className="grid grid-cols-2 gap-1">
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-mono text-slate-400">Posición en la Imagen</label>
+                            <div className="grid grid-cols-2 gap-1.5">
                               {[
                                 { id: 'top-left', label: 'Arriba Izq' },
                                 { id: 'top-right', label: 'Arriba Der' },
@@ -1326,10 +1325,10 @@ export default function CreativeStudio({
                                   type="button"
                                   onClick={() => setLogoPosition(pos.id as any)}
                                   className={cn(
-                                    "py-0.5 rounded text-[8px] font-mono border text-center transition-all cursor-pointer",
+                                    "py-1.5 rounded-lg text-xs font-mono border text-center transition-all cursor-pointer font-medium",
                                     logoPosition === pos.id
                                       ? "bg-brand-primary/10 border-brand-primary text-white"
-                                      : "bg-black/10 border-white/5 text-slate-500 hover:text-slate-300"
+                                      : "bg-black/10 border-white/5 text-slate-400 hover:text-white"
                                   )}
                                 >
                                   {pos.label}
@@ -1338,10 +1337,10 @@ export default function CreativeStudio({
                             </div>
                           </div>
 
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[8px] font-mono text-slate-500">
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between text-xs font-mono text-slate-400">
                               <span>Opacidad del Logo</span>
-                              <span>{Math.round(logoOpacity * 100)}%</span>
+                              <span className="text-white font-bold">{Math.round(logoOpacity * 100)}%</span>
                             </div>
                             <input
                               type="range"
@@ -1350,14 +1349,14 @@ export default function CreativeStudio({
                               step="0.05"
                               value={logoOpacity}
                               onChange={(e) => setLogoOpacity(parseFloat(e.target.value))}
-                              className="w-full accent-brand-primary h-1"
+                              className="w-full accent-brand-primary h-1.5 cursor-pointer"
                             />
                           </div>
 
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[8px] font-mono text-slate-500">
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between text-xs font-mono text-slate-400">
                               <span>Tamaño Proporcional</span>
-                              <span>{logoSizePercent}%</span>
+                              <span className="text-white font-bold">{logoSizePercent}%</span>
                             </div>
                             <input
                               type="range"
@@ -1366,12 +1365,12 @@ export default function CreativeStudio({
                               step="1"
                               value={logoSizePercent}
                               onChange={(e) => setLogoSizePercent(parseInt(e.target.value))}
-                              className="w-full accent-brand-primary h-1"
+                              className="w-full accent-brand-primary h-1.5 cursor-pointer"
                             />
                           </div>
                         </>
                       ) : (
-                        <p className="text-[9px] text-amber-500/80 italic font-sans leading-relaxed">
+                        <p className="text-xs text-amber-400/90 italic font-sans leading-relaxed">
                           ⚠️ No hay ningún logotipo activo. Genera uno en 'Logos' o súbelo en el panel de arriba.
                         </p>
                       )}
@@ -1383,16 +1382,16 @@ export default function CreativeStudio({
                   type="button"
                   onClick={() => handleGenerateAsset('flyers')}
                   disabled={!flyerPrompt.trim() || isGenerating}
-                  className="w-full py-3 bg-brand-primary hover:bg-brand-primary/95 disabled:opacity-40 text-white rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all mt-4 text-xs"
+                  className="w-full py-4 bg-brand-primary hover:bg-brand-primary/95 disabled:opacity-40 text-white rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all mt-4 text-sm md:text-base shadow-lg shadow-brand-primary/20"
                 >
                   {isGenerating ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-5 h-5 animate-spin" />
                       <span>Creando tu flyer...</span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-5 h-5" />
                       <span>Crear Flyer</span>
                     </>
                   )}
@@ -1404,21 +1403,21 @@ export default function CreativeStudio({
               /* PRODUCTS & MODELS FORM */
               <div className="space-y-4 pt-1">
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-slate-400">¿Qué producto o modelo deseas fotografiar?</label>
+                  <label className="text-xs md:text-sm font-mono font-semibold text-slate-300">¿Qué producto o modelo deseas fotografiar?</label>
                   <textarea
                     rows={4}
                     placeholder="Ejemplo: Un frasco de sérum facial premium sobre una roca húmeda con hojas verdes tropicales alrededor, gotas de agua cristalinas, luz de sol suave..."
                     value={productPrompt}
                     onChange={(e) => setProductPrompt(e.target.value)}
-                    className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-brand-primary/40 transition-colors resize-none font-sans"
+                    className="w-full bg-[#090909] border border-white/10 rounded-xl p-3.5 text-sm text-white outline-none focus:border-brand-primary/50 transition-colors resize-none font-sans placeholder:text-slate-600"
                   />
-                  <div className="flex flex-wrap gap-1.5 mt-1.5 select-none">
+                  <div className="flex flex-wrap gap-1.5 mt-2 select-none">
                     {quickSuggestionsProducts.map((s) => (
                       <button
                         key={s.text}
                         type="button"
                         onClick={() => setProductPrompt(s.prompt)}
-                        className="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/5 text-[9px] font-sans transition-all cursor-pointer"
+                        className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-sans transition-all cursor-pointer"
                       >
                         {s.text}
                       </button>
@@ -1426,35 +1425,12 @@ export default function CreativeStudio({
                   </div>
                 </div>
 
-                {/* Format Selector */}
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-slate-400">Tamaño de la Imagen</label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {formats.map((fmt) => (
-                      <button
-                        key={fmt.id}
-                        type="button"
-                        onClick={() => setSelectedFormat(fmt.id)}
-                        className={cn(
-                          "px-2 py-2 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5",
-                          selectedFormat === fmt.id
-                            ? "bg-brand-primary/10 border-brand-primary text-white"
-                            : "bg-black/20 border-white/5 text-slate-500 hover:text-slate-300"
-                        )}
-                      >
-                        <span className="text-[10px] font-bold font-mono">{fmt.label.split(' ')[0]}</span>
-                        <span className="text-[7.5px] text-slate-500 truncate w-full">{fmt.desc}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-slate-400">Estilo de la Fotografía</label>
+                  <label className="text-xs md:text-sm font-mono font-semibold text-slate-300">Estilo de Mockup o Fotografía</label>
                   <select
                     value={selectedProductStyle}
                     onChange={(e) => setSelectedProductStyle(e.target.value)}
-                    className="w-full bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-brand-primary/40 cursor-pointer"
+                    className="w-full bg-[#090909] border border-white/10 text-sm text-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand-primary/50 cursor-pointer"
                   >
                     {productStyles.map((style) => (
                       <option key={style} value={style}>{style}</option>
@@ -1464,25 +1440,25 @@ export default function CreativeStudio({
 
                 {/* Reference Image upload component */}
                 <div className="space-y-1.5 pt-2.5 border-t border-white/5">
-                  <label className="text-[11px] font-mono text-slate-400 block">Diseño / Inspiración de Referencia (Opcional)</label>
+                  <label className="text-xs md:text-sm font-mono font-semibold text-slate-300 block">Diseño / Inspiración de Referencia (Opcional)</label>
                   {referenceImage ? (
-                    <div className="relative w-full h-20 bg-black/40 border border-white/10 rounded-xl p-2 flex items-center gap-3">
-                      <img src={referenceImage} alt="Referencia" className="h-full w-16 object-contain rounded-lg bg-black/20" />
+                    <div className="relative w-full h-22 bg-black/40 border border-white/10 rounded-xl p-2.5 flex items-center gap-3.5">
+                      <img src={referenceImage} alt="Referencia" className="h-full w-20 object-contain rounded-lg bg-black/20" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-[9px] text-slate-400 truncate">Referencia visual cargada</p>
+                        <p className="text-xs text-slate-300 font-medium truncate">Referencia visual cargada</p>
                         <button
                           type="button"
                           onClick={() => setReferenceImage(null)}
-                          className="text-[9px] text-rose-400 hover:text-rose-300 font-bold mt-1 underline block cursor-pointer"
+                          className="text-xs text-rose-400 hover:text-rose-300 font-bold mt-1 underline block cursor-pointer"
                         >
                           Eliminar referencia
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <label className="w-full h-14 bg-black/20 hover:bg-black/35 border border-white/5 border-dashed hover:border-white/15 text-slate-500 hover:text-slate-400 rounded-xl text-xs flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all select-none">
-                      <Upload className="w-3.5 h-3.5 text-slate-600" />
-                      <span className="text-[9px] font-mono">Subir imagen de referencia</span>
+                    <label className="w-full h-16 bg-black/20 hover:bg-black/35 border border-white/10 border-dashed hover:border-white/20 text-slate-400 hover:text-white rounded-xl text-xs flex flex-col items-center justify-center gap-1 cursor-pointer transition-all select-none">
+                      <Upload className="w-4 h-4 text-slate-500" />
+                      <span className="text-xs font-mono font-medium">Subir imagen de referencia</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -1504,31 +1480,31 @@ export default function CreativeStudio({
                 {/* Brand watermarking controls */}
                 <div className="space-y-2 pt-2.5 border-t border-white/5">
                   <div className="flex items-center justify-between select-none">
-                    <label className="text-[11px] font-mono text-slate-400 cursor-pointer flex items-center gap-2">
+                    <label className="text-xs md:text-sm font-mono text-slate-300 cursor-pointer flex items-center gap-2">
                       <input
                         type="checkbox"
                         checked={applyLogo}
                         onChange={(e) => setApplyLogo(e.target.checked)}
-                        className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary"
+                        className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary w-4 h-4"
                       />
                       <span>Aplicar Logo de Marca</span>
                     </label>
                   </div>
                   {applyLogo && (
-                    <div className="bg-black/25 border border-white/5 rounded-xl p-3 space-y-3 mt-1.5">
+                    <div className="bg-black/25 border border-white/10 rounded-xl p-3.5 space-y-3 mt-1.5">
                       {customUploadedLogo ? (
                         <>
                           <div className="flex items-center gap-3">
-                            <img src={customUploadedLogo} alt="Brand Logo" className="w-10 h-10 object-contain rounded bg-black/40 border border-white/10 p-1" />
+                            <img src={customUploadedLogo} alt="Brand Logo" className="w-12 h-12 object-contain rounded bg-black/40 border border-white/10 p-1" />
                             <div className="min-w-0">
-                              <p className="text-[9px] font-mono text-slate-400 font-bold truncate">Logotipo de Marca Activo</p>
-                              <p className="text-[8px] text-slate-500">Superposición automática activada</p>
+                              <p className="text-xs font-mono text-slate-300 font-bold truncate">Logotipo de Marca Activo</p>
+                              <p className="text-[11px] text-slate-400">Superposición automática activada</p>
                             </div>
                           </div>
                           
-                          <div className="space-y-1">
-                            <label className="text-[8px] font-mono text-slate-500">Posición en la Imagen</label>
-                            <div className="grid grid-cols-2 gap-1">
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-mono text-slate-400">Posición en la Imagen</label>
+                            <div className="grid grid-cols-2 gap-1.5">
                               {[
                                 { id: 'top-left', label: 'Arriba Izq' },
                                 { id: 'top-right', label: 'Arriba Der' },
@@ -1540,10 +1516,10 @@ export default function CreativeStudio({
                                   type="button"
                                   onClick={() => setLogoPosition(pos.id as any)}
                                   className={cn(
-                                    "py-0.5 rounded text-[8px] font-mono border text-center transition-all cursor-pointer",
+                                    "py-1.5 rounded-lg text-xs font-mono border text-center transition-all cursor-pointer font-medium",
                                     logoPosition === pos.id
                                       ? "bg-brand-primary/10 border-brand-primary text-white"
-                                      : "bg-black/10 border-white/5 text-slate-500 hover:text-slate-300"
+                                      : "bg-black/10 border-white/5 text-slate-400 hover:text-white"
                                   )}
                                 >
                                   {pos.label}
@@ -1552,10 +1528,10 @@ export default function CreativeStudio({
                             </div>
                           </div>
 
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[8px] font-mono text-slate-500">
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between text-xs font-mono text-slate-400">
                               <span>Opacidad del Logo</span>
-                              <span>{Math.round(logoOpacity * 100)}%</span>
+                              <span className="text-white font-bold">{Math.round(logoOpacity * 100)}%</span>
                             </div>
                             <input
                               type="range"
@@ -1564,14 +1540,14 @@ export default function CreativeStudio({
                               step="0.05"
                               value={logoOpacity}
                               onChange={(e) => setLogoOpacity(parseFloat(e.target.value))}
-                              className="w-full accent-brand-primary h-1"
+                              className="w-full accent-brand-primary h-1.5 cursor-pointer"
                             />
                           </div>
 
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[8px] font-mono text-slate-500">
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between text-xs font-mono text-slate-400">
                               <span>Tamaño Proporcional</span>
-                              <span>{logoSizePercent}%</span>
+                              <span className="text-white font-bold">{logoSizePercent}%</span>
                             </div>
                             <input
                               type="range"
@@ -1580,12 +1556,12 @@ export default function CreativeStudio({
                               step="1"
                               value={logoSizePercent}
                               onChange={(e) => setLogoSizePercent(parseInt(e.target.value))}
-                              className="w-full accent-brand-primary h-1"
+                              className="w-full accent-brand-primary h-1.5 cursor-pointer"
                             />
                           </div>
                         </>
                       ) : (
-                        <p className="text-[9px] text-amber-500/80 italic font-sans leading-relaxed">
+                        <p className="text-xs text-amber-400/90 italic font-sans leading-relaxed">
                           ⚠️ No hay ningún logotipo activo. Genera uno en 'Logos' o súbelo en el panel de arriba.
                         </p>
                       )}
@@ -1597,16 +1573,16 @@ export default function CreativeStudio({
                   type="button"
                   onClick={() => handleGenerateAsset('products')}
                   disabled={!productPrompt.trim() || isGenerating}
-                  className="w-full py-3 bg-brand-primary hover:bg-brand-primary/95 disabled:opacity-40 text-white rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all mt-4 text-xs"
+                  className="w-full py-4 bg-brand-primary hover:bg-brand-primary/95 disabled:opacity-40 text-white rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all mt-4 text-sm md:text-base shadow-lg shadow-brand-primary/20"
                 >
                   {isGenerating ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-5 h-5 animate-spin" />
                       <span>Creando tu fotografía...</span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-5 h-5" />
                       <span>Crear Fotografía</span>
                     </>
                   )}
@@ -1616,43 +1592,48 @@ export default function CreativeStudio({
           </div>
 
           {/* Result view panel (3 cols) */}
-          <div className="lg:col-span-3 flex flex-col h-[calc(100vh-340px)] min-h-[300px] p-5 bg-surface-900/20 border border-white/5 rounded-2xl relative overflow-hidden">
-            <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-300 border-b border-white/5 pb-2 mb-4 shrink-0">
-              Resultado
+          <div className="lg:col-span-3 flex flex-col min-h-[560px] lg:min-h-[640px] p-6 lg:p-7 bg-surface-900/30 border border-white/10 rounded-2xl relative overflow-hidden shadow-xl">
+            <h3 className="text-xs md:text-sm uppercase font-mono font-bold tracking-wider text-slate-300 border-b border-white/10 pb-3 mb-5 shrink-0 flex items-center justify-between">
+              <span>Resultado del Diseño</span>
+              {generatedResult && (
+                <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                  Listo
+                </span>
+              )}
             </h3>
 
             {isGenerating ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
-                <Loader2 className="w-10 h-10 animate-spin text-brand-primary" />
+              <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 py-12">
+                <Loader2 className="w-12 h-12 animate-spin text-brand-primary" />
                 <div>
-                  <p className="text-xs text-white font-mono font-bold uppercase tracking-wider">Generando tu diseño...</p>
-                  <p className="text-[10px] text-slate-500 mt-1">Estamos creando tu diseño. Esto puede tomar unos segundos.</p>
+                  <p className="text-sm md:text-base text-white font-mono font-bold uppercase tracking-wider">Generando tu diseño...</p>
+                  <p className="text-xs md:text-sm text-slate-400 mt-1.5">Estamos creando tu diseño con calidad profesional. Esto puede tomar unos segundos.</p>
                 </div>
               </div>
             ) : generatedResult ? (
-              <div className="flex-1 flex flex-col min-h-0 overflow-y-auto pr-1 space-y-4 scrollbar-thin">
+              <div className="flex-1 flex flex-col min-h-0 overflow-y-auto pr-1 space-y-5 scrollbar-thin">
                 {generatedResult.startsWith('data:image/svg+xml;base64,') && (
-                  <div className="p-3 bg-brand-primary/10 border border-brand-primary/20 rounded-xl text-[10px] text-brand-primary font-bold uppercase tracking-wider flex items-center justify-center gap-2 text-center shrink-0">
+                  <div className="p-3.5 bg-brand-primary/10 border border-brand-primary/20 rounded-xl text-xs text-brand-primary font-bold uppercase tracking-wider flex items-center justify-center gap-2 text-center shrink-0">
                     <Info className="w-4 h-4 shrink-0" />
                     <span>Diseño vectorial de muestra. Intenta de nuevo para renderizar versión fotorrealista.</span>
                   </div>
                 )}
                 {/* Image Display */}
-                <div className="w-full aspect-square max-h-[350px] bg-[#090909] border border-white/10 rounded-xl overflow-hidden flex items-center justify-center p-3 relative group shrink-0">
+                <div className="w-full aspect-square max-h-[420px] bg-[#070707] border border-white/10 rounded-2xl overflow-hidden flex items-center justify-center p-3 relative group shrink-0 shadow-2xl">
                   <img
                     src={generatedResult}
                     alt="IA Output"
-                    className="max-w-full max-h-full object-contain rounded-lg shadow-xl"
+                    className="max-w-full max-h-full object-contain rounded-xl shadow-xl"
                   />
                 </div>
 
                 {/* Actions Bar */}
-                <div className="flex gap-2 mt-1 shrink-0 flex-wrap">
+                <div className="flex gap-2.5 mt-2 shrink-0 flex-wrap">
                   <button
                     onClick={() => setIsEditingInCanvas(true)}
-                    className="flex-1 min-w-[90px] py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 border border-white/5 cursor-pointer"
+                    className="flex-1 min-w-[100px] py-3 px-3 bg-white/5 hover:bg-white/10 text-slate-200 rounded-xl text-xs md:text-sm font-mono font-bold flex items-center justify-center gap-2 border border-white/10 cursor-pointer transition-colors"
                   >
-                    <Edit3 className="w-3.5 h-3.5 text-brand-primary" />
+                    <Edit3 className="w-4 h-4 text-brand-primary" />
                     <span>Editar</span>
                   </button>
                   
@@ -1660,9 +1641,9 @@ export default function CreativeStudio({
                     <button
                       onClick={handleSetAsOfficialLogo}
                       disabled={isSaving}
-                      className="flex-1 min-w-[110px] py-2.5 bg-[#0a0a0a] border border-brand-primary/20 hover:bg-brand-primary/10 text-brand-primary disabled:opacity-40 rounded-xl text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                      className="flex-1 min-w-[120px] py-3 px-3 bg-[#0a0a0a] border border-brand-primary/30 hover:bg-brand-primary/10 text-brand-primary disabled:opacity-40 rounded-xl text-xs md:text-sm font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                     >
-                      <Check className="w-3.5 h-3.5" />
+                      <Check className="w-4 h-4" />
                       <span>Logo Oficial</span>
                     </button>
                   )}
@@ -1670,39 +1651,39 @@ export default function CreativeStudio({
                   <button
                     onClick={handleSaveToGallery}
                     disabled={isSaving}
-                    className="flex-1 min-w-[90px] py-2.5 bg-[#0a0a0a] border border-white/10 hover:bg-white/5 text-slate-300 disabled:opacity-40 rounded-xl text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 min-w-[100px] py-3 px-3 bg-[#0a0a0a] border border-white/10 hover:bg-white/5 text-slate-200 disabled:opacity-40 rounded-xl text-xs md:text-sm font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                   >
                     {isSaving ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-primary" />
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
                     ) : (
-                      <Save className="w-3.5 h-3.5 text-brand-primary" />
+                      <Save className="w-4 h-4 text-brand-primary" />
                     )}
                     <span>A Galería</span>
                   </button>
                   
                   {/* Enviar a Marca Dropdown */}
-                  <div className="relative flex-1 min-w-[90px]">
+                  <div className="relative flex-1 min-w-[100px]">
                     <button
                       onClick={() => setShowBrandSelector(!showBrandSelector)}
                       disabled={isSendingToBrand}
-                      className="w-full py-2.5 bg-[#0a0a0a] border border-white/10 hover:bg-white/5 text-slate-300 disabled:opacity-40 rounded-xl text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full py-3 px-3 bg-[#0a0a0a] border border-white/10 hover:bg-white/5 text-slate-200 disabled:opacity-40 rounded-xl text-xs md:text-sm font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                     >
                       {isSendingToBrand ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-primary" />
+                        <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
                       ) : (
-                        <Briefcase className="w-3.5 h-3.5 text-brand-primary" />
+                        <Briefcase className="w-4 h-4 text-brand-primary" />
                       )}
                       <span>A Bóveda</span>
                     </button>
                     
                     {showBrandSelector && (
-                      <div className="absolute bottom-full mb-2 left-0 right-0 bg-[#0c0c0c] border border-white/10 rounded-xl shadow-2xl p-2 z-50 max-h-48 overflow-y-auto space-y-1 scrollbar-thin">
-                        <div className="text-[9px] font-mono text-slate-500 uppercase tracking-wider px-2 py-1 border-b border-white/5 mb-1 flex items-center justify-between">
+                      <div className="absolute bottom-full mb-2 left-0 right-0 bg-[#0c0c0c] border border-white/15 rounded-xl shadow-2xl p-2.5 z-50 max-h-52 overflow-y-auto space-y-1 scrollbar-thin">
+                        <div className="text-xs font-mono text-slate-400 uppercase tracking-wider px-2 py-1 border-b border-white/5 mb-1 flex items-center justify-between font-bold">
                           <span>Selecciona Marca</span>
-                          <button type="button" onClick={() => setShowBrandSelector(false)} className="text-[10px] hover:text-white font-bold cursor-pointer">×</button>
+                          <button type="button" onClick={() => setShowBrandSelector(false)} className="text-sm hover:text-white font-bold cursor-pointer">×</button>
                         </div>
                         {projectsList.filter(p => p.id !== 'virtual-futura').length === 0 ? (
-                          <div className="text-[10px] text-slate-500 italic p-2 text-center">
+                          <div className="text-xs text-slate-500 italic p-3 text-center">
                             No tienes marcas creadas.
                           </div>
                         ) : (
@@ -1711,7 +1692,7 @@ export default function CreativeStudio({
                               key={brand.id}
                               type="button"
                               onClick={() => handleSendToBrand(brand.id)}
-                              className="w-full text-left px-3 py-2 rounded-lg text-slate-300 hover:bg-brand-primary/10 hover:text-white text-[11px] font-sans truncate transition-colors cursor-pointer"
+                              className="w-full text-left px-3 py-2.5 rounded-lg text-slate-200 hover:bg-brand-primary/10 hover:text-white text-xs md:text-sm font-sans truncate transition-colors cursor-pointer"
                             >
                               📁 {brand.name}
                             </button>
@@ -1723,24 +1704,24 @@ export default function CreativeStudio({
 
                   <button
                     onClick={handleDownloadImage}
-                    className="flex-1 min-w-[95px] py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 min-w-[110px] py-3 px-3 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-xs md:text-sm font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md shadow-brand-primary/20"
                   >
-                    <Download className="w-3.5 h-3.5" />
+                    <Download className="w-4 h-4" />
                     <span>Descargar</span>
                   </button>
                 </div>
 
                 {/* BRAND BINDING & CREATION BLOCK */}
-                <div className="border-t border-white/5 pt-4 space-y-4 shrink-0">
-                  <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-4">
+                <div className="border-t border-white/10 pt-4 space-y-4 shrink-0">
+                  <div className="bg-white/5 p-4 lg:p-5 rounded-2xl border border-white/10 space-y-4">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-[11px] font-mono font-bold text-slate-300 uppercase tracking-wider">
+                      <h4 className="text-xs md:text-sm font-mono font-bold text-slate-200 uppercase tracking-wider">
                         Vincular a Bóveda de Marca
                       </h4>
                       <button
                         type="button"
                         onClick={() => setIsCreatingNewBrand(!isCreatingNewBrand)}
-                        className="text-[10px] text-brand-primary hover:text-brand-primary/80 font-bold underline cursor-pointer"
+                        className="text-xs text-brand-primary hover:text-brand-primary/80 font-bold underline cursor-pointer"
                       >
                         {isCreatingNewBrand ? "Ver existentes" : "+ Crear Nueva Marca"}
                       </button>
@@ -1749,21 +1730,21 @@ export default function CreativeStudio({
                     {isCreatingNewBrand ? (
                       /* Create New Brand Flow */
                       <div className="space-y-3">
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-mono text-slate-500">Nombre de la Nueva Marca</label>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-mono text-slate-400">Nombre de la Nueva Marca</label>
                           <input
                             type="text"
                             placeholder="Ej. Café Ritual"
                             value={newBrandName}
                             onChange={(e) => setNewBrandName(e.target.value)}
-                            className="w-full bg-[#090909] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary/40"
+                            className="w-full bg-[#090909] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-brand-primary/50"
                           />
                         </div>
                         <button
                           type="button"
                           onClick={handleCreateBrandAndSave}
                           disabled={!newBrandName.trim() || isSaving}
-                          className="w-full py-2 bg-brand-primary hover:bg-brand-primary/95 text-white disabled:opacity-40 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                          className="w-full py-3 bg-brand-primary hover:bg-brand-primary/95 text-white disabled:opacity-40 rounded-xl text-xs md:text-sm font-bold transition-all cursor-pointer shadow-md shadow-brand-primary/20"
                         >
                           {isSaving ? "Creando..." : "Crear y Vincular Diseño"}
                         </button>
@@ -1771,12 +1752,12 @@ export default function CreativeStudio({
                     ) : (
                       /* Bind to Existing Brand Flow */
                       <div className="space-y-3">
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-mono text-slate-500">Seleccionar Marca Existente</label>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-mono text-slate-400">Seleccionar Marca Existente</label>
                           <select
                             value={selectedBrandId}
                             onChange={(e) => setSelectedBrandId(e.target.value)}
-                            className="w-full bg-[#090909] border border-white/10 text-xs text-slate-300 rounded-xl px-3 py-2 outline-none focus:border-brand-primary/40 cursor-pointer"
+                            className="w-full bg-[#090909] border border-white/10 text-sm text-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-brand-primary/50 cursor-pointer"
                           >
                             <option value="">-- Elige una Marca --</option>
                             {projectsList.map((brand) => (
@@ -1785,13 +1766,13 @@ export default function CreativeStudio({
                           </select>
                         </div>
                         {selectedBrandId && (
-                          <div className="flex gap-2">
+                          <div className="flex gap-2.5 pt-1">
                             {generationType === 'logos' && (
                               <button
                                 type="button"
                                 onClick={handleSetAsOfficialLogo}
                                 disabled={isSaving}
-                                className="flex-1 py-2 bg-brand-primary/10 border border-brand-primary text-brand-primary hover:bg-brand-primary/20 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                                className="flex-1 py-2.5 bg-brand-primary/10 border border-brand-primary text-brand-primary hover:bg-brand-primary/20 rounded-xl text-xs md:text-sm font-bold transition-all cursor-pointer"
                               >
                                 Asignar Logo Oficial
                               </button>
@@ -1800,9 +1781,9 @@ export default function CreativeStudio({
                               type="button"
                               onClick={() => handleSendToBrand(selectedBrandId)}
                               disabled={isSaving}
-                              className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                              className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 rounded-xl text-xs md:text-sm font-bold transition-all cursor-pointer"
                             >
-                              Guardar en Referencias
+                              Guardar en Bóveda
                             </button>
                           </div>
                         )}
@@ -1812,24 +1793,24 @@ export default function CreativeStudio({
 
                   {/* Watermarking controls inside result block if logo available (only for flyers and products) */}
                   {customUploadedLogo && generationType !== 'logos' && (
-                    <div className="bg-[#0c0c0c] border border-white/5 rounded-xl p-3.5 space-y-3.5">
+                    <div className="bg-[#0c0c0c] border border-white/10 rounded-2xl p-4 space-y-3.5">
                       <div className="flex items-center justify-between select-none">
-                        <label className="text-[11px] font-mono text-slate-400 cursor-pointer flex items-center gap-2">
+                        <label className="text-xs md:text-sm font-mono text-slate-300 cursor-pointer flex items-center gap-2 font-medium">
                           <input
                             type="checkbox"
                             checked={applyLogo}
                             onChange={(e) => setApplyLogo(e.target.checked)}
-                            className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary"
+                            className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary w-4 h-4"
                           />
                           <span>Aplicar Logotipo Activo</span>
                         </label>
                       </div>
 
                       {applyLogo && (
-                        <div className="space-y-3">
-                          <div className="space-y-1">
-                            <label className="text-[9px] font-mono text-slate-500">Posición del Logo</label>
-                            <div className="grid grid-cols-2 gap-1">
+                        <div className="space-y-3 pt-2 border-t border-white/5">
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-mono text-slate-400">Posición en la Imagen</label>
+                            <div className="grid grid-cols-2 gap-1.5">
                               {[
                                 { id: 'top-left', label: 'Arriba Izq' },
                                 { id: 'top-right', label: 'Arriba Der' },
@@ -1841,10 +1822,10 @@ export default function CreativeStudio({
                                   type="button"
                                   onClick={() => setLogoPosition(pos.id as any)}
                                   className={cn(
-                                    "py-1 rounded text-[9px] font-mono border text-center transition-all cursor-pointer",
+                                    "py-1.5 rounded-lg text-xs font-mono border text-center transition-all cursor-pointer",
                                     logoPosition === pos.id
-                                      ? "bg-brand-primary/10 border-brand-primary text-white"
-                                      : "bg-black/10 border-white/5 text-slate-500 hover:text-slate-300"
+                                      ? "bg-brand-primary/10 border-brand-primary text-white font-bold"
+                                      : "bg-black/20 border-white/5 text-slate-400 hover:text-white"
                                   )}
                                 >
                                   {pos.label}
@@ -1853,10 +1834,10 @@ export default function CreativeStudio({
                             </div>
                           </div>
 
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[9px] font-mono text-slate-500">
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between text-xs font-mono text-slate-400">
                               <span>Opacidad</span>
-                              <span>{Math.round(logoOpacity * 100)}%</span>
+                              <span className="text-white font-bold">{Math.round(logoOpacity * 100)}%</span>
                             </div>
                             <input
                               type="range"
@@ -1865,14 +1846,14 @@ export default function CreativeStudio({
                               step="0.05"
                               value={logoOpacity}
                               onChange={(e) => setLogoOpacity(parseFloat(e.target.value))}
-                              className="w-full accent-brand-primary h-1"
+                              className="w-full accent-brand-primary h-1.5 cursor-pointer"
                             />
                           </div>
 
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[9px] font-mono text-slate-500">
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between text-xs font-mono text-slate-400">
                               <span>Tamaño</span>
-                              <span>{logoSizePercent}%</span>
+                              <span className="text-white font-bold">{logoSizePercent}%</span>
                             </div>
                             <input
                               type="range"
@@ -1881,7 +1862,7 @@ export default function CreativeStudio({
                               step="1"
                               value={logoSizePercent}
                               onChange={(e) => setLogoSizePercent(parseInt(e.target.value))}
-                              className="w-full accent-brand-primary h-1"
+                              className="w-full accent-brand-primary h-1.5 cursor-pointer"
                             />
                           </div>
                         </div>
@@ -1891,9 +1872,12 @@ export default function CreativeStudio({
                 </div>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center text-slate-500 space-y-2">
-                <ImageIcon className="w-10 h-10 text-slate-600 animate-pulse" />
-                <p className="text-xs">Describe lo que quieres crear usando el formulario de la izquierda.</p>
+              <div className="flex-1 flex flex-col items-center justify-center text-center text-slate-400 space-y-3 py-16">
+                <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-inner">
+                  <ImageIcon className="w-8 h-8 text-slate-500" />
+                </div>
+                <p className="text-sm md:text-base text-slate-300 font-medium max-w-sm">Describe lo que quieres crear usando el formulario de la izquierda.</p>
+                <p className="text-xs text-slate-500">Tus diseños aparecerán aquí con resolución completa y opciones de edición.</p>
               </div>
             )}
           </div>

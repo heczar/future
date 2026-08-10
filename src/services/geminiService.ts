@@ -635,7 +635,8 @@ export async function generateContentStrategy(
 export function getStyledPromptWrappers(
   generationType: 'logos' | 'flyers' | 'products' | undefined,
   styleName: string | undefined,
-  colors?: { hex: string; name: string }[]
+  colors?: { hex: string; name: string }[],
+  brandName?: string
 ): { prefix: string; suffix: string } {
   let prefix = "";
   let suffix = "";
@@ -649,43 +650,50 @@ export function getStyledPromptWrappers(
 
   const isLogo = generationType === 'logos';
   const isFlyer = generationType === 'flyers';
+  const cleanBrandName = brandName?.trim() || "";
+  const brandInitials = cleanBrandName 
+    ? cleanBrandName.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 3) 
+    : "";
 
   if (isLogo) {
     const style = styleName || "";
+    const brandTextSnippet = cleanBrandName ? `prominently displaying the brand typography '${cleanBrandName}'` : "with clean typography";
+    const initialsSnippet = brandInitials ? `featuring the bold stylized initials '${brandInitials}' and wordmark '${cleanBrandName}'` : brandTextSnippet;
+
     if (style.includes("Simétrico") || style.includes("Geométrico")) {
-      prefix = "A premium luxury symmetrical corporate logo, minimal geometric icon.";
-      suffix = `Modern clean geometry, sleek curves, sharp edges, dark solid background, vector graphic style, premium corporate branding. ${colorInstruction} No text, no watermark, rule of thirds layout.`;
+      prefix = `A premium luxury symmetrical corporate logo and wordmark for '${cleanBrandName || 'Brand'}', minimal geometric icon paired with ${brandTextSnippet}.`;
+      suffix = `Modern clean geometry, sleek curves, sharp edges, dark solid background, vector graphic style, premium corporate branding with clear legible text '${cleanBrandName}'. ${colorInstruction} Clean vector art, sharp crisp typography, no random artifacts.`;
     } else if (style.includes("Monograma") || style.includes("Siglas")) {
-      prefix = "A sophisticated luxury typographic monogram logo design, clean monogram isotype.";
-      suffix = `Elegant modern typography, interlocking initials, clean solid background, minimal vector branding, high-end design. ${colorInstruction} No text, no watermark.`;
+      prefix = `A sophisticated luxury typographic monogram logo design, ${initialsSnippet}, interlocking monogram isotype and clean typography.`;
+      suffix = `Elegant modern typography, interlocking lettermark '${brandInitials || cleanBrandName}', clean solid background, minimal vector branding, high-end design, crisp legible letters. ${colorInstruction} Clean vector art, sharp typography, no blur.`;
     } else if (style.includes("Orgánico") || style.includes("Natural") || style.includes("Botánico")) {
-      prefix = "A delicate organic botanical branding icon, hand-drawn vector logo.";
-      suffix = `Minimalist floral illustration, fine lines, raw aesthetic, solid background, clean vector graphics, boutique branding. ${colorInstruction} No text, no watermark.`;
+      prefix = `A delicate organic botanical branding icon and logo, hand-drawn vector mark ${brandTextSnippet}.`;
+      suffix = `Minimalist floral illustration, fine lines, elegant brand lettering spelling '${cleanBrandName}', solid background, clean vector graphics, boutique branding. ${colorInstruction} Crisp legible typography.`;
     } else if (style.includes("Tecnológico")) {
-      prefix = "A futuristic tech logo isotype, cybernetic network node symbol.";
-      suffix = `Neon accent glow, modern geometric shapes, high-tech abstract symbol, dark background, vector art, sleek digital branding. ${colorInstruction} No text, no watermark.`;
+      prefix = `A futuristic high-tech logo and wordmark for '${cleanBrandName || 'Tech'}', cybernetic network node symbol with modern typography ${brandTextSnippet}.`;
+      suffix = `Neon accent glow, modern geometric shapes, high-tech abstract symbol with legible brand font '${cleanBrandName}', dark background, vector art, sleek digital branding. ${colorInstruction} Sharp clean text.`;
     } else if (style.includes("Heráldico") || style.includes("Emblema")) {
-      prefix = "A classic heraldic shield emblem logo, minimalist corporate coat of arms.";
-      suffix = `Symmetrical luxury shield badge, bold lines, professional corporate authority, solid clean background, vector style, elite branding. ${colorInstruction} No text, no watermark.`;
+      prefix = `A classic heraldic shield emblem logo badge, corporate coat of arms with the brand name '${cleanBrandName}'.`;
+      suffix = `Symmetrical luxury shield badge with ribbon or text banner displaying '${cleanBrandName}', bold lines, professional authority, solid clean background, vector style, elite branding. ${colorInstruction} Clear legible lettering.`;
     } else if (style.includes("Streetwear") || style.includes("Urbano")) {
-      prefix = "A bold streetwear fashion badge logo, urban culture brand design.";
-      suffix = `Edgy modern typography, raw graphic icon, high-contrast, modern streetwear clothing label aesthetic, vector style, solid background. ${colorInstruction} No text, no watermark.`;
+      prefix = `A bold streetwear fashion badge logo, urban culture brand design with heavy stylized typography '${cleanBrandName}'.`;
+      suffix = `Edgy modern typography displaying '${cleanBrandName}', raw graphic icon, high-contrast, modern streetwear clothing label aesthetic, vector style, solid background. ${colorInstruction} Bold legible text.`;
     } else if (style.includes("Vintage") || style.includes("Industrial")) {
-      prefix = "A vintage industrial badge logo design, retro heritage stamp emblem.";
-      suffix = `Distressed texture, classic typography, rustic design elements, vector illustration, solid background, authentic craft brand. ${colorInstruction} No text, no watermark.`;
+      prefix = `A vintage industrial badge logo design, retro heritage stamp emblem with typography '${cleanBrandName}'.`;
+      suffix = `Distressed texture, classic typography displaying '${cleanBrandName}', rustic design elements, vector badge illustration, solid background, authentic craft brand. ${colorInstruction} Clear vintage lettering.`;
     } else if (style.includes("Mascota") || style.includes("Esports") || style.includes("Ilustrado")) {
-      prefix = "An esports mascot gaming vector logo, bold character illustration.";
-      suffix = `Dynamic action pose, vibrant colors, thick outlines, gaming team crest style, vector mascot art, solid background, high-contrast detail. ${colorInstruction} No text, no watermark.`;
+      prefix = `An esports mascot gaming vector logo, bold character illustration with banner text reading '${cleanBrandName}'.`;
+      suffix = `Dynamic action pose, vibrant colors, thick outlines, gaming team crest style with bold title '${cleanBrandName}', vector mascot art, solid background, high-contrast detail. ${colorInstruction} Crisp stylized font.`;
     } else if (style.includes("Letrero Metálico") || style.includes("3D") || style.includes("Relieve")) {
-      prefix = "A realistic 3D metallic logo sign, premium embossed logo, depth perspective.";
-      suffix = `Polished chrome and gold metal reflections, realistic bevel edges, cast shadows, mounted on a textured luxury dark grey marble wall, architectural presentation mockup, studio spot lighting. ${colorInstruction} No text, no watermark.`;
+      prefix = `A realistic 3D metallic logo sign and dimensional embossed wordmark for '${cleanBrandName}'.`;
+      suffix = `Polished chrome and gold metal reflections, 3D beveled letters spelling '${cleanBrandName}', realistic depth perspective, cast shadows, mounted on a textured luxury dark grey marble wall, architectural presentation mockup, studio spot lighting. ${colorInstruction} Sharp 3D lettering.`;
     } else if (style.includes("Sello Circular") || style.includes("Insignia")) {
-      prefix = "A professional circular seal logo badge, corporate warranty stamp.";
-      suffix = `Concentric rings, clean typography, business authority, flat vector design, solid background. ${colorInstruction} No text, no watermark.`;
+      prefix = `A professional circular seal logo badge and warranty stamp with curved text '${cleanBrandName}'.`;
+      suffix = `Concentric rings, curved circular typography displaying '${cleanBrandName}', business authority, flat vector design, solid background. ${colorInstruction} Clear circular typography.`;
     } else {
       // Default Logo
-      prefix = "A professional corporate brand isotype, flat vector design graphic, ultra-minimalist style.";
-      suffix = `Clean solid background, symmetrical modern geometry, sleek vector curves, sharp flat edges, inspired by premium design systems. ${colorInstruction} No text, no watermark, rule of thirds layout.`;
+      prefix = `A professional corporate brand isotype and wordmark logo featuring '${cleanBrandName}', flat vector design graphic, ultra-minimalist style.`;
+      suffix = `Clean solid background, symmetrical modern geometry, sleek vector curves, paired with clean typography reading '${cleanBrandName}', inspired by premium design systems. ${colorInstruction} Sharp legible typography.`;
     }
   } else if (isFlyer) {
     const style = styleName || "";
@@ -804,7 +812,7 @@ export async function generateCreativeImage(
       console.log("[FUTURA CLIENT] Trying direct browser Pollinations FLUX (Free) first...");
       const seed = Math.floor(Math.random() * 1000000);
       const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
-      const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors);
+      const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors, metadata?.brandName);
       const cleanPrompt = `${prefix} ${prompt}. ${suffix}`;
 
       const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
@@ -835,7 +843,7 @@ export async function generateCreativeImage(
       console.log("[FUTURA CLIENT] Trying direct browser DeepInfra FLUX call (Paid Backup)...");
       try {
         const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
-        const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors);
+        const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors, metadata?.brandName);
         const cleanPrompt = `${prefix} ${prompt}. ${suffix}`;
 
         const response = await fetch("https://api.deepinfra.com/v1/openai/images/generations", {
@@ -872,7 +880,7 @@ export async function generateCreativeImage(
       console.log("[FUTURA CLIENT] Trying direct browser Together AI FLUX call (Paid Backup)...");
       try {
         const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
-        const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors);
+        const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors, metadata?.brandName);
         const cleanPrompt = `${prefix} ${prompt}. ${suffix}`;
 
         const response = await fetch("https://api.together.ai/v1/images/generations", {
@@ -919,7 +927,7 @@ export async function generateCreativeImage(
         
         try {
           const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
-          const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors);
+          const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors, metadata?.brandName);
           const cleanPrompt = `${prefix} ${prompt}. ${suffix}`;
 
           const response = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
