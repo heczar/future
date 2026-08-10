@@ -119,10 +119,12 @@ export default function DevStation({ profile, onUpdateProfile }: DevStationProps
   const [errorMsg, setErrorMsg] = useState('');
   const [commitResult, setCommitResult] = useState<{ sha: string; url: string } | null>(null);
 
-  const logsEndRef = useRef<HTMLDivElement>(null);
+  const logsContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (logsContainerRef.current) {
+      logsContainerRef.current.scrollTop = logsContainerRef.current.scrollHeight;
+    }
   }, [logMessages]);
 
   const addLog = (msg: string) => {
@@ -412,7 +414,7 @@ export default function DevStation({ profile, onUpdateProfile }: DevStationProps
                 </button>
               )}
             </div>
-            <div className="flex-1 bg-black/30 p-4 font-mono text-[10px] text-slate-400 overflow-y-auto space-y-1.5 custom-scrollbar">
+            <div ref={logsContainerRef} className="flex-1 bg-black/30 p-4 font-mono text-[10px] text-slate-400 overflow-y-auto space-y-1.5 custom-scrollbar">
               {logMessages.length === 0 ? (
                 <div className="text-slate-600 italic">Esperando instrucciones para iniciar el agente de compilación...</div>
               ) : (
@@ -426,7 +428,6 @@ export default function DevStation({ profile, onUpdateProfile }: DevStationProps
                   </div>
                 ))
               )}
-              <div ref={logsEndRef} />
             </div>
           </div>
 

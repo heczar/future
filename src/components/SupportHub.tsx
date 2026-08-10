@@ -65,7 +65,8 @@ export default function SupportHub({ profile }: SupportHubProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('duda');
   const [isSending, setIsSending] = useState(false);
   const [loadingTicket, setLoadingTicket] = useState(true);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const prevMsgCountRef = useRef(0);
 
   const currentUser = auth.currentUser;
   const userId = currentUser?.uid || profile.id || 'anonymous';
@@ -89,7 +90,6 @@ export default function SupportHub({ profile }: SupportHubProps) {
           const data = await res.json();
           if (data?.ticket && isMounted) {
             setTicket((prev) => {
-              // Si el servidor tiene más mensajes o es más reciente, actualizar
               if (!prev || (data.ticket.messages && data.ticket.messages.length >= (prev.messages?.length || 0))) {
                 return data.ticket;
               }
@@ -142,9 +142,13 @@ export default function SupportHub({ profile }: SupportHubProps) {
     };
   }, [userId]);
 
-  // Auto scroll al final de la conversación
+  // Auto scroll interno SOLO dentro de la caja de chat (sin mover la ventana del navegador)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const currentCount = ticket?.messages?.length || 0;
+    if (currentCount > prevMsgCountRef.current && chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+    prevMsgCountRef.current = currentCount;
   }, [ticket?.messages]);
 
   const handleSendMessage = async (textToSend?: string) => {
@@ -338,7 +342,7 @@ export default function SupportHub({ profile }: SupportHubProps) {
           </div>
 
           {/* Messages Body */}
-          <div className="flex-1 p-6 overflow-y-auto space-y-4 text-left scrollbar-none">
+          <div ref={chatContainerRef} className="flex-1 p-6 overflow-y-auto space-y-4 text-left scrollbar-thin">
             {loadingTicket ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-500 space-y-3">
                 <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
@@ -367,11 +371,11 @@ export default function SupportHub({ profile }: SupportHubProps) {
                     className={`flex flex-col ${isAdmin ? 'items-start' : 'items-end'}`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
                         {isAdmin ? '🛡️ Administrador FUTURE' : userName}
                       </span>
-                      <span className="text-[9px] font-mono text-slate-600 flex items-center gap-1">
-                        <Clock className="w-2.5 h-2.5" />
+                      <span className="text-[10px] font-mono text-slate-500 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
                         {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
@@ -379,17 +383,16 @@ export default function SupportHub({ profile }: SupportHubProps) {
                     <div
                       className={`max-w-[85%] p-4 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                         isAdmin
-                          ? 'bg-gradient-to-r from-brand-primary/20 to-purple-600/20 border border-brand-primary/30 text-white rounded-tl-sm'
-                          : 'bg-white/10 border border-white/10 text-white rounded-tr-sm'
+                          ? 'bg-gradient-to-r from-brand-primary/20 to-purple-600/20 border border-brand-primary/30 text-white rounded-tl-sm shadow-md'
+                          : 'bg-white/10 border border-white/10 text-white rounded-tr-sm shadow-md'
                       }`}
                     >
-                      <p className="whitespace-pre-wrap">{msg.text}</p>
+                      <p className="whitespace-pre-wrap font-sans">{msg.text}</p>
                     </div>
                   </motion.div>
                 );
               })
             )}
-            <div ref={messagesEndRef} />
           </div>
 
           {/* Chat Footer / Input */}

@@ -54,7 +54,8 @@ export default function AdminSupportConsole() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'unread' | 'open' | 'resolved'>('all');
   const [isSending, setIsSending] = useState(false);
   const [loading, setLoading] = useState(true);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const prevMsgCountRef = useRef(0);
 
   // Escuchar todos los tickets de soporte en tiempo real desde Servidor API y Firestore
   useEffect(() => {
@@ -133,9 +134,13 @@ export default function AdminSupportConsole() {
 
   const selectedTicket = tickets.find(t => t.id === selectedTicketId) || null;
 
-  // Auto-scroll al final del chat seleccionado
+  // Auto-scroll interno SOLO dentro del chat seleccionado (sin mover la ventana)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const currentCount = selectedTicket?.messages?.length || 0;
+    if (currentCount > prevMsgCountRef.current && chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+    prevMsgCountRef.current = currentCount;
   }, [selectedTicket?.messages]);
 
   // Al seleccionar un ticket, marcarlo como leído por el Admin
@@ -451,7 +456,7 @@ export default function AdminSupportConsole() {
               </div>
 
               {/* Conversation Messages */}
-              <div className="flex-1 p-6 overflow-y-auto space-y-4 scrollbar-none">
+              <div ref={chatContainerRef} className="flex-1 p-6 overflow-y-auto space-y-4 scrollbar-thin">
                 {selectedTicket.messages.map((msg) => {
                   const isAdmin = msg.sender === 'admin';
                   return (
@@ -462,11 +467,11 @@ export default function AdminSupportConsole() {
                       className={`flex flex-col ${isAdmin ? 'items-end' : 'items-start'}`}
                     >
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
                           {isAdmin ? '🛡️ Administrador (Tú)' : selectedTicket.userName}
                         </span>
-                        <span className="text-[9px] font-mono text-slate-600 flex items-center gap-1">
-                          <Clock className="w-2.5 h-2.5" />
+                        <span className="text-[10px] font-mono text-slate-500 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
                           {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
@@ -475,15 +480,14 @@ export default function AdminSupportConsole() {
                         className={`max-w-[85%] p-4 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                           isAdmin
                             ? 'bg-brand-primary text-white rounded-tr-sm shadow-md'
-                            : 'bg-white/10 border border-white/10 text-white rounded-tl-sm'
+                            : 'bg-white/10 border border-white/10 text-white rounded-tl-sm shadow-md'
                         }`}
                       >
-                        <p className="whitespace-pre-wrap">{msg.text}</p>
+                        <p className="whitespace-pre-wrap font-sans">{msg.text}</p>
                       </div>
                     </motion.div>
                   );
                 })}
-                <div ref={messagesEndRef} />
               </div>
 
               {/* Reply Input Form */}
