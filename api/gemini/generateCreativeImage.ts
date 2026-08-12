@@ -412,9 +412,7 @@ export default async function handler(req: any, res: any) {
           },
           body: JSON.stringify({
             prompt: enhancedPrompt,
-            mode: "base",
-            seed: Math.floor(Math.random() * 1000000),
-            steps: 28
+            mode: "base"
           })
         });
 

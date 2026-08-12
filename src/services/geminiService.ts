@@ -939,9 +939,7 @@ export async function generateCreativeImage(
             },
             body: JSON.stringify({
               prompt: cleanPrompt,
-              mode: "base",
-              seed: Math.floor(Math.random() * 1000000),
-              steps: 28
+              mode: "base"
             })
           });
 
