@@ -236,8 +236,8 @@ export default async function handler(req: any, res: any) {
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
          Your job is to translate the user's logo request into a highly optimized English prompt for generating a logo.
          ${brandContext}
-         MANDATORY RULES:
          - The output MUST describe a graphic icon, badge, monogram, emblem, or mark.
+         - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent. NEVER reference, imitate, or draw inspiration from copyrighted characters (e.g. Disney, Marvel, Anime), pre-existing famous logos (e.g. Nike, Adidas, Apple), or third-party corporate trademarks. Focus exclusively on original, bespoke geometric shapes, custom lettering, and unique artistic motifs.
          - CRITICAL: When the brand name ${brandName ? `"${brandName}"` : ""} or business name is provided, the logo MUST explicitly integrate the brand name typography "${brandName || ''}" and/or its monogram initials as part of the visual layout (e.g. monogram letters, bold wordmark underneath the icon, curved circular text on a badge, or 3D metallic typography).
          ${is3D 
            ? `- The logo should be described as a 3D physical object with depth, metallic shine (chrome, gold, or silver), and realistic bevels spelling '${brandName || ''}', mounted on a modern dark wall texture (marble, slate, concrete).`
@@ -250,6 +250,7 @@ export default async function handler(req: any, res: any) {
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
          Your job is to translate the user's flyer or ad request into a highly optimized English prompt.
          MANDATORY RULES:
+         - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent. NEVER reference, imitate, or draw inspiration from copyrighted characters (e.g. Disney, Marvel, Anime), pre-existing famous logos, or third-party corporate trademarks.
          ${isMockupStyle
            ? `- The output MUST describe a mockup of a flyer or poster page sheet.
               - Describe the physical sheet (e.g. A4 paper lying flat on a surface with shadows, or hanging on a concrete wall with metal clips).`
@@ -261,6 +262,7 @@ export default async function handler(req: any, res: any) {
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
          Your job is to translate the user's request into a premium English prompt for a commercial product photograph or merchandise mockup.
          MANDATORY RULES:
+         - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent. NEVER reference, imitate, or draw inspiration from copyrighted characters, pre-existing famous logos, or third-party corporate trademarks.
          - The output MUST describe the commercial product itself (e.g., bottle, coffee cup, packaging box, t-shirt, hoodie) in a studio setting or worn by a model.
          - For mockups (e.g., t-shirt, mug, bag, packaging), describe a clean, realistic blank mockup template with soft shadows on a minimalist background, suitable for overlaying logos.
          - Focus on the texture of the material, realistic fabric wrinkles, soft shadows, studio lighting, and sharp focus.
@@ -308,9 +310,9 @@ export default async function handler(req: any, res: any) {
         }
       }
     }
-    return sanitized
+    return (sanitized
       .replace(/\blogo\b/gi, 'brand emblem')
-      .replace(/\blogotype\b/gi, 'visual brand mark');
+      .replace(/\blogotype\b/gi, 'visual brand mark')) + " 100% original custom independent brand identity mark, completely unique, non-infringing, no third-party copyrighted characters, no corporate trademarks.";
   };
 
   let enhancedPrompt = `${prefix} ${englishPrompt}. ${suffix}`;
