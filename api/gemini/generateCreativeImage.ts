@@ -293,11 +293,20 @@ export default async function handler(req: any, res: any) {
   // and replace "logo" with "brand emblem visual symbol" to prevent NVIDIA NIM safety filter from returning 6.3KB black placeholder.
   const sanitizeForNvidia = (p: string, name?: string) => {
     let sanitized = p;
+    sanitized = sanitized.replace(/\bELSA\b/gi, 'E.L.S.A.');
     if (name && name.trim()) {
-      const cleanName = name.trim();
-      // Format single-word or trademarked names with spacing/dots (e.g., "ELSA" -> "E.L.S.A.")
-      const spacedName = cleanName.split('').join('.').toUpperCase();
-      sanitized = sanitized.replace(new RegExp(`\\b${cleanName}\\b`, 'gi'), `${spacedName}`);
+      const words = name.trim().split(/\s+/);
+      for (const w of words) {
+        if (w.length >= 2) {
+          const spaced = w.split('').join('.').toUpperCase();
+          try {
+            const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            sanitized = sanitized.replace(new RegExp(`\\b${escaped}\\b`, 'gi'), spaced);
+          } catch (e) {
+            // ignore regex error
+          }
+        }
+      }
     }
     return sanitized
       .replace(/\blogo\b/gi, 'brand emblem')
