@@ -1190,26 +1190,26 @@ export default function CreativeStudio({
                 </div>
 
                 {/* PREFERRED BRAND COLORS PANEL */}
-                <div className="space-y-2.5 pt-3 border-t border-white/10">
+                <div className="space-y-2 pt-3 border-t border-white/10">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs md:text-sm font-mono font-semibold text-slate-300 flex items-center gap-2">
-                      <Palette className="w-4 h-4 text-brand-primary" />
-                      <span>Paleta de Colores Preferidos (Opcional)</span>
+                    <label className="text-xs font-mono font-semibold text-slate-300 flex items-center gap-1.5">
+                      <Palette className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                      <span>Colores Preferidos (Opcional)</span>
                     </label>
                   </div>
-                  <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
-                    Elige 2 o 3 colores para que la IA aplique esa armonía cromática exacta a tu logotipo.
+                  <p className="text-[11px] text-slate-400 font-sans leading-tight">
+                    Elige 2 o 3 colores para que la IA aplique esa paleta a tu logotipo.
                   </p>
 
                   {/* Color Preset Combinations */}
-                  <div className="grid grid-cols-2 gap-2 pt-1 select-none">
+                  <div className="grid grid-cols-2 gap-1.5 pt-1 select-none">
                     {[
                       { id: 'rose-gold', name: 'Rosa & Oro', colors: [{ hex: '#F43F5E', name: 'Rosa' }, { hex: '#FBBF24', name: 'Oro' }, { hex: '#FFFFFF', name: 'Blanco' }] },
                       { id: 'cyber-neon', name: 'Neón Cyber', colors: [{ hex: '#00F2FE', name: 'Cian' }, { hex: '#A855F7', name: 'Púrpura' }, { hex: '#0F172A', name: 'Oscuro' }] },
-                      { id: 'luxury-gold', name: 'Oro & Negro Lujo', colors: [{ hex: '#D4AF37', name: 'Dorado' }, { hex: '#111111', name: 'Negro Mate' }, { hex: '#FFFFFF', name: 'Blanco' }] },
-                      { id: 'emerald-mint', name: 'Esmeralda & Menta', colors: [{ hex: '#10B981', name: 'Esmeralda' }, { hex: '#064E3B', name: 'Verde' }, { hex: '#F0FDF4', name: 'Menta' }] },
-                      { id: 'purple-magenta', name: 'Púrpura & Magenta', colors: [{ hex: '#8B5CF6', name: 'Violeta' }, { hex: '#EC4899', name: 'Magenta' }, { hex: '#FFFFFF', name: 'Blanco' }] },
-                      { id: 'mono-minimal', name: 'Blanco & Negro', colors: [{ hex: '#FFFFFF', name: 'Blanco' }, { hex: '#000000', name: 'Negro' }, { hex: '#94A3B8', name: 'Gris' }] }
+                      { id: 'luxury-gold', name: 'Oro & Negro', colors: [{ hex: '#D4AF37', name: 'Dorado' }, { hex: '#111111', name: 'Negro' }, { hex: '#FFFFFF', name: 'Blanco' }] },
+                      { id: 'emerald-mint', name: 'Esmeralda', colors: [{ hex: '#10B981', name: 'Esmeralda' }, { hex: '#064E3B', name: 'Verde' }, { hex: '#F0FDF4', name: 'Menta' }] },
+                      { id: 'purple-magenta', name: 'Púrpura', colors: [{ hex: '#8B5CF6', name: 'Violeta' }, { hex: '#EC4899', name: 'Magenta' }, { hex: '#FFFFFF', name: 'Blanco' }] },
+                      { id: 'mono-minimal', name: 'Monocromo', colors: [{ hex: '#FFFFFF', name: 'Blanco' }, { hex: '#000000', name: 'Negro' }, { hex: '#94A3B8', name: 'Gris' }] }
                     ].map(palette => {
                       const isSelected = selectedLogoColorPalette === palette.id;
                       return (
@@ -1226,16 +1226,16 @@ export default function CreativeStudio({
                             }
                           }}
                           className={cn(
-                            "p-2 rounded-xl border flex items-center justify-between transition-all cursor-pointer",
+                            "px-2 py-1.5 rounded-lg border flex items-center justify-between gap-1 transition-all cursor-pointer min-w-0 overflow-hidden",
                             isSelected
                               ? "bg-brand-primary/10 border-brand-primary shadow-sm shadow-brand-primary/20"
                               : "bg-[#090909] border-white/10 hover:border-white/20"
                           )}
                         >
-                          <span className="text-xs font-mono text-slate-200">{palette.name}</span>
-                          <div className="flex gap-1">
+                          <span className="text-[11px] font-mono text-slate-200 truncate shrink min-w-0">{palette.name}</span>
+                          <div className="flex gap-0.5 shrink-0">
                             {palette.colors.map((c, idx) => (
-                              <span key={idx} className="w-3.5 h-3.5 rounded-full border border-black/40 shadow-inner" style={{ backgroundColor: c.hex }} />
+                              <span key={idx} className="w-2.5 h-2.5 rounded-full border border-black/50 shrink-0" style={{ backgroundColor: c.hex }} />
                             ))}
                           </div>
                         </button>
@@ -1244,63 +1244,54 @@ export default function CreativeStudio({
                   </div>
 
                   {/* Custom Color Pickers */}
-                  <div className="flex items-center justify-between pt-2 bg-[#090909] p-2.5 rounded-xl border border-white/10">
-                    <span className="text-xs font-mono text-slate-300 font-medium">Personalizados:</span>
-                    <div className="flex items-center gap-3">
-                      <div className="flex flex-col items-center gap-1">
-                        <input
-                          type="color"
-                          value={customColor1}
-                          onChange={(e) => {
-                            setCustomColor1(e.target.value);
-                            setSelectedLogoColorPalette('custom');
-                            setSelectedCustomColors([
-                              { hex: e.target.value, name: 'Color 1' },
-                              { hex: customColor2, name: 'Color 2' },
-                              { hex: customColor3, name: 'Color 3' }
-                            ]);
-                          }}
-                          className="w-7 h-7 rounded-lg bg-transparent border border-white/20 cursor-pointer p-0"
-                          title="Color 1"
-                        />
-                        <span className="text-[9px] font-mono text-slate-400">Color 1</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-1">
-                        <input
-                          type="color"
-                          value={customColor2}
-                          onChange={(e) => {
-                            setCustomColor2(e.target.value);
-                            setSelectedLogoColorPalette('custom');
-                            setSelectedCustomColors([
-                              { hex: customColor1, name: 'Color 1' },
-                              { hex: e.target.value, name: 'Color 2' },
-                              { hex: customColor3, name: 'Color 3' }
-                            ]);
-                          }}
-                          className="w-7 h-7 rounded-lg bg-transparent border border-white/20 cursor-pointer p-0"
-                          title="Color 2"
-                        />
-                        <span className="text-[9px] font-mono text-slate-400">Color 2</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-1">
-                        <input
-                          type="color"
-                          value={customColor3}
-                          onChange={(e) => {
-                            setCustomColor3(e.target.value);
-                            setSelectedLogoColorPalette('custom');
-                            setSelectedCustomColors([
-                              { hex: customColor1, name: 'Color 1' },
-                              { hex: customColor2, name: 'Color 2' },
-                              { hex: e.target.value, name: 'Color 3' }
-                            ]);
-                          }}
-                          className="w-7 h-7 rounded-lg bg-transparent border border-white/20 cursor-pointer p-0"
-                          title="Color 3"
-                        />
-                        <span className="text-[9px] font-mono text-slate-400">Color 3</span>
-                      </div>
+                  <div className="flex items-center justify-between pt-1.5 bg-[#090909] px-2.5 py-1.5 rounded-lg border border-white/10 mt-1">
+                    <span className="text-[11px] font-mono text-slate-300 font-medium">Personalizado:</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={customColor1}
+                        onChange={(e) => {
+                          setCustomColor1(e.target.value);
+                          setSelectedLogoColorPalette('custom');
+                          setSelectedCustomColors([
+                            { hex: e.target.value, name: 'Color 1' },
+                            { hex: customColor2, name: 'Color 2' },
+                            { hex: customColor3, name: 'Color 3' }
+                          ]);
+                        }}
+                        className="w-5 h-5 rounded bg-transparent border border-white/20 cursor-pointer p-0 shrink-0"
+                        title="Color 1"
+                      />
+                      <input
+                        type="color"
+                        value={customColor2}
+                        onChange={(e) => {
+                          setCustomColor2(e.target.value);
+                          setSelectedLogoColorPalette('custom');
+                          setSelectedCustomColors([
+                            { hex: customColor1, name: 'Color 1' },
+                            { hex: e.target.value, name: 'Color 2' },
+                            { hex: customColor3, name: 'Color 3' }
+                          ]);
+                        }}
+                        className="w-5 h-5 rounded bg-transparent border border-white/20 cursor-pointer p-0 shrink-0"
+                        title="Color 2"
+                      />
+                      <input
+                        type="color"
+                        value={customColor3}
+                        onChange={(e) => {
+                          setCustomColor3(e.target.value);
+                          setSelectedLogoColorPalette('custom');
+                          setSelectedCustomColors([
+                            { hex: customColor1, name: 'Color 1' },
+                            { hex: customColor2, name: 'Color 2' },
+                            { hex: e.target.value, name: 'Color 3' }
+                          ]);
+                        }}
+                        className="w-5 h-5 rounded bg-transparent border border-white/20 cursor-pointer p-0 shrink-0"
+                        title="Color 3"
+                      />
                     </div>
                   </div>
                 </div>
