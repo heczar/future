@@ -204,6 +204,17 @@ export default function AdvisoryHub({
     }
     localStorage.setItem('futura_saved_conversations', JSON.stringify(convs));
     setSavedConversations(convs);
+
+    // Save active advisory context for cross-module AI grounding (CreativeStudio & CopyHub)
+    const modelAdvice = messagesList
+      .filter((m: any) => m.role === 'model')
+      .slice(-3)
+      .map((m: any) => m.text)
+      .join(" ");
+    if (modelAdvice) {
+      const cleanSummary = modelAdvice.replace(/[*#`_]/g, '').slice(0, 600);
+      localStorage.setItem('futura_active_advisory_context', cleanSummary);
+    }
   };
 
   const handleNewChat = () => {

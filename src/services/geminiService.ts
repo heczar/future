@@ -788,6 +788,7 @@ export async function generateCreativeImage(
     customMockupDesc?: string;
     referenceImage?: string;
     generationType?: 'logos' | 'flyers' | 'products';
+    advisoryContext?: string;
     model?: string;
   }
 ): Promise<string | null> {
@@ -805,6 +806,7 @@ export async function generateCreativeImage(
     customMockupDesc: metadata?.customMockupDesc,
     referenceImage: metadata?.referenceImage,
     generationType: metadata?.generationType,
+    advisoryContext: metadata?.advisoryContext,
     model: metadata?.model
   };
 
@@ -840,6 +842,9 @@ export async function generateCreativeImage(
     const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
     const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors, metadata?.brandName);
     let enhancedClientPrompt = `${prefix} ${prompt}. ${suffix}`;
+    if (metadata?.advisoryContext) {
+      enhancedClientPrompt += ` Strategic advisory positioning: ${metadata.advisoryContext}.`;
+    }
     if (styleGuidance) {
       enhancedClientPrompt += ` The image style and aesthetics should be closely inspired by the following: ${styleGuidance}.`;
     }

@@ -33,6 +33,7 @@ export default async function handler(req: any, res: any) {
     customMockupDesc,
     referenceImage,
     generationType,
+    advisoryContext,
     model: requestedModel
   } = req.body || {};
   const isLogo = generationType === 'logos' ||
@@ -267,9 +268,14 @@ export default async function handler(req: any, res: any) {
          - Return ONLY the optimized English visual description. No quotes, no explanations.`;
     }
 
+    const openDesignInjection = buildSkillsInjection(['enhance-prompt', 'creative-director', 'design-contract', 'linear-aesthetic', 'stripe-aesthetic']);
+    const advisoryInjection = advisoryContext?.trim() 
+      ? `\nSTRATEGIC ADVISORY CONTEXT & POSITIONING FROM ADVISOR CHAT:\n"${advisoryContext.trim()}"\nEnsure the visual choices, mood, and brand expression align with these strategic advisor recommendations.\n` 
+      : "";
+
     const transResponse = await getAiClient(customKey).models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `${optimizerInstruction}\n\nSpanish Request: "${prompt}"`
+      contents: `${optimizerInstruction}\n${advisoryInjection}\n${openDesignInjection}\nSpanish Request: "${prompt}"`
     });
     if (transResponse.text) {
       englishPrompt = transResponse.text.trim();

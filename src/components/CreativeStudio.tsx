@@ -322,13 +322,16 @@ export default function CreativeStudio({
 
       const fullPrompt = `Crea un diseño de logotipo profesional para la marca llamada "${brandName}". Concepto y nicho: ${logoDescription}. Estilo: ${selectedLogoStyle}. Simple, limpio, fondo oscuro.`;
 
+      const advisoryContext = localStorage.getItem('futura_active_advisory_context') || undefined;
+
       const result = await generateCreativeImage(fullPrompt, '1:1', undefined, {
         brandName,
         logoStyle: selectedLogoStyle,
         niche: logoDescription,
         colors,
         referenceImage: referenceImage || undefined,
-        generationType: 'logos'
+        generationType: 'logos',
+        advisoryContext
       });
       
       if (result) {
@@ -404,13 +407,16 @@ export default function CreativeStudio({
           ]
         : undefined;
 
+      const advisoryContext = localStorage.getItem('futura_active_advisory_context') || undefined;
+
       const result = await generateCreativeImage(fullPrompt, selectedFormat, undefined, {
         brandName,
         niche: promptText,
         colors,
         referenceImage: referenceImage || undefined,
         generationType: type,
-        mockupType: type === 'flyers' ? selectedFlyerStyle : selectedProductStyle
+        mockupType: type === 'flyers' ? selectedFlyerStyle : selectedProductStyle,
+        advisoryContext
       });
 
       if (result) {
