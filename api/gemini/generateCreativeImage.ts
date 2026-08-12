@@ -231,18 +231,22 @@ export default async function handler(req: any, res: any) {
     
     let optimizerInstruction = "";
     if (isLogo) {
-      const is3D = logoStyle && (logoStyle.includes("3D") || logoStyle.includes("Relieve") || logoStyle.includes("Letrero"));
       const brandContext = brandName?.trim() ? `The brand name is "${brandName.trim()}".` : "";
-      optimizerInstruction = `You are an expert design director and prompt engineer for FLUX image generator.
-         Your job is to translate the user's business description/niche into an industry-specific aesthetic reference for generating a GRAPHIC LOGO ISOTYPE.
+      const colorText = colors && colors.length > 0 
+        ? `MANDATORY COLOR PALETTE: Render the logo strictly in vivid ${colors.map(c => `${c.name} (${c.hex})`).join(', ')} colors.` 
+        : "";
+      optimizerInstruction = `You are a world-class Brand Identity Designer and Graphic Creative Director.
+         The user will describe their brand or business story in Spanish (e.g. "${prompt}").
+         Your job is to analyze their business story and conceptualize an exclusive 2D flat graphic vector logo isotype icon and brand mark.
          ${brandContext}
-         MANDATORY LOGO RULES:
-         1. The user's input (e.g. "Ropa deportiva y casual para damas") represents the INDUSTRY & BUSINESS CONCEPT to draw visual logo inspiration from.
-         2. Translate the industry into graphic logo concepts (e.g. for sports apparel: dynamic high-performance geometric curves, athletic speed emblem, sleek fashion brand mark).
-         3. STRICT LOGO STYLE ENFORCEMENT: You MUST apply the user's chosen logo style: "${logoStyle || 'Vector minimal'}".
-         4. ABSOLUTE NO-HUMAN RULE: NEVER describe a human model, person, woman, man, face, body, or clothing item worn by a model. Describe ONLY the GRAPHIC LOGO ISOTYPE & BRAND TYPOGRAPHY on a clean background.
-         5. 100% ORIGINAL: Custom artwork, no third-party corporate logos or copyrighted characters.
-         6. Return ONLY the English visual graphic description of the logo mark. No quotes, no explanations.`;
+         ${colorText}
+         STRICT LOGO DESIGN RULES:
+         1. CONCEPT SYNTHESIS: Read the user's business story and create a visual vector symbol (e.g. dynamic athletic emblem for sports apparel, elegant monogram lettermark, geometric crest) representing their industry.
+         2. COLOR PALETTE ENFORCEMENT: Explicitly specify that the vector logo symbol and typography MUST be rendered using ${colorText || 'vibrant high-contrast brand colors'}.
+         3. BRAND TYPOGRAPHY: Include clear bold vector typography spelling "${brandName || 'Brand'}".
+         4. ABSOLUTE NO-PEOPLE RULE: NEVER describe human models, women, men, faces, body portraits, or photos of clothing worn on a person. Describe ONLY the standalone 2D graphic logo icon and brand typography on a clean solid white background.
+         5. LOGO STYLE: Apply the requested logo visual style: "${logoStyle || 'Modern Flat Vector'}".
+         6. Return ONLY the English visual description of the graphic logo mark and typography. No conversational text.`;
     } else if (isFlyer) {
       const isMockupStyle = mockupType && (mockupType.includes("Mockup") || mockupType.includes("Maqueta") || mockupType.includes("Poster") || mockupType.includes("Póster"));
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
@@ -270,18 +274,17 @@ export default async function handler(req: any, res: any) {
       ? `\nSTRATEGIC ADVISORY CONTEXT & POSITIONING FROM ADVISOR CHAT:\n"${advisoryContext.trim()}"\nEnsure the visual choices, mood, and brand expression align with these strategic advisor recommendations.\n` 
       : "";
 
-    if (!isLogo) {
-      const transResponse = await getAiClient(customKey).models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: `${optimizerInstruction}\n${advisoryInjection}\n${openDesignInjection}\nSpanish Request: "${prompt}"`
-      });
-      if (transResponse.text) {
-        englishPrompt = transResponse.text.trim();
-        console.log(`[FUTURA SERVER] Optimized Open Design prompt: "${englishPrompt}"`);
-      }
+    const transResponse = await getAiClient(customKey).models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `${optimizerInstruction}\n${advisoryInjection}\n${openDesignInjection}\nSpanish Request: "${prompt}"`
+    });
+    if (transResponse.text) {
+      englishPrompt = transResponse.text.trim();
+      console.log(`[FUTURA SERVER] Optimized Open Design prompt: "${englishPrompt}"`);
     }
   } catch (transErr) {
     console.warn("[FUTURA SERVER] Prompt optimization failed, using original:", transErr);
+    englishPrompt = prompt;
   }
 
   // Build enhanced prompt using curated Open Design contracts and style templates
@@ -290,38 +293,21 @@ export default async function handler(req: any, res: any) {
 
   if (isLogo) {
     const cleanName = brandName?.trim() || "ELSA STREETWEAR";
-    const rawConcept = (prompt || "").trim();
-
-    // Map concept keywords to crisp graphic design directives
-    let conceptEng = "";
-    if (rawConcept.match(/letras|iniciales|monograma|originales/i)) {
-      const initials = cleanName.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 3) || "E";
-      conceptEng = `creative interlocking monogram lettermark isotype incorporating the stylized initials '${initials}'`;
-    } else if (rawConcept.match(/rayo|velocidad/i)) {
-      conceptEng = `dynamic high-performance lightning bolt vector isotype icon`;
-    } else if (rawConcept.match(/corona/i)) {
-      conceptEng = `luxurious stylized crown vector isotype emblem`;
-    } else if (rawConcept.match(/hoja|botanico|naturaleza/i)) {
-      conceptEng = `minimalist organic botanical leaf vector isotype`;
-    } else if (rawConcept.match(/felino|fuerza|animal/i)) {
-      conceptEng = `sleek geometric feline head vector isotype emblem`;
-    } else if (rawConcept.match(/diamante|lujo/i)) {
-      conceptEng = `geometric faceted diamond crystal vector isotype`;
-    } else {
-      const filtered = rawConcept.replace(/\b(ropa|vestimenta|damas|mujeres|hombres|chica|chico|modelo|persona|estilo)\b/gi, '').trim();
-      conceptEng = filtered ? `modern graphic isotype symbol inspired by ${filtered}` : `sleek modern graphic brand isotype symbol`;
-    }
-
+    
     let colorString = "";
     if (colors && colors.length > 0) {
-      const colorDesc = colors.map(c => `${c.name} (${c.hex})`).join(" and ");
-      colorString = `MANDATORY COLOR PALETTE: The logo artwork MUST prominently feature the bright vibrant colors ${colorDesc} as its main color scheme. `;
+      const colorNames = colors.map(c => c.name).join(" and ");
+      const colorHexes = colors.map(c => c.hex).join(", ");
+      colorString = `MANDATORY COLOR PALETTE: The logo vector icon and typography MUST be colored strictly in vivid ${colorNames} (${colorHexes}) colors. `;
     }
 
-    const styleDirective = logoStyle?.trim() ? `Design Style: ${logoStyle.trim()}.` : "Design Style: Modern flat vector logo.";
+    // Purge any stray human/clothing terms that Gemini might have introduced
+    let cleanConcept = englishPrompt
+      .replace(/\b(woman|women|female|lady|girl|asian|man|men|male|guy|person|human|model|models|mannequin|wearing|portrait|face|body|clothes|clothing|apparel|t-shirt|shirt|hoodie|jacket|dress|skirt|pants|hat|cap|outfit|garment)\b/gi, 'graphic vector isotype mark')
+      .replace(/\s+/g, ' ');
 
-    enhancedPrompt = `${colorString}A high-end 2D flat graphic vector logo design. In the center, a clean iconic ${conceptEng}. Directly underneath the icon, the clear bold typography spelling the exact text "${cleanName}" in crisp legible capital letters. ${styleDirective} Isolated on a plain solid white background. Vector graphic aesthetic, 8k resolution, perfectly sharp text reading "${cleanName}", no 3D orbs, no glass spheres, no floating balls, no blurred text, no humans, no models, no apparel photos.`;
-    console.log(`[FUTURA SERVER] PERFECT WORDMARK & ISOTYPE LOGO PROMPT: "${enhancedPrompt}"`);
+    enhancedPrompt = `${colorString}A high-end 2D flat graphic vector logo design. In the center, a clean iconic ${cleanConcept}. Directly underneath the icon, clear bold typography spelling the exact text "${cleanName}" in crisp legible capital letters. Isolated on a plain solid white background. Vector graphic aesthetic, 8k resolution, perfectly sharp text reading "${cleanName}", no 3D orbs, no glass spheres, no floating balls, no blurred text, no humans, no models, no apparel photos.`;
+    console.log(`[FUTURA SERVER] BRAND STORY AI LOGO PROMPT: "${enhancedPrompt}"`);
   } else {
     const { prefix, suffix } = getStyledPromptWrappers(generationType as any, activeStyleName, colors, brandName);
     enhancedPrompt = `${prefix} ${englishPrompt}. ${suffix}`;

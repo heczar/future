@@ -1228,15 +1228,15 @@ export default function CreativeStudio({
                 <div className="space-y-1.5">
                   <div className="flex flex-col gap-0.5">
                     <label className="text-xs md:text-sm font-mono font-semibold text-slate-300">
-                      Idea, Símbolo o Inspiración para tu Logo
+                      ¿De qué trata tu marca o negocio?
                     </label>
                     <span className="text-[11px] font-sans text-slate-400">
-                      Describe la figura o concepto para el isotipo (ej: un rayo, monograma, corona, geometría estilizada)...
+                      Cuéntanos sobre tu marca o negocio. La IA analizará la esencia de tu empresa para diseñar un logotipo e isotipo exclusivo...
                     </span>
                   </div>
                   <textarea
                     rows={3}
-                    placeholder="Ejemplo: Un isotipo de rayo estilizado o monograma elegante con geometría nítida de líneas limpias..."
+                    placeholder="Ejemplo: Marca de ropa deportiva y casual para mujeres con estilo activo, moderno y urbano..."
                     value={logoDescription}
                     onChange={(e) => setLogoDescription(e.target.value)}
                     className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-brand-primary/50 transition-colors resize-none font-sans placeholder:text-slate-600"
