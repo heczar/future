@@ -289,19 +289,39 @@ export default async function handler(req: any, res: any) {
   let enhancedPrompt = "";
 
   if (isLogo) {
-    const cleanName = brandName?.trim() || "ELSA";
-    const cleanNiche = (prompt || "").replace(/\b(ropa|vestimenta|damas|mujeres|hombres|chica|chico|modelo|persona)\b/gi, 'estilo').trim();
-    
-    const { prefix, suffix } = getStyledPromptWrappers('logos', logoStyle, colors, brandName);
+    const cleanName = brandName?.trim() || "ELSA STREETWEAR";
+    const rawConcept = (prompt || "").trim();
+
+    // Map concept keywords to crisp graphic design directives
+    let conceptEng = "";
+    if (rawConcept.match(/letras|iniciales|monograma|originales/i)) {
+      const initials = cleanName.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 3) || "E";
+      conceptEng = `creative interlocking monogram lettermark isotype incorporating the stylized initials '${initials}'`;
+    } else if (rawConcept.match(/rayo|velocidad/i)) {
+      conceptEng = `dynamic high-performance lightning bolt vector isotype icon`;
+    } else if (rawConcept.match(/corona/i)) {
+      conceptEng = `luxurious stylized crown vector isotype emblem`;
+    } else if (rawConcept.match(/hoja|botanico|naturaleza/i)) {
+      conceptEng = `minimalist organic botanical leaf vector isotype`;
+    } else if (rawConcept.match(/felino|fuerza|animal/i)) {
+      conceptEng = `sleek geometric feline head vector isotype emblem`;
+    } else if (rawConcept.match(/diamante|lujo/i)) {
+      conceptEng = `geometric faceted diamond crystal vector isotype`;
+    } else {
+      const filtered = rawConcept.replace(/\b(ropa|vestimenta|damas|mujeres|hombres|chica|chico|modelo|persona|estilo)\b/gi, '').trim();
+      conceptEng = filtered ? `modern graphic isotype symbol inspired by ${filtered}` : `sleek modern graphic brand isotype symbol`;
+    }
 
     let colorString = "";
     if (colors && colors.length > 0) {
       const colorDesc = colors.map(c => `${c.name} (${c.hex})`).join(" and ");
-      colorString = `VIBRANT BRAND COLOR PALETTE REQUIREMENT: The logo artwork MUST prominently use the bright vibrant colors ${colorDesc} as its primary brand color scheme. `;
+      colorString = `MANDATORY COLOR PALETTE: The logo artwork MUST prominently feature the bright vibrant colors ${colorDesc} as its main color scheme. `;
     }
 
-    enhancedPrompt = `${colorString}${prefix} Industry aesthetic reference: ${cleanNiche}. ${suffix} Isolated on a pure solid white studio background, 100% vector graphic isotype and logo mark, clean sharp lines, crisp typography spelling '${cleanName}', no humans, no models, no people, no clothing items, no portraits.`;
-    console.log(`[FUTURA SERVER] DIRECT ISOLATED LOGO PROMPT WITH STYLE (${logoStyle || 'Default'}): "${enhancedPrompt}"`);
+    const styleDirective = logoStyle?.trim() ? `Design Style: ${logoStyle.trim()}.` : "Design Style: Modern flat vector logo.";
+
+    enhancedPrompt = `${colorString}A high-end 2D flat graphic vector logo design. In the center, a clean iconic ${conceptEng}. Directly underneath the icon, the clear bold typography spelling the exact text "${cleanName}" in crisp legible capital letters. ${styleDirective} Isolated on a plain solid white background. Vector graphic aesthetic, 8k resolution, perfectly sharp text reading "${cleanName}", no 3D orbs, no glass spheres, no floating balls, no blurred text, no humans, no models, no apparel photos.`;
+    console.log(`[FUTURA SERVER] PERFECT WORDMARK & ISOTYPE LOGO PROMPT: "${enhancedPrompt}"`);
   } else {
     const { prefix, suffix } = getStyledPromptWrappers(generationType as any, activeStyleName, colors, brandName);
     enhancedPrompt = `${prefix} ${englishPrompt}. ${suffix}`;
