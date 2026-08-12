@@ -3,22 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatWithAdvisorFallback } from "./utils.js";
+import { getAiClient, sanitizeGeminiContents, generateContentWithRetry, getChatWithAdvisorFallback, callMultiProviderLlm } from "./utils.js";
 import { buildSkillsInjection } from "./loadOpenDesignSkill.js";
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-gemini-api-key, X-Gemini-Api-Key');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-gemini-api-key, X-Gemini-Api-Key, x-nvidia-api-key, X-Nvidia-Api-Key');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  const customKey = req.headers['x-gemini-api-key'] || req.headers['x-gemini-api-key'] || "";
+  const customKey = req.headers['x-gemini-api-key'] || "";
+  const nvidiaKey = req.headers['x-nvidia-api-key'] || process.env.NVIDIA_API_KEY || "";
   const { message, history, brandContext } = req.body || {};
-  const model = "gemini-2.5-flash";
-  console.log(`[FUTURA SERVER] chatWithAdvisor invocado con mensaje: "${message || ""}". Usando modelo: ${model}`);
+  console.log(`[FUTURA SERVER] chatWithAdvisor invocado con mensaje: "${message || ""}".`);
 
   const systemInstruction = `
     Eres el ASESOR ESTRATÉGICO Y COMPAÑERO DE NEGOCIOS DE LA APLICACIÓN FUTURA (FUTURA App Advisor de la suite de Future Marketing Consult).
@@ -30,57 +30,22 @@ export default async function handler(req: any, res: any) {
     3. FORMATO LIGERO Y AGRADABLE DE LEER: Estructura tus textos de manera extremadamente directa y al grano. Escribe párrafos ultra-cortos (a la mitad de longitud de lo normal, máximo 1 o 2 líneas cada uno). Utiliza viñetas muy escuetas y elimina cualquier palabrería o explicación redundante.
     4. CERCANÍA AUTÉNTICA: Puedes saludar amigablemente al inicio de tu respuesta y cerrar con una frase motivadora u orientativa sin sonar robótico.
     
-    ESTRUCTURA DE APOYO DISPONIBLE EN FUTURA APPS (Sugiérela de forma útil y orgánica cuando sea oportuno):
-    - FUTURA Hub (Semillero de Marca/Blueprint): Para madurar la idea de negocio y cimientos de origen.
-    - Motor Creativo (Fábrica de Conversión): Para generar copys altamente persuasivos, conceptos visuales e ideas de video.
-    - Baúl de Marca ("Vault"): Para custodiar la esencia visual y pitches de venta.
-    - Galería de Activos: El panel de control final para ver tus creaciones recopiladas listas para exportar.
-    
-    METODOLOGÍA FILOSÓFICA (SPE - Sistema Pentagonal de Ejecución):
-    - Fase 1: Enfoque / Identidad pura (Results over Aesthetics).
-    - Fase 2: Automatización y Procesos de Conversión.
-    - Fase 3: Escala & Volumen Comercial.
-    - Fase 4: Optimización Financiera.
-    - Fase 5: Conectividad y Fidelización.
-
-    MANDATOS CRÍTICOS:
-    - SIN CONEXIÓN EXTERNA DIRECTA: FUTURA no publica directamente en redes. Es una suite estratégica para planificar y simular internamente el marketing de alto calibre.
-    - REGLA DE CONTEXTO PASIVO: Si hay un Contexto de Marca provisto, incorpóralo de manera sutil y lógica si el usuario te pregunta específicamente sobre su negocio, pero no presumas oraciones robóticas como "Veo en tu base de datos...". Sé orgánico.
-
-     Responde en ESPAÑOL, usando Markdown muy legible, limpio y pulido.
+    Responde en ESPAÑOL, usando Markdown muy legible, limpio y pulido.
     Contexto de Marca: ${brandContext || "Ninguno"}
     ${buildSkillsInjection(['brainstorming', 'creative-director', 'design-brief', 'design-consultation', 'brand-extract', 'brand-guidelines'])}
   `;
 
   try {
-    const listHistory = Array.isArray(history) ? history : [];
-    const contents = sanitizeGeminiContents(listHistory, message);
-
-    const response = await generateContentWithRetry(
-      customKey,
-      model,
-      contents,
-      {
-        systemInstruction,
-      }
-    );
-
-    const replyText = (response && typeof response.text === 'string' && response.text.trim())
-      ? response.text
-      : getChatWithAdvisorFallback(message, brandContext);
+    const replyText = await callMultiProviderLlm({
+      systemPrompt: systemInstruction,
+      userPrompt: `Mensaje del Usuario: "${message || 'Hola'}"`,
+      customGeminiKey: customKey,
+      customNvidiaKey: nvidiaKey
+    });
 
     return res.status(200).json({ response: replyText });
   } catch (error: any) {
-    const errStr = (error?.message || "").toLowerCase();
-    const isQuotaOrLimit = errStr.includes("quota") || errStr.includes("429") || errStr.includes("exhausted") || errStr.includes("limit") || errStr.includes("503") || errStr.includes("unavailable");
-    
-    if (isQuotaOrLimit) {
-      console.log("[FUTURA] chatWithAdvisor quota/demand limit reached. Triggering high-fidelity local advisor fallback.");
-    } else {
-      console.warn("[FUTURA] chatWithAdvisor exception:", error.message || error);
-    }
-    
-    // Serve our top-quality, beautiful custom local strategic advice
+    console.warn("[FUTURA] Multi-LLM provider fallback triggered for advisor:", error?.message || error);
     const fallbackResponse = getChatWithAdvisorFallback(message, brandContext);
     return res.status(200).json({ response: fallbackResponse });
   }

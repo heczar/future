@@ -500,3 +500,174 @@ ${baseCopy}
 *Hemos pulido la versión para elevar la tensión persuasiva, estructurando el mensaje de forma más limpia con saltos de línea óptimos para visualización en dispositivos móviles y reforzando el llamado a la acción directo.*`
   };
 }
+
+/**
+ * 🚀 Multi-LLM Provider Engine (from awesome-free-llm-apis)
+ * Unified fallback cascade:
+ * 1. Google Gemini 2.5 Flash
+ * 2. NVIDIA NIM LLM (Llama 3.3 70B / Nemotron)
+ * 3. Groq API (Llama 3.3 70B - Ultra fast 400 tps)
+ * 4. OpenRouter Free Models (Llama 3.3 70B, Gemma 2, DeepSeek R1)
+ * 5. OVHcloud Anonymous AI Endpoint (100% free, no key needed)
+ */
+export async function callMultiProviderLlm(options: {
+  systemPrompt?: string;
+  userPrompt: string;
+  customGeminiKey?: string;
+  customNvidiaKey?: string;
+  customGroqKey?: string;
+  customOpenRouterKey?: string;
+  temperature?: number;
+}): Promise<string> {
+  const { systemPrompt, userPrompt, customGeminiKey, customNvidiaKey, customGroqKey, customOpenRouterKey, temperature = 0.7 } = options;
+
+  // 1. Try Gemini 2.5 Flash
+  try {
+    const client = getAiClient(customGeminiKey);
+    const contents = systemPrompt ? `${systemPrompt}\n\n${userPrompt}` : userPrompt;
+    const response = await client.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents
+    });
+    if (response.text && response.text.trim()) {
+      return response.text.trim();
+    }
+  } catch (geminiErr) {
+    console.warn("[FUTURA LLM ENGINE] Gemini attempt failed, trying fallback to NVIDIA NIM / Groq / OpenRouter / OVHcloud...", geminiErr);
+  }
+
+  // 2. Try NVIDIA NIM LLM (integrate.api.nvidia.com)
+  const nvidiaKeys = (customNvidiaKey || process.env.NVIDIA_API_KEY || "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")
+    .split(',').map(k => k.trim()).filter(Boolean);
+
+  for (const nKey of nvidiaKeys) {
+    if (nKey.length < 5) continue;
+    try {
+      const res = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${nKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "meta/llama-3.3-70b-instruct",
+          messages: [
+            ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
+            { role: "user", content: userPrompt }
+          ],
+          temperature,
+          max_tokens: 2048
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.choices?.[0]?.message?.content;
+        if (text && text.trim()) {
+          console.log("[FUTURA LLM ENGINE] Successfully generated via NVIDIA NIM LLM (Llama 3.3 70B)");
+          return text.trim();
+        }
+      }
+    } catch (nErr) {
+      console.warn("[FUTURA LLM ENGINE] NVIDIA NIM LLM attempt failed:", nErr);
+    }
+  }
+
+  // 3. Try Groq API (api.groq.com)
+  const groqKey = customGroqKey || process.env.GROQ_API_KEY;
+  if (groqKey && groqKey.trim()) {
+    try {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${groqKey.trim()}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
+            { role: "user", content: userPrompt }
+          ],
+          temperature
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.choices?.[0]?.message?.content;
+        if (text && text.trim()) {
+          console.log("[FUTURA LLM ENGINE] Successfully generated via Groq API (Llama 3.3 70B)");
+          return text.trim();
+        }
+      }
+    } catch (gErr) {
+      console.warn("[FUTURA LLM ENGINE] Groq API attempt failed:", gErr);
+    }
+  }
+
+  // 4. Try OpenRouter API (openrouter.ai) with free models
+  const openRouterKey = customOpenRouterKey || process.env.OPENROUTER_API_KEY;
+  const freeOpenRouterModels = [
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "google/gemma-2-9b-it:free",
+    "deepseek/deepseek-r1:free",
+    "qwen/qwen-2.5-72b-instruct:free"
+  ];
+  for (const modelId of freeOpenRouterModels) {
+    try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (openRouterKey && openRouterKey.trim()) {
+        headers["Authorization"] = `Bearer ${openRouterKey.trim()}`;
+      }
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          model: modelId,
+          messages: [
+            ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
+            { role: "user", content: userPrompt }
+          ],
+          temperature
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.choices?.[0]?.message?.content;
+        if (text && text.trim()) {
+          console.log(`[FUTURA LLM ENGINE] Successfully generated via OpenRouter Free Model (${modelId})`);
+          return text.trim();
+        }
+      }
+    } catch (orErr) {
+      console.warn(`[FUTURA LLM ENGINE] OpenRouter attempt (${modelId}) failed:`, orErr);
+    }
+  }
+
+  // 5. Try OVHcloud Anonymous AI Endpoint (100% free, no key needed)
+  try {
+    const res = await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "meta-llama-3-70b-instruct",
+        messages: [
+          ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
+          { role: "user", content: userPrompt }
+        ],
+        temperature
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const text = data?.choices?.[0]?.message?.content;
+      if (text && text.trim()) {
+        console.log("[FUTURA LLM ENGINE] Successfully generated via OVHcloud Anonymous AI Endpoint");
+        return text.trim();
+      }
+    }
+  } catch (ovhErr) {
+    console.warn("[FUTURA LLM ENGINE] OVHcloud attempt failed:", ovhErr);
+  }
+
+  throw new Error("Todos los proveedores de LLM gratuitos fallaron. Por favor verifica tus claves API en la configuración.");
+}

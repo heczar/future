@@ -4,7 +4,7 @@
  */
 
 import https from 'https';
-import { getAiClient, callWithRetry } from "./utils.js";
+import { getAiClient, callWithRetry, callMultiProviderLlm } from "./utils.js";
 import { buildSkillsInjection } from "./loadOpenDesignSkill.js";
 
 export default async function handler(req: any, res: any) {
@@ -274,16 +274,15 @@ export default async function handler(req: any, res: any) {
       ? `\nSTRATEGIC ADVISORY CONTEXT & POSITIONING FROM ADVISOR CHAT:\n"${advisoryContext.trim()}"\nEnsure the visual choices, mood, and brand expression align with these strategic advisor recommendations.\n` 
       : "";
 
-    const transResponse = await getAiClient(customKey).models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `${optimizerInstruction}\n${advisoryInjection}\n${openDesignInjection}\nSpanish Request: "${prompt}"`
+    englishPrompt = await callMultiProviderLlm({
+      systemPrompt: `${optimizerInstruction}\n${advisoryInjection}\n${openDesignInjection}`,
+      userPrompt: `Spanish Request: "${prompt}"`,
+      customGeminiKey: customKey,
+      customNvidiaKey: nvidiaKey
     });
-    if (transResponse.text) {
-      englishPrompt = transResponse.text.trim();
-      console.log(`[FUTURA SERVER] Optimized Open Design prompt: "${englishPrompt}"`);
-    }
+    console.log(`[FUTURA SERVER] Multi-LLM Optimized Prompt: "${englishPrompt}"`);
   } catch (transErr) {
-    console.warn("[FUTURA SERVER] Prompt optimization failed, using original:", transErr);
+    console.warn("[FUTURA SERVER] All LLM providers failed for prompt optimization, using original:", transErr);
     englishPrompt = prompt;
   }
 
