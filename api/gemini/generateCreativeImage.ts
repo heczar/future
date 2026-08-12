@@ -289,33 +289,7 @@ export default async function handler(req: any, res: any) {
   }
 
   // ═══════════════════════════════════════════
-  // PRIORITY 1: Pollinations FLUX (Free, unlimited, same FLUX model)
-  // ═══════════════════════════════════════════
-  try {
-    console.log("[FUTURA SERVER] Trying Pollinations FLUX (Free)...");
-    const pollinationsPrompt = encodeURIComponent(enhancedPrompt);
-    const seed = Math.floor(Math.random() * 1000000);
-    const pollinationsUrl = `https://image.pollinations.ai/prompt/${pollinationsPrompt}?width=1536&height=1536&seed=${seed}&model=flux&nologo=true&enhance=true`;
-    
-    const pollinationsResponse = await fetch(pollinationsUrl);
-    if (pollinationsResponse.ok) {
-      const contentType = pollinationsResponse.headers.get('content-type') || 'image/jpeg';
-      if (contentType.startsWith('image/')) {
-        const arrayBuffer = await pollinationsResponse.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const b64 = buffer.toString('base64');
-        const mime = contentType.split(';')[0];
-        console.log(`[FUTURA SERVER] ✅ Pollinations FLUX returned image successfully (${Math.round(buffer.length / 1024)}KB)`);
-        return res.status(200).json({ imageUrl: `data:${mime};base64,${b64}` });
-      }
-    }
-    console.warn(`[FUTURA SERVER] Pollinations returned status ${pollinationsResponse.status}`);
-  } catch (pollErr: any) {
-    console.warn("[FUTURA SERVER] Pollinations FLUX failed:", pollErr?.message);
-  }
-
-  // ═══════════════════════════════════════════
-  // PRIORITY 2: NVIDIA NIM (with Key Rotation support)
+  // PRIORITY 1: NVIDIA NIM (Primary — user has 7 active keys, highest quality FLUX.1-dev)
   // ═══════════════════════════════════════════
   const nvidiaKeys = (nvidiaKey || "").split(',').map(k => k.trim()).filter(Boolean);
   if (nvidiaKeys.length > 0) {
@@ -323,7 +297,7 @@ export default async function handler(req: any, res: any) {
       const activeKey = nvidiaKeys[i];
       if (activeKey.length < 5) continue;
       
-      console.log(`[FUTURA SERVER] Trying NVIDIA NIM key [${i + 1}/${nvidiaKeys.length}] (${activeKey.substring(0, 15)}...)...`);
+      console.log(`[FUTURA SERVER] Trying NVIDIA NIM key [${i + 1}/${nvidiaKeys.length}] FIRST (${activeKey.substring(0, 15)}...)...`);
       try {
         const nvidiaResponse = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
           method: "POST",
@@ -372,7 +346,33 @@ export default async function handler(req: any, res: any) {
         console.warn(`[FUTURA SERVER] NVIDIA NIM key [${i + 1}] failed:`, nvidiaErr?.message);
       }
     }
-    console.warn("[FUTURA SERVER] All available NVIDIA NIM keys were exhausted or failed. Falling back...");
+    console.warn("[FUTURA SERVER] All available NVIDIA NIM keys were exhausted or failed. Falling back to Pollinations...");
+  }
+
+  // ═══════════════════════════════════════════
+  // PRIORITY 2: Pollinations FLUX (Free, unlimited fallback)
+  // ═══════════════════════════════════════════
+  try {
+    console.log("[FUTURA SERVER] Trying Pollinations FLUX (Free fallback)...");
+    const pollinationsPrompt = encodeURIComponent(enhancedPrompt);
+    const seed = Math.floor(Math.random() * 1000000);
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/${pollinationsPrompt}?width=1536&height=1536&seed=${seed}&model=flux&nologo=true&enhance=true`;
+    
+    const pollinationsResponse = await fetch(pollinationsUrl);
+    if (pollinationsResponse.ok) {
+      const contentType = pollinationsResponse.headers.get('content-type') || 'image/jpeg';
+      if (contentType.startsWith('image/')) {
+        const arrayBuffer = await pollinationsResponse.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const b64 = buffer.toString('base64');
+        const mime = contentType.split(';')[0];
+        console.log(`[FUTURA SERVER] ✅ Pollinations FLUX returned image successfully (${Math.round(buffer.length / 1024)}KB)`);
+        return res.status(200).json({ imageUrl: `data:${mime};base64,${b64}` });
+      }
+    }
+    console.warn(`[FUTURA SERVER] Pollinations returned status ${pollinationsResponse.status}`);
+  } catch (pollErr: any) {
+    console.warn("[FUTURA SERVER] Pollinations FLUX failed:", pollErr?.message);
   }
 
   // ═══════════════════════════════════════════

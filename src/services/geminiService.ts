@@ -844,41 +844,14 @@ export async function generateCreativeImage(
       enhancedClientPrompt += ` The image style and aesthetics should be closely inspired by the following: ${styleGuidance}.`;
     }
 
-    // 1. Direct Pollinations FLUX (Free, unlimited) - RUN THIS FIRST
-    try {
-      console.log("[FUTURA CLIENT] Trying direct browser Pollinations FLUX (Free) first...");
-      const seed = Math.floor(Math.random() * 1000000);
-
-      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedClientPrompt)}?width=1536&height=1536&seed=${seed}&model=flux&nologo=true&enhance=true`;
-      const response = await fetch(pollinationsUrl);
-      if (response.ok) {
-        const blob = await response.blob();
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            if (reader.result && typeof reader.result === 'string') {
-              console.log("[FUTURA CLIENT] ✅ Direct browser Pollinations FLUX returned image successfully");
-              resolve(reader.result);
-            } else {
-              reject(new Error("Empty reader result"));
-            }
-          };
-          reader.onerror = () => reject(reader.error);
-          reader.readAsDataURL(blob);
-        });
-      }
-    } catch (pollErr) {
-      console.warn("[FUTURA CLIENT] Direct browser Pollinations fallback failed:", pollErr);
-    }
-
-    // 2. Direct NVIDIA NIM call from browser (Primary Paid Backup — user has 7 active keys)
+    // 1. Direct NVIDIA NIM (Primary — user has 7 active keys, highest quality FLUX.1-dev)
     let nvidiaKey = localStorage.getItem("user_nvidia_api_key") || "";
     if (!nvidiaKey || nvidiaKey.trim().length < 5) {
       nvidiaKey = "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,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";
     }
     const nvidiaKeys = (nvidiaKey || "").split(',').map(k => k.trim()).filter(Boolean);
     if (nvidiaKeys.length > 0) {
-      console.log(`[FUTURA CLIENT] NVIDIA API Keys detected (${nvidiaKeys.length}). Trying direct NVIDIA NIM calls (Primary Paid Backup)...`);
+      console.log(`[FUTURA CLIENT] NVIDIA API Keys detected (${nvidiaKeys.length}). Trying NVIDIA NIM FIRST (Priority 1)...`);
       for (let i = 0; i < nvidiaKeys.length; i++) {
         const activeKey = nvidiaKeys[i];
         if (activeKey.length < 5) continue;
@@ -901,7 +874,7 @@ export async function generateCreativeImage(
             const data = await response.json();
             const b64 = data?.artifacts?.[0]?.base64 || data?.data?.[0]?.b64_json || data?.b64_json || data?.image;
             if (b64 && typeof b64 === 'string') {
-              console.log(`[FUTURA CLIENT] ✅ Direct NVIDIA NIM key [${i + 1}] returned image successfully`);
+              console.log(`[FUTURA CLIENT] ✅ NVIDIA NIM key [${i + 1}] returned image successfully`);
               const cleanB64 = b64.replace(/\s/g, '');
               if (cleanB64.startsWith('data:image')) {
                 return cleanB64;
@@ -926,6 +899,33 @@ export async function generateCreativeImage(
           console.warn(`Direct client call to NVIDIA NIM key [${i + 1}] failed:`, nvidiaErr);
         }
       }
+    }
+
+    // 2. Direct Pollinations FLUX (Free, unlimited fallback)
+    try {
+      console.log("[FUTURA CLIENT] Trying Pollinations FLUX (Free fallback)...");
+      const seed = Math.floor(Math.random() * 1000000);
+
+      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedClientPrompt)}?width=1536&height=1536&seed=${seed}&model=flux&nologo=true&enhance=true`;
+      const response = await fetch(pollinationsUrl);
+      if (response.ok) {
+        const blob = await response.blob();
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (reader.result && typeof reader.result === 'string') {
+              console.log("[FUTURA CLIENT] ✅ Pollinations FLUX returned image successfully");
+              resolve(reader.result);
+            } else {
+              reject(new Error("Empty reader result"));
+            }
+          };
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(blob);
+        });
+      }
+    } catch (pollErr) {
+      console.warn("[FUTURA CLIENT] Pollinations fallback failed:", pollErr);
     }
 
     // 3. Direct DeepInfra FLUX call from browser if key is available (Secondary Backup)
