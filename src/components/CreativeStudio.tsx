@@ -661,6 +661,60 @@ export default function CreativeStudio({
              }, isBase64 ? undefined : { crossOrigin: 'anonymous' });
            }
 
+          // Auto-populate pre-formatted editable sharp text layers for flyers (Headline, Offer, Contact)
+          if (generationType === 'flyers' && internalCanvas) {
+            const brandTitle = activeBrand?.name || 'MI NEGOCIO';
+            const headlineText = flyerPrompt.trim() 
+              ? (flyerPrompt.length > 40 ? flyerPrompt.slice(0, 40) + '...' : flyerPrompt.toUpperCase()) 
+              : 'TÍTULO DEL ANUNCIO / OFERTA';
+
+            const headline = new fabric.IText(headlineText, {
+              left: Math.round(canvasWidth * 0.08),
+              top: Math.round(canvasHeight * 0.1),
+              fontSize: Math.max(18, Math.round(canvasWidth * 0.05)),
+              fill: '#FFFFFF',
+              fontWeight: 'bold',
+              fontFamily: 'sans-serif',
+              stroke: '#000000',
+              strokeWidth: 1.5,
+              cornerColor: '#f43f5e',
+              cornerSize: 8,
+              transparentCorners: false
+            });
+
+            const subtext = new fabric.IText('¡OFERTA IMPERDIBLE POR TIEMPO LIMITADO!', {
+              left: Math.round(canvasWidth * 0.08),
+              top: Math.round(canvasHeight * 0.2),
+              fontSize: Math.max(14, Math.round(canvasWidth * 0.032)),
+              fill: '#FFD700',
+              fontWeight: 'bold',
+              fontFamily: 'sans-serif',
+              stroke: '#000000',
+              strokeWidth: 1,
+              cornerColor: '#f43f5e',
+              cornerSize: 8,
+              transparentCorners: false
+            });
+
+            const contactBar = new fabric.IText(`📞 CONTACTO: +58 412 000 0000 | WWW.${brandTitle.toUpperCase().replace(/\s+/g, '')}.COM`, {
+              left: Math.round(canvasWidth * 0.08),
+              top: Math.round(canvasHeight * 0.86),
+              fontSize: Math.max(11, Math.round(canvasWidth * 0.026)),
+              fill: '#FFFFFF',
+              backgroundColor: 'rgba(0,0,0,0.75)',
+              padding: 6,
+              fontFamily: 'monospace',
+              cornerColor: '#f43f5e',
+              cornerSize: 8,
+              transparentCorners: false
+            });
+
+            internalCanvas.add(headline, subtext, contactBar);
+            internalCanvas.bringToFront(headline);
+            internalCanvas.bringToFront(subtext);
+            internalCanvas.bringToFront(contactBar);
+          }
+
           internalCanvas.renderAll();
         }, { crossOrigin: 'anonymous' });
 
