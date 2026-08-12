@@ -226,6 +226,59 @@ export default function CreativeStudio({
     { text: '📱 Pantalla App', prompt: 'Una pantalla de teléfono móvil mostrando una interfaz limpia' }
   ];
 
+  // Helper to remove solid background (white/dark) from logo image for pure PNG transparency
+  const createTransparentLogoCanvas = (logoImg: HTMLImageElement): HTMLCanvasElement => {
+    const lCv = document.createElement('canvas');
+    lCv.width = logoImg.width;
+    lCv.height = logoImg.height;
+    const lCtx = lCv.getContext('2d');
+    if (!lCtx) return lCv;
+
+    lCtx.drawImage(logoImg, 0, 0);
+    try {
+      const imgData = lCtx.getImageData(0, 0, lCv.width, lCv.height);
+      const d = imgData.data;
+
+      // Sample 4 corner pixels to determine background color
+      const corners = [
+        [0, 0],
+        [(lCv.width - 1) * 4, 0],
+        [0, (lCv.height - 1) * 4 * lCv.width],
+        [(lCv.width - 1) * 4, (lCv.height - 1) * 4 * lCv.width]
+      ];
+
+      let bgR = 0, bgG = 0, bgB = 0;
+      for (const [idx] of corners) {
+        bgR += d[idx];
+        bgG += d[idx + 1];
+        bgB += d[idx + 2];
+      }
+      bgR = Math.round(bgR / 4);
+      bgG = Math.round(bgG / 4);
+      bgB = Math.round(bgB / 4);
+
+      const isWhiteBg = bgR > 210 && bgG > 210 && bgB > 210;
+      const isDarkBg = bgR < 40 && bgG < 40 && bgB < 40;
+
+      if (isWhiteBg || isDarkBg) {
+        const threshold = isWhiteBg ? 45 : 50;
+        for (let i = 0; i < d.length; i += 4) {
+          const r = d[i];
+          const g = d[i + 1];
+          const b = d[i + 2];
+          const diff = Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB);
+          if (diff < threshold) {
+            d[i + 3] = 0; // Make background pixel 100% transparent!
+          }
+        }
+        lCtx.putImageData(imgData, 0, 0);
+      }
+    } catch (e) {
+      console.warn("[FUTURA UI] Transparency extraction skipped:", e);
+    }
+    return lCv;
+  };
+
   // Helper to draw watermark logo client-side
   const applyBrandLogoOverlay = (baseImageSrc: string, logoSrc: string, position: string, opacityVal: number, sizePercent: number): Promise<string> => {
     return new Promise((resolve) => {
@@ -268,10 +321,13 @@ export default function CreativeStudio({
             y = padding;
           }
 
-          // Draw logo with opacity
+          // Create transparent logo canvas without any background box
+          const transparentLogoCv = createTransparentLogoCanvas(logoImg);
+
+          // Draw transparent logo with opacity
           ctx.save();
           ctx.globalAlpha = opacityVal;
-          ctx.drawImage(logoImg, x, y, logoWidth, logoHeight);
+          ctx.drawImage(transparentLogoCv, x, y, logoWidth, logoHeight);
           ctx.restore();
 
           resolve(cv.toDataURL('image/png'));

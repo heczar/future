@@ -311,7 +311,7 @@ export default async function handler(req: any, res: any) {
         }
       }
     }
-    const logoExtra = isLogo ? ", standalone graphic logo icon, vector brand isotype, no human beings, no models, no people, no portraits, no clothing photos" : "";
+    const logoExtra = isLogo ? ", isolated vector graphic logo icon on a pure solid white background for 100% clean PNG transparent background extraction, ONLY the logo symbol and typography, no background graphics, no containers, no frames, no surrounding boxes, no human beings, no models, no people, no portraits, no clothing photos" : "";
     return (sanitized
       .replace(/\blogo\b/gi, 'brand emblem')
       .replace(/\blogotype\b/gi, 'visual brand mark')) + logoExtra + " 100% original custom independent brand identity mark, completely unique, non-infringing, no third-party copyrighted characters, no corporate trademarks.";
