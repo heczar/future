@@ -334,6 +334,7 @@ export default function CreativeStudio({
       if (result) {
         setRawImageResult(result);
         setCustomUploadedLogo(result); // Set as active session logo
+        setApplyLogo(true); // Auto-enable logo overlay for subsequent flyer/product generations
       }
 
       await trackActionConsumption(profile.id, profile.isPremium, 'image');
@@ -353,6 +354,14 @@ export default function CreativeStudio({
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleUseLogoInFlyers = () => {
+    if (!generatedResult) return;
+    setCustomUploadedLogo(generatedResult);
+    setApplyLogo(true);
+    setGenerationType('flyers');
+    alert('¡Excelente! Tu nuevo logo ha sido activado. Ahora cuando crees cualquier flyer o anuncio publicitario, tu logo se colocará sobre el diseño automáticamente.');
   };
 
   const handleGenerateAsset = async (type: 'flyers' | 'products') => {
@@ -1626,6 +1635,17 @@ export default function CreativeStudio({
                     className="max-w-full max-h-full object-contain rounded-xl shadow-xl"
                   />
                 </div>
+
+                {/* 1-Click Action for Logos: Use in Flyers */}
+                {generationType === 'logos' && (
+                  <button
+                    onClick={handleUseLogoInFlyers}
+                    className="w-full py-3.5 px-4 bg-brand-primary hover:bg-brand-primary/90 text-surface-950 font-black rounded-xl text-xs md:text-sm font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shadow-lg shadow-brand-primary/20 shrink-0"
+                  >
+                    <Sparkles className="w-4 h-4 fill-surface-950" />
+                    <span>Usar este Logo en Flyers y Avisos 🚀</span>
+                  </button>
+                )}
 
                 {/* Actions Bar */}
                 <div className="flex gap-2.5 mt-2 shrink-0 flex-wrap">
