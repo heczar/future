@@ -283,17 +283,24 @@ export default async function handler(req: any, res: any) {
     if (transResponse.text) {
       englishPrompt = transResponse.text.trim();
       if (isLogo) {
-        // 🚨 HARD OVERRIDE FOR LOGOS: Purge any human/model/clothing references that Gemini might mistakenly generate for fashion/apparel niches.
-        englishPrompt = englishPrompt
-          .replace(/\b(woman|women|girl|female|man|men|person|human|model|models|mannequin|wearing|portrait|body|face|clothing|clothes|apparel|t-shirt|shirt|hoodie|jacket|dress|pants|hat|cap)\b/gi, 'graphic emblem')
+        // 🚨 HARD OVERRIDE FOR LOGOS: Purge any human/model/clothing references that Gemini might generate for fashion/apparel niches.
+        let cleanConcept = englishPrompt
+          .replace(/\b(woman|women|female|lady|girl|asian|man|men|male|guy|person|human|model|models|mannequin|wearing|portrait|face|body|clothes|clothing|apparel|t-shirt|shirt|hoodie|jacket|dress|skirt|pants|hat|cap|outfit|garment)\b/gi, 'graphic vector symbol')
           .replace(/\s+/g, ' ');
-        console.log(`[FUTURA SERVER] Purged Logo Prompt: "${englishPrompt}"`);
+        
+        const cleanName = brandName?.trim() || "ELSA";
+        englishPrompt = `A 2D flat vector graphic logo isotype icon and bold brand wordmark typography spelling '${cleanName}'. Concept: ${cleanConcept}. Isolated on a pure solid white background, high contrast, crisp vector artwork, 8k resolution.`;
+        console.log(`[FUTURA SERVER] Strict Isolated Logo Prompt: "${englishPrompt}"`);
       } else {
         console.log(`[FUTURA SERVER] Optimized Open Design prompt: "${englishPrompt}"`);
       }
     }
   } catch (transErr) {
     console.warn("[FUTURA SERVER] Prompt optimization failed, using original:", transErr);
+    if (isLogo) {
+      const cleanName = brandName?.trim() || "ELSA";
+      englishPrompt = `A 2D flat vector graphic logo isotype icon and bold brand wordmark typography spelling '${cleanName}', minimal geometry, isolated on a pure solid white background.`;
+    }
   }
 
   // Build enhanced prompt using curated Open Design contracts and style templates

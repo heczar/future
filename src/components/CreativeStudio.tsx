@@ -385,7 +385,12 @@ export default function CreativeStudio({
               ]
             : undefined);
 
-      const fullPrompt = `Crea un diseño de logotipo profesional de alta gama para la marca llamada "${brandName}". Concepto y nicho: ${logoDescription}. Estilo visual: ${selectedLogoStyle}. Diseño limpio, simétrico, alta resolución y máximo contraste visual.`;
+      // Clean logo concept to isolate graphic symbol instructions and purge human/apparel terms
+      const cleanLogoConcept = logoDescription
+        .replace(/\b(damas|mujeres|mujer|hombres|hombre|chica|chico|persona|personas|humano|modelo|modelos|ropa|vestimenta|prendas|franela|camiseta|camisa|pantalon|vestido)\b/gi, 'isotipo gráfico')
+        .replace(/\s+/g, ' ');
+
+      const fullPrompt = `Crea un isotipo gráfico vectorial y logotipo para la marca llamada "${brandName}". Símbolo e inspiración gráfica: ${cleanLogoConcept}. Estilo visual: ${selectedLogoStyle}. Isotipo gráfico 2D/3D aislado sobre fondo neutro de alto contraste. Sin personas, sin modelos, sin prendas de vestir.`;
 
       const advisoryContext = localStorage.getItem('futura_active_advisory_context') || undefined;
 
