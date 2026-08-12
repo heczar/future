@@ -295,7 +295,7 @@ export default async function handler(req: any, res: any) {
     console.log("[FUTURA SERVER] Trying Pollinations FLUX (Free)...");
     const pollinationsPrompt = encodeURIComponent(enhancedPrompt);
     const seed = Math.floor(Math.random() * 1000000);
-    const pollinationsUrl = `https://image.pollinations.ai/prompt/${pollinationsPrompt}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/${pollinationsPrompt}?width=1536&height=1536&seed=${seed}&model=flux&nologo=true&enhance=true`;
     
     const pollinationsResponse = await fetch(pollinationsUrl);
     if (pollinationsResponse.ok) {
@@ -315,85 +315,7 @@ export default async function handler(req: any, res: any) {
   }
 
   // ═══════════════════════════════════════════
-  // PRIORITY 2: DeepInfra FLUX (Ultra-fast, commercial backup)
-  // ═══════════════════════════════════════════
-  const deepinfraKey = process.env.DEEPINFRA_API_KEY || process.env.DEEP_INFRA_API_KEY || "";
-  if (deepinfraKey && deepinfraKey.trim().length > 5) {
-    console.log("[FUTURA SERVER] Trying DeepInfra FLUX backup...");
-    try {
-      const response = await fetch("https://api.deepinfra.com/v1/openai/images/generations", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${deepinfraKey.trim()}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "black-forest-labs/FLUX-1-schnell",
-          prompt: enhancedPrompt,
-          size: "1024x1024",
-          n: 1,
-          response_format: "b64_json"
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const b64 = data?.data?.[0]?.b64_json;
-        if (b64 && typeof b64 === 'string') {
-          console.log("[FUTURA SERVER] ✅ DeepInfra FLUX returned image successfully");
-          return res.status(200).json({ imageUrl: `data:image/jpeg;base64,${b64.replace(/\s/g, '')}` });
-        }
-      } else {
-        const errText = await response.text();
-        console.warn(`[FUTURA SERVER] DeepInfra returned status ${response.status}:`, errText.substring(0, 100));
-      }
-    } catch (deepinfraErr: any) {
-      console.warn("[FUTURA SERVER] DeepInfra FLUX failed:", deepinfraErr?.message);
-    }
-  }
-
-  // ═══════════════════════════════════════════
-  // PRIORITY 3: Together AI FLUX (Ultra-fast, commercial backup)
-  // ═══════════════════════════════════════════
-  const togetherKey = process.env.TOGETHER_API_KEY || process.env.TOGETHER_AI_API_KEY || "";
-  if (togetherKey && togetherKey.trim().length > 5) {
-    console.log("[FUTURA SERVER] Trying Together AI FLUX backup...");
-    try {
-      const response = await fetch("https://api.together.ai/v1/images/generations", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${togetherKey.trim()}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "black-forest-labs/FLUX.1-schnell",
-          prompt: enhancedPrompt,
-          width: 1024,
-          height: 1024,
-          steps: 4,
-          n: 1,
-          response_format: "b64_json"
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const b64 = data?.data?.[0]?.b64_json;
-        if (b64 && typeof b64 === 'string') {
-          console.log("[FUTURA SERVER] ✅ Together AI FLUX returned image successfully");
-          return res.status(200).json({ imageUrl: `data:image/jpeg;base64,${b64.replace(/\s/g, '')}` });
-        }
-      } else {
-        const errText = await response.text();
-        console.warn(`[FUTURA SERVER] Together AI returned status ${response.status}:`, errText.substring(0, 100));
-      }
-    } catch (togetherErr: any) {
-      console.warn("[FUTURA SERVER] Together AI FLUX failed:", togetherErr?.message);
-    }
-  }
-
-  // ═══════════════════════════════════════════
-  // PRIORITY 4: NVIDIA NIM (with Key Rotation support)
+  // PRIORITY 2: NVIDIA NIM (with Key Rotation support)
   // ═══════════════════════════════════════════
   const nvidiaKeys = (nvidiaKey || "").split(',').map(k => k.trim()).filter(Boolean);
   if (nvidiaKeys.length > 0) {
@@ -451,6 +373,84 @@ export default async function handler(req: any, res: any) {
       }
     }
     console.warn("[FUTURA SERVER] All available NVIDIA NIM keys were exhausted or failed. Falling back...");
+  }
+
+  // ═══════════════════════════════════════════
+  // PRIORITY 3: DeepInfra FLUX (Ultra-fast, commercial backup)
+  // ═══════════════════════════════════════════
+  const deepinfraKey = process.env.DEEPINFRA_API_KEY || process.env.DEEP_INFRA_API_KEY || "";
+  if (deepinfraKey && deepinfraKey.trim().length > 5) {
+    console.log("[FUTURA SERVER] Trying DeepInfra FLUX backup...");
+    try {
+      const response = await fetch("https://api.deepinfra.com/v1/openai/images/generations", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${deepinfraKey.trim()}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "black-forest-labs/FLUX-1-schnell",
+          prompt: enhancedPrompt,
+          size: "1024x1024",
+          n: 1,
+          response_format: "b64_json"
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const b64 = data?.data?.[0]?.b64_json;
+        if (b64 && typeof b64 === 'string') {
+          console.log("[FUTURA SERVER] ✅ DeepInfra FLUX returned image successfully");
+          return res.status(200).json({ imageUrl: `data:image/jpeg;base64,${b64.replace(/\s/g, '')}` });
+        }
+      } else {
+        const errText = await response.text();
+        console.warn(`[FUTURA SERVER] DeepInfra returned status ${response.status}:`, errText.substring(0, 100));
+      }
+    } catch (deepinfraErr: any) {
+      console.warn("[FUTURA SERVER] DeepInfra FLUX failed:", deepinfraErr?.message);
+    }
+  }
+
+  // ═══════════════════════════════════════════
+  // PRIORITY 4: Together AI FLUX (Ultra-fast, commercial backup)
+  // ═══════════════════════════════════════════
+  const togetherKey = process.env.TOGETHER_API_KEY || process.env.TOGETHER_AI_API_KEY || "";
+  if (togetherKey && togetherKey.trim().length > 5) {
+    console.log("[FUTURA SERVER] Trying Together AI FLUX backup...");
+    try {
+      const response = await fetch("https://api.together.ai/v1/images/generations", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${togetherKey.trim()}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "black-forest-labs/FLUX.1-schnell",
+          prompt: enhancedPrompt,
+          width: 1024,
+          height: 1024,
+          steps: 4,
+          n: 1,
+          response_format: "b64_json"
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const b64 = data?.data?.[0]?.b64_json;
+        if (b64 && typeof b64 === 'string') {
+          console.log("[FUTURA SERVER] ✅ Together AI FLUX returned image successfully");
+          return res.status(200).json({ imageUrl: `data:image/jpeg;base64,${b64.replace(/\s/g, '')}` });
+        }
+      } else {
+        const errText = await response.text();
+        console.warn(`[FUTURA SERVER] Together AI returned status ${response.status}:`, errText.substring(0, 100));
+      }
+    } catch (togetherErr: any) {
+      console.warn("[FUTURA SERVER] Together AI FLUX failed:", togetherErr?.message);
+    }
   }
 
   // ═══════════════════════════════════════════

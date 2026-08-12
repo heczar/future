@@ -14,15 +14,19 @@ export default function Profile() {
   const [showKey, setShowKey] = useState(false);
   const [nvidiaKey, setNvidiaKey] = useState('');
   const [showNvidiaKey, setShowNvidiaKey] = useState(false);
+  const [togetherKey, setTogetherKey] = useState('');
+  const [showTogetherKey, setShowTogetherKey] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'cleared'>('idle');
   const [showKeyPanel, setShowKeyPanel] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('user_gemini_api_key') || '';
     const savedNvidia = localStorage.getItem('user_nvidia_api_key') || '';
+    const savedTogether = localStorage.getItem('user_together_api_key') || '';
     setApiKey(saved);
     setNvidiaKey(savedNvidia);
-    if (saved || savedNvidia) {
+    setTogetherKey(savedTogether);
+    if (saved || savedNvidia || savedTogether) {
       setShowKeyPanel(true);
     }
   }, []);
@@ -30,6 +34,7 @@ export default function Profile() {
   const handleSaveKey = () => {
     const trimmedGemini = apiKey.trim();
     const trimmedNvidia = nvidiaKey.trim();
+    const trimmedTogether = togetherKey.trim();
     
     if (!trimmedGemini) {
       localStorage.removeItem('user_gemini_api_key');
@@ -42,6 +47,12 @@ export default function Profile() {
     } else {
       localStorage.setItem('user_nvidia_api_key', trimmedNvidia);
     }
+
+    if (!trimmedTogether) {
+      localStorage.removeItem('user_together_api_key');
+    } else {
+      localStorage.setItem('user_together_api_key', trimmedTogether);
+    }
     
     setSaveStatus('success');
     setTimeout(() => {
@@ -52,8 +63,10 @@ export default function Profile() {
   const handleClearKey = () => {
     localStorage.removeItem('user_gemini_api_key');
     localStorage.removeItem('user_nvidia_api_key');
+    localStorage.removeItem('user_together_api_key');
     setApiKey('');
     setNvidiaKey('');
+    setTogetherKey('');
     setSaveStatus('cleared');
     setTimeout(() => {
       setSaveStatus('idle');
@@ -143,6 +156,91 @@ export default function Profile() {
                </div>
              </div>
           </div>
+
+          {/* API Key Management Panel */}
+          <div className="glass-panel p-8 rounded-3xl space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">Claves de API</h3>
+                <button 
+                  onClick={() => setShowKeyPanel(!showKeyPanel)}
+                  className="text-xs text-brand-primary hover:text-brand-primary/80 font-bold flex items-center gap-1.5"
+                >
+                  <Key className="w-3.5 h-3.5" />
+                  {showKeyPanel ? 'Ocultar' : 'Configurar'}
+                </button>
+              </div>
+              
+              {showKeyPanel && (
+                <div className="space-y-4">
+                  {/* Gemini Key */}
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase mb-1.5 block">Google Gemini API Key</label>
+                    <div className="relative">
+                      <input 
+                        type={showKey ? 'text' : 'password'}
+                        value={apiKey}
+                        onChange={e => setApiKey(e.target.value)}
+                        placeholder="AIzaSy..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white placeholder-slate-600 focus:border-brand-primary/40 focus:outline-none pr-10"
+                      />
+                      <button onClick={() => setShowKey(!showKey)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">
+                        {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* NVIDIA Key */}
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase mb-1.5 block">NVIDIA NIM API Key</label>
+                    <div className="relative">
+                      <input 
+                        type={showNvidiaKey ? 'text' : 'password'}
+                        value={nvidiaKey}
+                        onChange={e => setNvidiaKey(e.target.value)}
+                        placeholder="nvapi-..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white placeholder-slate-600 focus:border-brand-primary/40 focus:outline-none pr-10"
+                      />
+                      <button onClick={() => setShowNvidiaKey(!showNvidiaKey)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">
+                        {showNvidiaKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <p className="text-[9px] text-slate-600 mt-1">Múltiples claves separadas por coma para rotación automática.</p>
+                  </div>
+
+                  {/* Together AI Key */}
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase mb-1.5 block">Together AI API Key</label>
+                    <div className="relative">
+                      <input 
+                        type={showTogetherKey ? 'text' : 'password'}
+                        value={togetherKey}
+                        onChange={e => setTogetherKey(e.target.value)}
+                        placeholder="tok-..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white placeholder-slate-600 focus:border-brand-primary/40 focus:outline-none pr-10"
+                      />
+                      <button onClick={() => setShowTogetherKey(!showTogetherKey)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">
+                        {showTogetherKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-3 pt-2">
+                    <button onClick={handleSaveKey} className="flex-1 py-2.5 bg-brand-primary/20 hover:bg-brand-primary/30 text-brand-primary rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                      {saveStatus === 'success' ? <><Check className="w-4 h-4" /> Guardado</> : <><Save className="w-4 h-4" /> Guardar Claves</>}
+                    </button>
+                    <button onClick={handleClearKey} className="py-2.5 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                      <Trash className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {saveStatus === 'cleared' && (
+                    <p className="text-[10px] text-amber-400 text-center">Todas las claves han sido eliminadas.</p>
+                  )}
+                </div>
+              )}
+          </div>
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
              <motion.div 
                whileHover={{ scale: 1.02 }}

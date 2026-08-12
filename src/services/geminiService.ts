@@ -134,7 +134,7 @@ function getDeterministicSimulationResponse(apiEndpoint: string, payload: any): 
       : `A high resolution editorial commercial product photograph of ${rawPrompt}, studio soft lighting, sharp focus, 8k resolution, professional commercial styling, no watermark`;
 
     const randomSeed = Math.floor(Math.random() * 1000000);
-    return `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanEn)}?width=1024&height=1024&seed=${randomSeed}&model=flux&nologo=true`;
+    return `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanEn)}?width=1536&height=1536&seed=${randomSeed}&model=flux&nologo=true&enhance=true`;
   }
 
   // 1. Sector recognition (supports Spanish NLP keywords)
@@ -442,7 +442,9 @@ async function executeWithFallback<T>(
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 9500); // 9.5 seconds timeout
+      const isImageEndpoint = apiEndpoint.includes("generateCreativeImage");
+      const timeoutMs = isImageEndpoint ? 55000 : 9500; // 55s for image generation, 9.5s for text
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
       const res = await fetch(apiEndpoint, {
         method: "POST",
@@ -807,15 +809,47 @@ export async function generateCreativeImage(
   };
 
   const clientFallback = async () => {
+    // ── Client-side reference image analysis (mirrors server-side behavior) ──
+    let styleGuidance = "";
+    if (metadata?.referenceImage && typeof metadata.referenceImage === 'string' && metadata.referenceImage.startsWith('data:image')) {
+      try {
+        console.log("[FUTURA CLIENT] Analyzing uploaded style reference image with Gemini Vision...");
+        const ai = getClientAi();
+        const match = metadata.referenceImage.match(/^data:(image\/[a-zA-Z+.-]+);base64,(.+)$/);
+        if (match && ai) {
+          const mimeType = match[1];
+          const base64Data = match[2];
+          const analysisResponse = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: [
+              { inlineData: { data: base64Data, mimeType } },
+              "You are a design supervisor. Analyze this reference image and describe its visual style, artistic genre, medium, lighting, color scheme, composition, and layout in a single detailed English paragraph. Do not describe the subject matter (e.g. do not say 'it is a coffee cup' or 'it is a shoe'), but rather focus strictly on the visual style, background, rendering details, textures, and aesthetic mood. Start your response immediately with the stylistic description, keeping it concise and optimized for an AI image generator (Stable Diffusion/FLUX)."
+            ]
+          });
+          if (analysisResponse?.text) {
+            styleGuidance = analysisResponse.text.trim();
+            console.log(`[FUTURA CLIENT] ✅ Reference Image Style Guidance: "${styleGuidance.substring(0, 120)}..."`);
+          }
+        }
+      } catch (refErr) {
+        console.warn("[FUTURA CLIENT] Reference image style analysis failed (continuing without):", refErr);
+      }
+    }
+
+    // Build enhanced prompt with style guidance
+    const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
+    const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors, metadata?.brandName);
+    let enhancedClientPrompt = `${prefix} ${prompt}. ${suffix}`;
+    if (styleGuidance) {
+      enhancedClientPrompt += ` The image style and aesthetics should be closely inspired by the following: ${styleGuidance}.`;
+    }
+
     // 1. Direct Pollinations FLUX (Free, unlimited) - RUN THIS FIRST
     try {
       console.log("[FUTURA CLIENT] Trying direct browser Pollinations FLUX (Free) first...");
       const seed = Math.floor(Math.random() * 1000000);
-      const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
-      const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors, metadata?.brandName);
-      const cleanPrompt = `${prefix} ${prompt}. ${suffix}`;
 
-      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
+      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedClientPrompt)}?width=1536&height=1536&seed=${seed}&model=flux&nologo=true&enhance=true`;
       const response = await fetch(pollinationsUrl);
       if (response.ok) {
         const blob = await response.blob();
@@ -837,99 +871,19 @@ export async function generateCreativeImage(
       console.warn("[FUTURA CLIENT] Direct browser Pollinations fallback failed:", pollErr);
     }
 
-    // 2. Direct DeepInfra FLUX call from browser if key is available (Paid Backup)
-    const deepinfraKey = localStorage.getItem("user_deepinfra_api_key") || ((import.meta as any).env?.VITE_DEEPINFRA_API_KEY) || "";
-    if (deepinfraKey && deepinfraKey.trim().length > 5) {
-      console.log("[FUTURA CLIENT] Trying direct browser DeepInfra FLUX call (Paid Backup)...");
-      try {
-        const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
-        const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors, metadata?.brandName);
-        const cleanPrompt = `${prefix} ${prompt}. ${suffix}`;
-
-        const response = await fetch("https://api.deepinfra.com/v1/openai/images/generations", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${deepinfraKey.trim()}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: "black-forest-labs/FLUX-1-schnell",
-            prompt: cleanPrompt,
-            size: "1024x1024",
-            n: 1,
-            response_format: "b64_json"
-          })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const b64 = data?.data?.[0]?.b64_json;
-          if (b64 && typeof b64 === 'string') {
-            console.log("[FUTURA CLIENT] ✅ Direct browser DeepInfra FLUX returned image successfully");
-            return `data:image/jpeg;base64,${b64.replace(/\s/g, '')}`;
-          }
-        }
-      } catch (err) {
-        console.warn("Direct browser DeepInfra FLUX call failed:", err);
-      }
-    }
-
-    // 3. Direct Together AI FLUX call from browser if key is available (Paid Backup)
-    const togetherKey = localStorage.getItem("user_together_api_key") || ((import.meta as any).env?.VITE_TOGETHER_API_KEY) || "";
-    if (togetherKey && togetherKey.trim().length > 5) {
-      console.log("[FUTURA CLIENT] Trying direct browser Together AI FLUX call (Paid Backup)...");
-      try {
-        const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
-        const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors, metadata?.brandName);
-        const cleanPrompt = `${prefix} ${prompt}. ${suffix}`;
-
-        const response = await fetch("https://api.together.ai/v1/images/generations", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${togetherKey.trim()}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: "black-forest-labs/FLUX.1-schnell",
-            prompt: cleanPrompt,
-            width: 1024,
-            height: 1024,
-            steps: 4,
-            n: 1,
-            response_format: "b64_json"
-          })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const b64 = data?.data?.[0]?.b64_json;
-          if (b64 && typeof b64 === 'string') {
-            console.log("[FUTURA CLIENT] ✅ Direct browser Together AI FLUX returned image successfully");
-            return `data:image/jpeg;base64,${b64.replace(/\s/g, '')}`;
-          }
-        }
-      } catch (err) {
-        console.warn("Direct browser Together AI FLUX call failed:", err);
-      }
-    }
-
-    // 4. Direct NVIDIA NIM call from browser if key is available (Paid Backup)
+    // 2. Direct NVIDIA NIM call from browser (Primary Paid Backup — user has 7 active keys)
     let nvidiaKey = localStorage.getItem("user_nvidia_api_key") || "";
     if (!nvidiaKey || nvidiaKey.trim().length < 5) {
       nvidiaKey = "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,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";
     }
     const nvidiaKeys = (nvidiaKey || "").split(',').map(k => k.trim()).filter(Boolean);
     if (nvidiaKeys.length > 0) {
-      console.log(`[FUTURA CLIENT] NVIDIA API Keys detected (${nvidiaKeys.length}). Trying direct NVIDIA NIM calls (Paid Backup)...`);
+      console.log(`[FUTURA CLIENT] NVIDIA API Keys detected (${nvidiaKeys.length}). Trying direct NVIDIA NIM calls (Primary Paid Backup)...`);
       for (let i = 0; i < nvidiaKeys.length; i++) {
         const activeKey = nvidiaKeys[i];
         if (activeKey.length < 5) continue;
         
         try {
-          const styleName = metadata?.generationType === 'logos' ? metadata?.logoStyle : metadata?.mockupType;
-          const { prefix, suffix } = getStyledPromptWrappers(metadata?.generationType, styleName, metadata?.colors, metadata?.brandName);
-          const cleanPrompt = `${prefix} ${prompt}. ${suffix}`;
-
           const response = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
             method: "POST",
             headers: {
@@ -938,7 +892,7 @@ export async function generateCreativeImage(
               "Accept": "application/json"
             },
             body: JSON.stringify({
-              prompt: cleanPrompt,
+              prompt: enhancedClientPrompt,
               mode: "base"
             })
           });
@@ -964,10 +918,81 @@ export async function generateCreativeImage(
               }
               return `data:${mime};base64,${cleanB64}`;
             }
+          } else {
+            const errText = await response.text().catch(() => "");
+            console.warn(`[FUTURA CLIENT] NVIDIA NIM key [${i + 1}] returned status ${response.status}:`, errText.substring(0, 150));
           }
         } catch (nvidiaErr) {
           console.warn(`Direct client call to NVIDIA NIM key [${i + 1}] failed:`, nvidiaErr);
         }
+      }
+    }
+
+    // 3. Direct DeepInfra FLUX call from browser if key is available (Secondary Backup)
+    const deepinfraKey = localStorage.getItem("user_deepinfra_api_key") || ((import.meta as any).env?.VITE_DEEPINFRA_API_KEY) || "";
+    if (deepinfraKey && deepinfraKey.trim().length > 5) {
+      console.log("[FUTURA CLIENT] Trying direct browser DeepInfra FLUX call (Secondary Backup)...");
+      try {
+        const response = await fetch("https://api.deepinfra.com/v1/openai/images/generations", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${deepinfraKey.trim()}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "black-forest-labs/FLUX-1-schnell",
+            prompt: enhancedClientPrompt,
+            size: "1024x1024",
+            n: 1,
+            response_format: "b64_json"
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const b64 = data?.data?.[0]?.b64_json;
+          if (b64 && typeof b64 === 'string') {
+            console.log("[FUTURA CLIENT] ✅ Direct browser DeepInfra FLUX returned image successfully");
+            return `data:image/jpeg;base64,${b64.replace(/\s/g, '')}`;
+          }
+        }
+      } catch (err) {
+        console.warn("Direct browser DeepInfra FLUX call failed:", err);
+      }
+    }
+
+    // 4. Direct Together AI FLUX call from browser if key is available (Tertiary Backup)
+    const togetherKey = localStorage.getItem("user_together_api_key") || ((import.meta as any).env?.VITE_TOGETHER_API_KEY) || "";
+    if (togetherKey && togetherKey.trim().length > 5) {
+      console.log("[FUTURA CLIENT] Trying direct browser Together AI FLUX call (Tertiary Backup)...");
+      try {
+        const response = await fetch("https://api.together.ai/v1/images/generations", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${togetherKey.trim()}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "black-forest-labs/FLUX.1-schnell",
+            prompt: enhancedClientPrompt,
+            width: 1024,
+            height: 1024,
+            steps: 4,
+            n: 1,
+            response_format: "b64_json"
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const b64 = data?.data?.[0]?.b64_json;
+          if (b64 && typeof b64 === 'string') {
+            console.log("[FUTURA CLIENT] ✅ Direct browser Together AI FLUX returned image successfully");
+            return `data:image/jpeg;base64,${b64.replace(/\s/g, '')}`;
+          }
+        }
+      } catch (err) {
+        console.warn("Direct browser Together AI FLUX call failed:", err);
       }
     }
 
