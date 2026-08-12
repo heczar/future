@@ -24,13 +24,14 @@ import {
   ChevronRight,
   Maximize2,
   Info,
-  Download
+  Download,
+  Palette
 } from 'lucide-react';
 import { db, auth } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { fabric } from 'fabric';
 import { cn } from '../lib/utils';
-import { generateCreativeImage } from '../services/geminiService';
+import { generateCreativeImage, generateAdvancedDynamicSVG } from '../services/geminiService';
 import { assertHasQuota, trackActionConsumption, getUserConsumption } from '../services/consumptionTracker';
 import { ProjectContext, UserProfile } from '../types';
 
@@ -81,6 +82,11 @@ export default function CreativeStudio({
   const [logoDescription, setLogoDescription] = useState('');
   const [logoBrandName, setLogoBrandName] = useState('');
   const [selectedLogoStyle, setSelectedLogoStyle] = useState('Simétrico y Geométrico de Lujo');
+  const [selectedLogoColorPalette, setSelectedLogoColorPalette] = useState<string | null>(null);
+  const [customColor1, setCustomColor1] = useState('#F43F5E');
+  const [customColor2, setCustomColor2] = useState('#FBBF24');
+  const [customColor3, setCustomColor3] = useState('#FFFFFF');
+  const [selectedCustomColors, setSelectedCustomColors] = useState<{ hex: string; name: string }[]>([]);
 
   // Form State - Flyers
   const [flyerPrompt, setFlyerPrompt] = useState('');
@@ -313,12 +319,14 @@ export default function CreativeStudio({
       setIsGenerating(true);
 
       const brandName = logoBrandName.trim() || (activeBrand ? activeBrand.name : 'Mi Negocio');
-      const colors = activeBrand?.brandGuidelines 
-        ? [
-            { hex: activeBrand.brandGuidelines.primaryColor, name: 'Primario' },
-            { hex: activeBrand.brandGuidelines.secondaryColor, name: 'Secundario' }
-          ]
-        : undefined;
+      const colors = selectedCustomColors.length > 0
+        ? selectedCustomColors
+        : (activeBrand?.brandGuidelines 
+            ? [
+                { hex: activeBrand.brandGuidelines.primaryColor, name: 'Primario' },
+                { hex: activeBrand.brandGuidelines.secondaryColor, name: 'Secundario' }
+              ]
+            : undefined);
 
       const fullPrompt = `Crea un diseño de logotipo profesional para la marca llamada "${brandName}". Concepto y nicho: ${logoDescription}. Estilo: ${selectedLogoStyle}. Simple, limpio, fondo oscuro.`;
 
@@ -1181,6 +1189,122 @@ export default function CreativeStudio({
                   </div>
                 </div>
 
+                {/* PREFERRED BRAND COLORS PANEL */}
+                <div className="space-y-2.5 pt-3 border-t border-white/10">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs md:text-sm font-mono font-semibold text-slate-300 flex items-center gap-2">
+                      <Palette className="w-4 h-4 text-brand-primary" />
+                      <span>Paleta de Colores Preferidos (Opcional)</span>
+                    </label>
+                  </div>
+                  <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
+                    Elige 2 o 3 colores para que la IA aplique esa armonía cromática exacta a tu logotipo.
+                  </p>
+
+                  {/* Color Preset Combinations */}
+                  <div className="grid grid-cols-2 gap-2 pt-1 select-none">
+                    {[
+                      { id: 'rose-gold', name: 'Rosa & Oro', colors: [{ hex: '#F43F5E', name: 'Rosa' }, { hex: '#FBBF24', name: 'Oro' }, { hex: '#FFFFFF', name: 'Blanco' }] },
+                      { id: 'cyber-neon', name: 'Neón Cyber', colors: [{ hex: '#00F2FE', name: 'Cian' }, { hex: '#A855F7', name: 'Púrpura' }, { hex: '#0F172A', name: 'Oscuro' }] },
+                      { id: 'luxury-gold', name: 'Oro & Negro Lujo', colors: [{ hex: '#D4AF37', name: 'Dorado' }, { hex: '#111111', name: 'Negro Mate' }, { hex: '#FFFFFF', name: 'Blanco' }] },
+                      { id: 'emerald-mint', name: 'Esmeralda & Menta', colors: [{ hex: '#10B981', name: 'Esmeralda' }, { hex: '#064E3B', name: 'Verde' }, { hex: '#F0FDF4', name: 'Menta' }] },
+                      { id: 'purple-magenta', name: 'Púrpura & Magenta', colors: [{ hex: '#8B5CF6', name: 'Violeta' }, { hex: '#EC4899', name: 'Magenta' }, { hex: '#FFFFFF', name: 'Blanco' }] },
+                      { id: 'mono-minimal', name: 'Blanco & Negro', colors: [{ hex: '#FFFFFF', name: 'Blanco' }, { hex: '#000000', name: 'Negro' }, { hex: '#94A3B8', name: 'Gris' }] }
+                    ].map(palette => {
+                      const isSelected = selectedLogoColorPalette === palette.id;
+                      return (
+                        <button
+                          key={palette.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedLogoColorPalette(null);
+                              setSelectedCustomColors([]);
+                            } else {
+                              setSelectedLogoColorPalette(palette.id);
+                              setSelectedCustomColors(palette.colors);
+                            }
+                          }}
+                          className={cn(
+                            "p-2 rounded-xl border flex items-center justify-between transition-all cursor-pointer",
+                            isSelected
+                              ? "bg-brand-primary/10 border-brand-primary shadow-sm shadow-brand-primary/20"
+                              : "bg-[#090909] border-white/10 hover:border-white/20"
+                          )}
+                        >
+                          <span className="text-xs font-mono text-slate-200">{palette.name}</span>
+                          <div className="flex gap-1">
+                            {palette.colors.map((c, idx) => (
+                              <span key={idx} className="w-3.5 h-3.5 rounded-full border border-black/40 shadow-inner" style={{ backgroundColor: c.hex }} />
+                            ))}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Custom Color Pickers */}
+                  <div className="flex items-center justify-between pt-2 bg-[#090909] p-2.5 rounded-xl border border-white/10">
+                    <span className="text-xs font-mono text-slate-300 font-medium">Personalizados:</span>
+                    <div className="flex items-center gap-3">
+                      <div className="flex flex-col items-center gap-1">
+                        <input
+                          type="color"
+                          value={customColor1}
+                          onChange={(e) => {
+                            setCustomColor1(e.target.value);
+                            setSelectedLogoColorPalette('custom');
+                            setSelectedCustomColors([
+                              { hex: e.target.value, name: 'Color 1' },
+                              { hex: customColor2, name: 'Color 2' },
+                              { hex: customColor3, name: 'Color 3' }
+                            ]);
+                          }}
+                          className="w-7 h-7 rounded-lg bg-transparent border border-white/20 cursor-pointer p-0"
+                          title="Color 1"
+                        />
+                        <span className="text-[9px] font-mono text-slate-400">Color 1</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <input
+                          type="color"
+                          value={customColor2}
+                          onChange={(e) => {
+                            setCustomColor2(e.target.value);
+                            setSelectedLogoColorPalette('custom');
+                            setSelectedCustomColors([
+                              { hex: customColor1, name: 'Color 1' },
+                              { hex: e.target.value, name: 'Color 2' },
+                              { hex: customColor3, name: 'Color 3' }
+                            ]);
+                          }}
+                          className="w-7 h-7 rounded-lg bg-transparent border border-white/20 cursor-pointer p-0"
+                          title="Color 2"
+                        />
+                        <span className="text-[9px] font-mono text-slate-400">Color 2</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <input
+                          type="color"
+                          value={customColor3}
+                          onChange={(e) => {
+                            setCustomColor3(e.target.value);
+                            setSelectedLogoColorPalette('custom');
+                            setSelectedCustomColors([
+                              { hex: customColor1, name: 'Color 1' },
+                              { hex: customColor2, name: 'Color 2' },
+                              { hex: e.target.value, name: 'Color 3' }
+                            ]);
+                          }}
+                          className="w-7 h-7 rounded-lg bg-transparent border border-white/20 cursor-pointer p-0"
+                          title="Color 3"
+                        />
+                        <span className="text-[9px] font-mono text-slate-400">Color 3</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-xs md:text-sm font-mono font-semibold text-slate-300">Estilo del Logotipo</label>
                   <select
@@ -1693,6 +1817,23 @@ export default function CreativeStudio({
                     src={generatedResult}
                     alt="IA Output"
                     className="max-w-full max-h-full object-contain rounded-xl shadow-xl"
+                    onError={(e) => {
+                      console.warn("[FUTURA UI] Image URL failed to render in browser, activating high-fidelity fallback...");
+                      try {
+                        const svgFallback = generateAdvancedDynamicSVG(
+                          logoDescription || flyerPrompt || productPrompt,
+                          logoBrandName || activeBrand?.name || 'MI MARCA',
+                          logoDescription,
+                          selectedCustomColors.length > 0 ? selectedCustomColors : undefined,
+                          selectedLogoStyle
+                        );
+                        const b64Svg = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgFallback)))}`;
+                        e.currentTarget.src = b64Svg;
+                        setGeneratedResult(b64Svg);
+                      } catch (err) {
+                        console.error("[FUTURA UI] Fallback generation failed:", err);
+                      }
+                    }}
                   />
                 </div>
 
