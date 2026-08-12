@@ -328,7 +328,7 @@ export default function CreativeStudio({
               ]
             : undefined);
 
-      const fullPrompt = `Crea un diseño de logotipo profesional para la marca llamada "${brandName}". Concepto y nicho: ${logoDescription}. Estilo: ${selectedLogoStyle}. Simple, limpio, fondo oscuro.`;
+      const fullPrompt = `Crea un diseño de logotipo profesional de alta gama para la marca llamada "${brandName}". Concepto y nicho: ${logoDescription}. Estilo visual: ${selectedLogoStyle}. Diseño limpio, simétrico, alta resolución y máximo contraste visual.`;
 
       const advisoryContext = localStorage.getItem('futura_active_advisory_context') || undefined;
 
@@ -1803,7 +1803,7 @@ export default function CreativeStudio({
                   </div>
                 )}
                 {/* Image Display */}
-                <div className="w-full aspect-square max-h-[420px] bg-[#070707] border border-white/10 rounded-2xl overflow-hidden flex items-center justify-center p-3 relative group shrink-0 shadow-2xl">
+                <div className="w-full aspect-square max-h-[420px] bg-[#121318] bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:16px_16px] border border-white/10 rounded-2xl overflow-hidden flex items-center justify-center p-4 relative group shrink-0 shadow-2xl">
                   <img
                     src={generatedResult}
                     alt="IA Output"
