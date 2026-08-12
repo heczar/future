@@ -204,11 +204,12 @@ export default function CreativeStudio({
   ];
 
   const quickSuggestionsLogos = [
-    { text: '☕ Café Especial', prompt: 'Cafetería gourmet y ritual de café artesanal oscuro y premium', brand: 'Café Místico' },
-    { text: '🍔 Burger Grill', prompt: 'Hamburguesería artesanal de carne asada al carbón, estilo rústico', brand: 'Hangar Grill' },
-    { text: '🦷 Dental Art', prompt: 'Clínica odontológica moderna, estética dental y sonrisa saludable', brand: 'Dental Art' },
-    { text: '⚡ Streetwear', prompt: 'Marca de ropa urbana, skate y cultura juvenil callejera', brand: 'KRONOS' },
-    { text: '💻 Tech / SaaS', prompt: 'Plataforma de software inteligente y computación en la nube', brand: 'Nebula Cloud' }
+    { text: '⚡ Rayo / Velocidad', prompt: 'Un isotipo de rayo dinámico minimalista con geometría estilizada y trazos limpios', brand: 'ELSA STREETWEAR' },
+    { text: '👑 Corona Elegante', prompt: 'Una corona estilizada de líneas finas doradas y geometría de lujo', brand: 'LUXE' },
+    { text: '🌿 Hoja Orgánica', prompt: 'Una hoja botánica orgánica en trazos vectoriales curvos de máxima elegancia', brand: 'VERDE' },
+    { text: '🦁 Felino / Fuerza', prompt: 'Una silueta estilizada de felino en trazos rectos y corte geométrico', brand: 'APEX' },
+    { text: '💎 Diamante Lujo', prompt: 'Un cristal de diamante geométrico de relieve metálico brillante', brand: 'AURA' },
+    { text: '📐 Monograma', prompt: 'Un monograma geométrico de iniciales entrelazadas con estética urbana', brand: 'NEXO' }
   ];
 
   const quickSuggestionsFlyers = [
@@ -1220,13 +1221,20 @@ export default function CreativeStudio({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs md:text-sm font-mono font-semibold text-slate-300">¿De qué es tu marca o negocio?</label>
+                  <div className="flex flex-col gap-0.5">
+                    <label className="text-xs md:text-sm font-mono font-semibold text-slate-300">
+                      Idea, Símbolo o Inspiración para tu Logo
+                    </label>
+                    <span className="text-[11px] font-sans text-slate-400">
+                      Describe la figura o concepto para el isotipo (ej: un rayo, monograma, corona, geometría estilizada)...
+                    </span>
+                  </div>
                   <textarea
-                    rows={4}
-                    placeholder="Ejemplo: Una cafetería gourmet de especialidad enfocada en personas que buscan un ritual de café artesanal oscuro y premium..."
+                    rows={3}
+                    placeholder="Ejemplo: Un isotipo de rayo estilizado o monograma elegante con geometría nítida de líneas limpias..."
                     value={logoDescription}
                     onChange={(e) => setLogoDescription(e.target.value)}
-                    className="w-full bg-[#090909] border border-white/10 rounded-xl p-3.5 text-sm text-white outline-none focus:border-brand-primary/50 transition-colors resize-none font-sans placeholder:text-slate-600"
+                    className="w-full bg-[#090909] border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-brand-primary/50 transition-colors resize-none font-sans placeholder:text-slate-600"
                   />
                   <div className="flex flex-wrap gap-1.5 mt-2 select-none">
                     {quickSuggestionsLogos.map((s) => (
@@ -1235,9 +1243,9 @@ export default function CreativeStudio({
                         type="button"
                         onClick={() => {
                           setLogoDescription(s.prompt);
-                          setLogoBrandName(s.brand);
+                          if (!logoBrandName.trim()) setLogoBrandName(s.brand);
                         }}
-                        className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-sans transition-all cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-sans transition-all cursor-pointer"
                       >
                         {s.text}
                       </button>
