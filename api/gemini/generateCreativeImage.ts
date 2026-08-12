@@ -233,41 +233,35 @@ export default async function handler(req: any, res: any) {
     if (isLogo) {
       const is3D = logoStyle && (logoStyle.includes("3D") || logoStyle.includes("Relieve") || logoStyle.includes("Letrero"));
       const brandContext = brandName?.trim() ? `The brand name is "${brandName.trim()}".` : "";
-      optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
-         Your job is to translate the user's logo request into a highly optimized English prompt for generating a graphic logo.
+      optimizerInstruction = `You are an expert design director and prompt engineer for FLUX image generator.
+         Your job is to translate the user's business description/niche into an industry-specific aesthetic reference for generating a GRAPHIC LOGO ISOTYPE.
          ${brandContext}
-         - ABSOLUTE MANDATORY NO-PEOPLE RULE: The image MUST be a standalone graphic logo icon, vector emblem, or brand wordmark on a clean solid background. NEVER describe human beings, women, men, models, faces, people wearing clothes, mannequins, or full body portraits. Even if the user's business is about clothing, fashion, apparel, sports, or beauty, describe ONLY the graphic logo symbol, emblem, and typography itself, NOT a person.
-         - The output MUST describe a graphic icon, badge, monogram, emblem, or mark.
-         - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent. NEVER reference, imitate, or draw inspiration from copyrighted characters (e.g. Disney, Marvel, Anime), pre-existing famous logos (e.g. Nike, Adidas, Apple), or third-party corporate trademarks. Focus exclusively on original, bespoke geometric shapes, custom lettering, and unique artistic motifs.
-         - CRITICAL: When the brand name ${brandName ? `"${brandName}"` : ""} or business name is provided, the logo MUST explicitly integrate the brand name typography "${brandName || ''}" and/or its monogram initials as part of the visual layout (e.g. monogram letters, bold wordmark underneath the icon, curved circular text on a badge, or 3D metallic typography).
-         ${is3D 
-           ? `- The logo should be described as a 3D physical object with depth, metallic shine (chrome, gold, or silver), and realistic bevels spelling '${brandName || ''}', mounted on a modern dark wall texture (marble, slate, concrete).`
-           : `- The output MUST describe a flat vector-style design on a clean solid background with clear typography.
-              - NEVER describe realistic rooms, interior spaces, offices, buildings, or realistic scenes, even if the user's business is about interior design, decoration, architecture, or real estate.`}
-         - Translate business concepts into clean geometric symbols, mascots, monograms, or elegant outlines with crisp typography.
-         - Return ONLY the optimized English visual description. No quotes, no explanations.`;
+         MANDATORY LOGO RULES:
+         1. The user's input (e.g. "Ropa deportiva y casual para damas") represents the INDUSTRY & BUSINESS CONCEPT to draw visual logo inspiration from.
+         2. Translate the industry into graphic logo concepts (e.g. for sports apparel: dynamic high-performance geometric curves, athletic speed emblem, sleek fashion brand mark).
+         3. STRICT LOGO STYLE ENFORCEMENT: You MUST apply the user's chosen logo style: "${logoStyle || 'Vector minimal'}".
+         4. ABSOLUTE NO-HUMAN RULE: NEVER describe a human model, person, woman, man, face, body, or clothing item worn by a model. Describe ONLY the GRAPHIC LOGO ISOTYPE & BRAND TYPOGRAPHY on a clean background.
+         5. 100% ORIGINAL: Custom artwork, no third-party corporate logos or copyrighted characters.
+         6. Return ONLY the English visual graphic description of the logo mark. No quotes, no explanations.`;
     } else if (isFlyer) {
       const isMockupStyle = mockupType && (mockupType.includes("Mockup") || mockupType.includes("Maqueta") || mockupType.includes("Poster") || mockupType.includes("Póster"));
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
-         Your job is to translate the user's flyer or ad request into a highly optimized English prompt.
-         MANDATORY RULES:
-         - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent. NEVER reference, imitate, or draw inspiration from copyrighted characters (e.g. Disney, Marvel, Anime), pre-existing famous logos, or third-party corporate trademarks.
+         Your job is to translate the user's flyer or ad request into a highly optimized English prompt for a MARKETING FLYER / ADVERTISEMENT.
+         MANDATORY FLYER RULES:
+         - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent. NEVER reference, imitate, or draw inspiration from copyrighted characters or third-party trademarks.
          ${isMockupStyle
-           ? `- The output MUST describe a mockup of a flyer or poster page sheet.
-              - Describe the physical sheet (e.g. A4 paper lying flat on a surface with shadows, or hanging on a concrete wall with metal clips).`
-           : `- The output MUST describe a clean graphic design layout, flyer page, poster layout, or marketing banner.
-              - Describe the placement of headlines, call-to-actions, grids, graphic decorations, and color schemes.`}
-         - NEVER generate just a plain photo of a person or a simple product image without the graphic design context.
+           ? `- The output MUST describe a mockup of a flyer or poster page sheet (A4 paper lying flat or hanging on a concrete wall with clips).`
+           : `- The output MUST describe a clean graphic design layout, promotional poster, banner, or marketing flyer page with headline text placement, grids, and promotional graphics.`}
+         - NEVER generate just a plain photo of a person or a simple product image without the graphic design flyer context.
          - Return ONLY the optimized English visual description. No quotes, no explanations.`;
     } else {
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
-         Your job is to translate the user's request into a premium English prompt for a commercial product photograph or merchandise mockup.
-         MANDATORY RULES:
-         - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent. NEVER reference, imitate, or draw inspiration from copyrighted characters, pre-existing famous logos, or third-party corporate trademarks.
-         - The output MUST describe the commercial product itself (e.g., bottle, coffee cup, packaging box, t-shirt, hoodie) in a studio setting or worn by a model.
-         - For mockups (e.g., t-shirt, mug, bag, packaging), describe a clean, realistic blank mockup template with soft shadows on a minimalist background, suitable for overlaying logos.
-         - Focus on the texture of the material, realistic fabric wrinkles, soft shadows, studio lighting, and sharp focus.
-         - NEVER generate unrelated graphic logos or full text-based flyer pages here; focus strictly on the physical product or packaging template.
+         Your job is to translate the user's request into a premium English prompt for a COMMERCIAL PRODUCT PHOTOGRAPH / MERCHANDISE MOCKUP.
+         MANDATORY PRODUCT RULES:
+         - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent.
+         - The output MUST describe the commercial physical product itself (e.g., coffee cup, packaging box, t-shirt, hoodie, bottle) in a professional studio photography setting.
+         - Focus on the material texture, fabric folds, soft studio shadows, and product staging.
+         - NEVER generate standalone graphic logos or full text flyer pages here; focus strictly on the physical product or packaging template.
          - Return ONLY the optimized English visual description. No quotes, no explanations.`;
     }
 
@@ -285,12 +279,14 @@ export default async function handler(req: any, res: any) {
       if (isLogo) {
         // 🚨 HARD OVERRIDE FOR LOGOS: Purge any human/model/clothing references that Gemini might generate for fashion/apparel niches.
         let cleanConcept = englishPrompt
-          .replace(/\b(woman|women|female|lady|girl|asian|man|men|male|guy|person|human|model|models|mannequin|wearing|portrait|face|body|clothes|clothing|apparel|t-shirt|shirt|hoodie|jacket|dress|skirt|pants|hat|cap|outfit|garment)\b/gi, 'graphic vector symbol')
+          .replace(/\b(woman|women|female|lady|girl|asian|man|men|male|guy|person|human|model|models|mannequin|wearing|portrait|face|body|clothes|clothing|apparel|t-shirt|shirt|hoodie|jacket|dress|skirt|pants|hat|cap|outfit|garment)\b/gi, 'industry aesthetic concept')
           .replace(/\s+/g, ' ');
         
         const cleanName = brandName?.trim() || "ELSA";
-        englishPrompt = `A 2D flat vector graphic logo isotype icon and bold brand wordmark typography spelling '${cleanName}'. Concept: ${cleanConcept}. Isolated on a pure solid white background, high contrast, crisp vector artwork, 8k resolution.`;
-        console.log(`[FUTURA SERVER] Strict Isolated Logo Prompt: "${englishPrompt}"`);
+        const selectedStyleText = logoStyle?.trim() ? `Style: ${logoStyle.trim()}.` : "Style: Symmetrical vector logo mark.";
+        
+        englishPrompt = `A high quality graphic logo isotype icon and bold brand wordmark typography spelling '${cleanName}'. Industry visual reference & aesthetic concept: ${cleanConcept}. ${selectedStyleText} Isolated on a pure solid white studio background, 100% vector graphic artwork, no humans, no models, no clothing items, no background scenes.`;
+        console.log(`[FUTURA SERVER] Industry Reference Logo Prompt: "${englishPrompt}"`);
       } else {
         console.log(`[FUTURA SERVER] Optimized Open Design prompt: "${englishPrompt}"`);
       }
