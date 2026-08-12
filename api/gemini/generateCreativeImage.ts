@@ -128,8 +128,8 @@ export default async function handler(req: any, res: any) {
         prefix = `A classic heraldic shield badge, corporate coat of arms with the brand name '${cleanBrandName}'.`;
         suffix = `Symmetrical luxury shield badge with ribbon or text banner displaying '${cleanBrandName}', bold lines, professional authority, solid clean background, vector style, elite branding. ${colorInstruction} Clear legible lettering.`;
       } else if (style.includes("Streetwear") || style.includes("Urbano")) {
-        prefix = `A bold streetwear fashion brand emblem, urban culture apparel design with heavy stylized typography spelling '${cleanBrandName}'.`;
-        suffix = `Edgy modern typography displaying '${cleanBrandName}', bold graphic icon, high-contrast, modern streetwear clothing label aesthetic, clean vector style, solid studio background. ${colorInstruction} Bold legible text '${cleanBrandName}'.`;
+        prefix = `A bold urban streetwear graphic brand emblem and logo mark with heavy stylized typography spelling '${cleanBrandName}'.`;
+        suffix = `Edgy modern typography displaying '${cleanBrandName}', bold graphic icon, high-contrast, urban culture brand isotype aesthetic, clean vector style, solid studio background. ${colorInstruction} Bold legible text '${cleanBrandName}'.`;
       } else if (style.includes("Vintage") || style.includes("Industrial")) {
         prefix = `A vintage industrial badge design, retro heritage stamp emblem with typography '${cleanBrandName}'.`;
         suffix = `Distressed texture, classic typography displaying '${cleanBrandName}', rustic design elements, vector badge illustration, solid background, authentic craft brand. ${colorInstruction} Clear vintage lettering.`;
@@ -290,16 +290,18 @@ export default async function handler(req: any, res: any) {
 
   if (isLogo) {
     const cleanName = brandName?.trim() || "ELSA";
-    const cleanNiche = (prompt || "").replace(/\b(ropa|vestimenta|damas|mujeres|hombres|chica|chico|modelo|persona|damas)\b/gi, 'estilo').trim();
+    const cleanNiche = (prompt || "").replace(/\b(ropa|vestimenta|damas|mujeres|hombres|chica|chico|modelo|persona)\b/gi, 'estilo').trim();
     
+    const { prefix, suffix } = getStyledPromptWrappers('logos', logoStyle, colors, brandName);
+
     let colorString = "";
     if (colors && colors.length > 0) {
       const colorDesc = colors.map(c => `${c.name} (${c.hex})`).join(" and ");
       colorString = `VIBRANT BRAND COLOR PALETTE REQUIREMENT: The logo artwork MUST prominently use the bright vibrant colors ${colorDesc} as its primary brand color scheme. `;
     }
 
-    enhancedPrompt = `${colorString}A 2D flat vector graphic logo isotype icon and bold brand wordmark typography spelling '${cleanName}'. Industry concept: ${cleanNiche}. Logo Visual Style: ${logoStyle || 'Minimalist vector'}. Isolated on a pure solid white studio background, 100% vector graphic artwork, clean sharp lines, crisp typography spelling '${cleanName}', no humans, no models, no people, no clothing items, no portraits.`;
-    console.log(`[FUTURA SERVER] DIRECT ISOLATED LOGO PROMPT: "${enhancedPrompt}"`);
+    enhancedPrompt = `${colorString}${prefix} Industry aesthetic reference: ${cleanNiche}. ${suffix} Isolated on a pure solid white studio background, 100% vector graphic isotype and logo mark, clean sharp lines, crisp typography spelling '${cleanName}', no humans, no models, no people, no clothing items, no portraits.`;
+    console.log(`[FUTURA SERVER] DIRECT ISOLATED LOGO PROMPT WITH STYLE (${logoStyle || 'Default'}): "${enhancedPrompt}"`);
   } else {
     const { prefix, suffix } = getStyledPromptWrappers(generationType as any, activeStyleName, colors, brandName);
     enhancedPrompt = `${prefix} ${englishPrompt}. ${suffix}`;
