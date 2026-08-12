@@ -234,8 +234,9 @@ export default async function handler(req: any, res: any) {
       const is3D = logoStyle && (logoStyle.includes("3D") || logoStyle.includes("Relieve") || logoStyle.includes("Letrero"));
       const brandContext = brandName?.trim() ? `The brand name is "${brandName.trim()}".` : "";
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
-         Your job is to translate the user's logo request into a highly optimized English prompt for generating a logo.
+         Your job is to translate the user's logo request into a highly optimized English prompt for generating a graphic logo.
          ${brandContext}
+         - ABSOLUTE MANDATORY NO-PEOPLE RULE: The image MUST be a standalone graphic logo icon, vector emblem, or brand wordmark on a clean solid background. NEVER describe human beings, women, men, models, faces, people wearing clothes, mannequins, or full body portraits. Even if the user's business is about clothing, fashion, apparel, sports, or beauty, describe ONLY the graphic logo symbol, emblem, and typography itself, NOT a person.
          - The output MUST describe a graphic icon, badge, monogram, emblem, or mark.
          - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent. NEVER reference, imitate, or draw inspiration from copyrighted characters (e.g. Disney, Marvel, Anime), pre-existing famous logos (e.g. Nike, Adidas, Apple), or third-party corporate trademarks. Focus exclusively on original, bespoke geometric shapes, custom lettering, and unique artistic motifs.
          - CRITICAL: When the brand name ${brandName ? `"${brandName}"` : ""} or business name is provided, the logo MUST explicitly integrate the brand name typography "${brandName || ''}" and/or its monogram initials as part of the visual layout (e.g. monogram letters, bold wordmark underneath the icon, curved circular text on a badge, or 3D metallic typography).
@@ -310,9 +311,10 @@ export default async function handler(req: any, res: any) {
         }
       }
     }
+    const logoExtra = isLogo ? ", standalone graphic logo icon, vector brand isotype, no human beings, no models, no people, no portraits, no clothing photos" : "";
     return (sanitized
       .replace(/\blogo\b/gi, 'brand emblem')
-      .replace(/\blogotype\b/gi, 'visual brand mark')) + " 100% original custom independent brand identity mark, completely unique, non-infringing, no third-party copyrighted characters, no corporate trademarks.";
+      .replace(/\blogotype\b/gi, 'visual brand mark')) + logoExtra + " 100% original custom independent brand identity mark, completely unique, non-infringing, no third-party copyrighted characters, no corporate trademarks.";
   };
 
   let enhancedPrompt = `${prefix} ${englishPrompt}. ${suffix}`;
