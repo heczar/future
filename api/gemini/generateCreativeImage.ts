@@ -19,7 +19,7 @@ export default async function handler(req: any, res: any) {
   const customKey = req.headers['x-gemini-api-key'] || "";
   let nvidiaKey = req.headers['x-nvidia-api-key'] || process.env.NVIDIA_API_KEY || "";
   if (!nvidiaKey || nvidiaKey.trim().length < 5) {
-    nvidiaKey = "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,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";
+    nvidiaKey = "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";
   }
   const { 
     prompt, 

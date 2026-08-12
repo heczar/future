@@ -847,7 +847,7 @@ export async function generateCreativeImage(
     // 1. Direct NVIDIA NIM (Primary — user has 7 active keys, highest quality FLUX.1-dev)
     let nvidiaKey = localStorage.getItem("user_nvidia_api_key") || "";
     if (!nvidiaKey || nvidiaKey.trim().length < 5) {
-      nvidiaKey = "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,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";
+      nvidiaKey = "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";
     }
     const nvidiaKeys = (nvidiaKey || "").split(',').map(k => k.trim()).filter(Boolean);
     if (nvidiaKeys.length > 0) {
