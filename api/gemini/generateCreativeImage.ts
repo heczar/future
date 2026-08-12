@@ -270,38 +270,43 @@ export default async function handler(req: any, res: any) {
       ? `\nSTRATEGIC ADVISORY CONTEXT & POSITIONING FROM ADVISOR CHAT:\n"${advisoryContext.trim()}"\nEnsure the visual choices, mood, and brand expression align with these strategic advisor recommendations.\n` 
       : "";
 
-    const transResponse = await getAiClient(customKey).models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `${optimizerInstruction}\n${advisoryInjection}\n${openDesignInjection}\nSpanish Request: "${prompt}"`
-    });
-    if (transResponse.text) {
-      englishPrompt = transResponse.text.trim();
-      if (isLogo) {
-        // 🚨 HARD OVERRIDE FOR LOGOS: Purge any human/model/clothing references that Gemini might generate for fashion/apparel niches.
-        let cleanConcept = englishPrompt
-          .replace(/\b(woman|women|female|lady|girl|asian|man|men|male|guy|person|human|model|models|mannequin|wearing|portrait|face|body|clothes|clothing|apparel|t-shirt|shirt|hoodie|jacket|dress|skirt|pants|hat|cap|outfit|garment)\b/gi, 'industry aesthetic concept')
-          .replace(/\s+/g, ' ');
-        
-        const cleanName = brandName?.trim() || "ELSA";
-        const selectedStyleText = logoStyle?.trim() ? `Style: ${logoStyle.trim()}.` : "Style: Symmetrical vector logo mark.";
-        
-        englishPrompt = `A high quality graphic logo isotype icon and bold brand wordmark typography spelling '${cleanName}'. Industry visual reference & aesthetic concept: ${cleanConcept}. ${selectedStyleText} Isolated on a pure solid white studio background, 100% vector graphic artwork, no humans, no models, no clothing items, no background scenes.`;
-        console.log(`[FUTURA SERVER] Industry Reference Logo Prompt: "${englishPrompt}"`);
-      } else {
+    if (!isLogo) {
+      const transResponse = await getAiClient(customKey).models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `${optimizerInstruction}\n${advisoryInjection}\n${openDesignInjection}\nSpanish Request: "${prompt}"`
+      });
+      if (transResponse.text) {
+        englishPrompt = transResponse.text.trim();
         console.log(`[FUTURA SERVER] Optimized Open Design prompt: "${englishPrompt}"`);
       }
     }
   } catch (transErr) {
     console.warn("[FUTURA SERVER] Prompt optimization failed, using original:", transErr);
-    if (isLogo) {
-      const cleanName = brandName?.trim() || "ELSA";
-      englishPrompt = `A 2D flat vector graphic logo isotype icon and bold brand wordmark typography spelling '${cleanName}', minimal geometry, isolated on a pure solid white background.`;
-    }
   }
 
   // Build enhanced prompt using curated Open Design contracts and style templates
   const activeStyleName = isLogo ? logoStyle : mockupType;
-  const { prefix, suffix } = getStyledPromptWrappers(generationType as any, activeStyleName, colors, brandName);
+  let enhancedPrompt = "";
+
+  if (isLogo) {
+    const cleanName = brandName?.trim() || "ELSA";
+    const cleanNiche = (prompt || "").replace(/\b(ropa|vestimenta|damas|mujeres|hombres|chica|chico|modelo|persona|damas)\b/gi, 'estilo').trim();
+    
+    let colorString = "";
+    if (colors && colors.length > 0) {
+      const colorDesc = colors.map(c => `${c.name} (${c.hex})`).join(" and ");
+      colorString = `VIBRANT BRAND COLOR PALETTE REQUIREMENT: The logo artwork MUST prominently use the bright vibrant colors ${colorDesc} as its primary brand color scheme. `;
+    }
+
+    enhancedPrompt = `${colorString}A 2D flat vector graphic logo isotype icon and bold brand wordmark typography spelling '${cleanName}'. Industry concept: ${cleanNiche}. Logo Visual Style: ${logoStyle || 'Minimalist vector'}. Isolated on a pure solid white studio background, 100% vector graphic artwork, clean sharp lines, crisp typography spelling '${cleanName}', no humans, no models, no people, no clothing items, no portraits.`;
+    console.log(`[FUTURA SERVER] DIRECT ISOLATED LOGO PROMPT: "${enhancedPrompt}"`);
+  } else {
+    const { prefix, suffix } = getStyledPromptWrappers(generationType as any, activeStyleName, colors, brandName);
+    enhancedPrompt = `${prefix} ${englishPrompt}. ${suffix}`;
+    if (styleGuidance) {
+      enhancedPrompt += ` The image style and aesthetics should be closely inspired by the following: ${styleGuidance}.`;
+    }
+  }
   
   // Sanitize prompt for NVIDIA NIM: replace trademark/safety trigger words like "ELSA" with "E.L.S.A." or "E-L-S-A"
   // and replace "logo" with "brand emblem visual symbol" to prevent NVIDIA NIM safety filter from returning 6.3KB black placeholder.
@@ -328,11 +333,7 @@ export default async function handler(req: any, res: any) {
       .replace(/\blogotype\b/gi, 'visual brand mark')) + logoExtra + " 100% original custom independent brand identity mark, completely unique, non-infringing, no third-party copyrighted characters, no corporate trademarks.";
   };
 
-  let enhancedPrompt = `${prefix} ${englishPrompt}. ${suffix}`;
 
-  if (styleGuidance) {
-    enhancedPrompt += ` The image style and aesthetics should be closely inspired by the following: ${styleGuidance}.`;
-  }
 
   // ═══════════════════════════════════════════
   // PRIORITY 1: NVIDIA NIM (Primary — user has active key, highest quality FLUX.1-dev)
