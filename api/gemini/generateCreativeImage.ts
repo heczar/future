@@ -282,7 +282,15 @@ export default async function handler(req: any, res: any) {
     });
     if (transResponse.text) {
       englishPrompt = transResponse.text.trim();
-      console.log(`[FUTURA SERVER] Optimized Open Design prompt: "${englishPrompt}"`);
+      if (isLogo) {
+        // 🚨 HARD OVERRIDE FOR LOGOS: Purge any human/model/clothing references that Gemini might mistakenly generate for fashion/apparel niches.
+        englishPrompt = englishPrompt
+          .replace(/\b(woman|women|girl|female|man|men|person|human|model|models|mannequin|wearing|portrait|body|face|clothing|clothes|apparel|t-shirt|shirt|hoodie|jacket|dress|pants|hat|cap)\b/gi, 'graphic emblem')
+          .replace(/\s+/g, ' ');
+        console.log(`[FUTURA SERVER] Purged Logo Prompt: "${englishPrompt}"`);
+      } else {
+        console.log(`[FUTURA SERVER] Optimized Open Design prompt: "${englishPrompt}"`);
+      }
     }
   } catch (transErr) {
     console.warn("[FUTURA SERVER] Prompt optimization failed, using original:", transErr);
