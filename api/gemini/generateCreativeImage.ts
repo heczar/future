@@ -398,29 +398,14 @@ STRICT RULES:
     }
   }
   
-  // Sanitize prompt for NVIDIA NIM: replace trademark/safety trigger words like "ELSA" with "E.L.S.A." or "E-L-S-A"
-  // and replace "logo" with "brand emblem visual symbol" to prevent NVIDIA NIM safety filter from returning 6.3KB black placeholder.
-  const sanitizeForNvidia = (p: string, name?: string) => {
-    let sanitized = p;
-    sanitized = sanitized.replace(/\bELSA\b/gi, 'E.L.S.A.');
-    if (name && name.trim()) {
-      const words = name.trim().split(/\s+/);
-      for (const w of words) {
-        if (w.length >= 2) {
-          const spaced = w.split('').join('.').toUpperCase();
-          try {
-            const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            sanitized = sanitized.replace(new RegExp(`\\b${escaped}\\b`, 'gi'), spaced);
-          } catch (e) {
-            // ignore regex error
-          }
-        }
-      }
-    }
-    const logoExtra = isLogo ? ", isolated vector graphic logo icon on a pure solid white background for 100% clean PNG transparent background extraction, ONLY the logo symbol and typography, no background graphics, no containers, no frames, no surrounding boxes, no human beings, no models, no people, no portraits, no clothing photos" : "";
-    return (sanitized
+  // Sanitize prompt for NVIDIA NIM: replace "logo" with "brand emblem" to prevent safety filter false positives
+  const sanitizeForNvidia = (p: string) => {
+    let sanitized = p
       .replace(/\blogo\b/gi, 'brand emblem')
-      .replace(/\blogotype\b/gi, 'visual brand mark')) + logoExtra + " 100% original custom independent brand identity mark, completely unique, non-infringing, no third-party copyrighted characters, no corporate trademarks.";
+      .replace(/\blogotype\b/gi, 'visual brand mark');
+      
+    const logoExtra = isLogo ? ", isolated vector graphic logo icon on a pure solid white background for 100% clean PNG transparent background extraction, ONLY the logo symbol and typography, no background graphics, no containers, no frames, no surrounding boxes, no human beings, no models, no people, no portraits, no clothing photos" : "";
+    return sanitized + logoExtra + " 100% original custom independent brand identity mark, completely unique, non-infringing, no third-party copyrighted characters, no corporate trademarks.";
   };
 
 
@@ -437,7 +422,7 @@ STRICT RULES:
       console.log(`[FUTURA SERVER] Trying NVIDIA NIM key [${i + 1}/${nvidiaKeys.length}] FIRST (${activeKey.substring(0, 15)}...)...`);
       try {
         // Try sanitized prompt first to bypass NVIDIA NIM trademark/safety filter
-        const promptToUse = sanitizeForNvidia(enhancedPrompt, brandName);
+        const promptToUse = sanitizeForNvidia(enhancedPrompt);
         console.log(`[FUTURA SERVER] Sanitized NVIDIA prompt: "${promptToUse.substring(0, 120)}..."`);
 
         const nvidiaResponse = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
@@ -463,8 +448,8 @@ STRICT RULES:
             if (cleanB64.length < 15000) {
               console.warn(`[FUTURA SERVER] ⚠️ NVIDIA NIM returned 6.3 KB black placeholder (len ${cleanB64.length}). Retrying with alternate sanitized prompt...`);
               
-              // Alternate retry prompt with spaced letters (e.g. "E L S A")
-              const altSpacedName = (brandName || "BRAND").split('').join(' ').toUpperCase();
+              // Alternate retry prompt with clean name
+              const altSpacedName = (brandName || "BRAND").trim().toUpperCase();
               const altPrompt = `A high quality vibrant visual brand emblem and emblem mark for ${altSpacedName}, ${prompt || 'modern company'}, clean design, white background, ultra high resolution.`;
               
               const retryResponse = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
