@@ -65,10 +65,10 @@ export default function CreativeStudio({
   const [customUploadedLogo, setCustomUploadedLogo] = useState<string | null>(null);
 
   // Auto watermark state
-  const [applyLogo, setApplyLogo] = useState(false);
-  const [logoPosition, setLogoPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'>('bottom-right');
-  const [logoOpacity, setLogoOpacity] = useState(0.85);
-  const [logoSizePercent, setLogoSizePercent] = useState(15);
+  const [applyLogo, setApplyLogo] = useState(true);
+  const [logoPosition, setLogoPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'>('top-right');
+  const [logoOpacity, setLogoOpacity] = useState(1.0);
+  const [logoSizePercent, setLogoSizePercent] = useState(18);
 
   // Output State
   const [rawImageResult, setRawImageResult] = useState<string | null>(null);
@@ -1539,94 +1539,53 @@ export default function CreativeStudio({
                   )}
                 </div>
 
-                {/* Brand watermarking controls */}
-                <div className="space-y-2 pt-2.5 border-t border-white/5">
-                  <div className="flex items-center justify-between select-none">
-                    <label className="text-xs md:text-sm font-mono text-slate-300 cursor-pointer flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={applyLogo}
-                        onChange={(e) => setApplyLogo(e.target.checked)}
-                        className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary w-4 h-4"
-                      />
-                      <span>Aplicar Logo de Marca</span>
-                    </label>
-                  </div>
-                  {applyLogo && (
-                    <div className="bg-black/25 border border-white/10 rounded-xl p-3.5 space-y-3 mt-1.5">
+                {/* Clean automatic brand watermarking card */}
+                <div className="space-y-2 pt-2.5 border-t border-white/5 select-none">
+                  <div className="flex items-center justify-between bg-black/30 border border-white/10 rounded-xl p-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       {customUploadedLogo ? (
-                        <>
-                          <div className="flex items-center gap-3">
-                            <img src={customUploadedLogo} alt="Brand Logo" className="w-12 h-12 object-contain rounded bg-black/40 border border-white/10 p-1" />
-                            <div className="min-w-0">
-                              <p className="text-xs font-mono text-slate-300 font-bold truncate">Logotipo de Marca Activo</p>
-                              <p className="text-[11px] text-slate-400">Superposición automática activada</p>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-mono text-slate-400">Posición en la Imagen</label>
-                            <div className="grid grid-cols-2 gap-1.5">
-                              {[
-                                { id: 'top-left', label: 'Arriba Izq' },
-                                { id: 'top-right', label: 'Arriba Der' },
-                                { id: 'bottom-left', label: 'Abajo Izq' },
-                                { id: 'bottom-right', label: 'Abajo Der' }
-                              ].map(pos => (
-                                <button
-                                  key={pos.id}
-                                  type="button"
-                                  onClick={() => setLogoPosition(pos.id as any)}
-                                  className={cn(
-                                    "py-1.5 rounded-lg text-xs font-mono border text-center transition-all cursor-pointer font-medium",
-                                    logoPosition === pos.id
-                                      ? "bg-brand-primary/10 border-brand-primary text-white"
-                                      : "bg-black/10 border-white/5 text-slate-400 hover:text-white"
-                                  )}
-                                >
-                                  {pos.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between text-xs font-mono text-slate-400">
-                              <span>Opacidad del Logo</span>
-                              <span className="text-white font-bold">{Math.round(logoOpacity * 100)}%</span>
-                            </div>
-                            <input
-                              type="range"
-                              min="0.1"
-                              max="1"
-                              step="0.05"
-                              value={logoOpacity}
-                              onChange={(e) => setLogoOpacity(parseFloat(e.target.value))}
-                              className="w-full accent-brand-primary h-1.5 cursor-pointer"
-                            />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between text-xs font-mono text-slate-400">
-                              <span>Tamaño Proporcional</span>
-                              <span className="text-white font-bold">{logoSizePercent}%</span>
-                            </div>
-                            <input
-                              type="range"
-                              min="8"
-                              max="35"
-                              step="1"
-                              value={logoSizePercent}
-                              onChange={(e) => setLogoSizePercent(parseInt(e.target.value))}
-                              className="w-full accent-brand-primary h-1.5 cursor-pointer"
-                            />
-                          </div>
-                        </>
+                        <img src={customUploadedLogo} alt="Logo" className="w-8 h-8 object-contain rounded bg-black/40 border border-white/10 p-1 shrink-0" />
                       ) : (
-                        <p className="text-xs text-amber-400/90 italic font-sans leading-relaxed">
-                          ⚠️ No hay ningún logotipo activo. Genera uno en 'Logos' o súbelo en el panel de arriba.
-                        </p>
+                        <Sparkles className="w-4 h-4 text-brand-primary shrink-0" />
                       )}
+                      <div className="min-w-0">
+                        <p className="text-xs font-mono font-bold text-white truncate">Estampar Logo en el Diseño</p>
+                        <p className="text-[10px] text-slate-400 truncate">Integra automáticamente el logo al flyer o producto</p>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={applyLogo}
+                      onChange={(e) => setApplyLogo(e.target.checked)}
+                      className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary w-4 h-4 shrink-0"
+                    />
+                  </div>
+
+                  {applyLogo && customUploadedLogo && (
+                    <div className="flex items-center justify-between bg-black/20 border border-white/5 rounded-lg px-2.5 py-1.5 mt-1">
+                      <span className="text-[11px] font-mono text-slate-400">Esquina:</span>
+                      <div className="flex gap-1">
+                        {[
+                          { id: 'top-left', label: '↖ Izq' },
+                          { id: 'top-right', label: '↗ Der' },
+                          { id: 'bottom-left', label: '↙ Izq' },
+                          { id: 'bottom-right', label: '↘ Der' }
+                        ].map(pos => (
+                          <button
+                            key={pos.id}
+                            type="button"
+                            onClick={() => setLogoPosition(pos.id as any)}
+                            className={cn(
+                              "px-2 py-1 rounded text-[10px] font-mono border transition-all cursor-pointer",
+                              logoPosition === pos.id
+                                ? "bg-brand-primary/20 border-brand-primary text-white font-bold"
+                                : "bg-black/20 border-white/5 text-slate-400 hover:text-slate-200"
+                            )}
+                          >
+                            {pos.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1730,94 +1689,53 @@ export default function CreativeStudio({
                   )}
                 </div>
 
-                {/* Brand watermarking controls */}
-                <div className="space-y-2 pt-2.5 border-t border-white/5">
-                  <div className="flex items-center justify-between select-none">
-                    <label className="text-xs md:text-sm font-mono text-slate-300 cursor-pointer flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={applyLogo}
-                        onChange={(e) => setApplyLogo(e.target.checked)}
-                        className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary w-4 h-4"
-                      />
-                      <span>Aplicar Logo de Marca</span>
-                    </label>
-                  </div>
-                  {applyLogo && (
-                    <div className="bg-black/25 border border-white/10 rounded-xl p-3.5 space-y-3 mt-1.5">
+                {/* Clean automatic brand watermarking card */}
+                <div className="space-y-2 pt-2.5 border-t border-white/5 select-none">
+                  <div className="flex items-center justify-between bg-black/30 border border-white/10 rounded-xl p-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       {customUploadedLogo ? (
-                        <>
-                          <div className="flex items-center gap-3">
-                            <img src={customUploadedLogo} alt="Brand Logo" className="w-12 h-12 object-contain rounded bg-black/40 border border-white/10 p-1" />
-                            <div className="min-w-0">
-                              <p className="text-xs font-mono text-slate-300 font-bold truncate">Logotipo de Marca Activo</p>
-                              <p className="text-[11px] text-slate-400">Superposición automática activada</p>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-mono text-slate-400">Posición en la Imagen</label>
-                            <div className="grid grid-cols-2 gap-1.5">
-                              {[
-                                { id: 'top-left', label: 'Arriba Izq' },
-                                { id: 'top-right', label: 'Arriba Der' },
-                                { id: 'bottom-left', label: 'Abajo Izq' },
-                                { id: 'bottom-right', label: 'Abajo Der' }
-                              ].map(pos => (
-                                <button
-                                  key={pos.id}
-                                  type="button"
-                                  onClick={() => setLogoPosition(pos.id as any)}
-                                  className={cn(
-                                    "py-1.5 rounded-lg text-xs font-mono border text-center transition-all cursor-pointer font-medium",
-                                    logoPosition === pos.id
-                                      ? "bg-brand-primary/10 border-brand-primary text-white"
-                                      : "bg-black/10 border-white/5 text-slate-400 hover:text-white"
-                                  )}
-                                >
-                                  {pos.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between text-xs font-mono text-slate-400">
-                              <span>Opacidad del Logo</span>
-                              <span className="text-white font-bold">{Math.round(logoOpacity * 100)}%</span>
-                            </div>
-                            <input
-                              type="range"
-                              min="0.1"
-                              max="1"
-                              step="0.05"
-                              value={logoOpacity}
-                              onChange={(e) => setLogoOpacity(parseFloat(e.target.value))}
-                              className="w-full accent-brand-primary h-1.5 cursor-pointer"
-                            />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between text-xs font-mono text-slate-400">
-                              <span>Tamaño Proporcional</span>
-                              <span className="text-white font-bold">{logoSizePercent}%</span>
-                            </div>
-                            <input
-                              type="range"
-                              min="8"
-                              max="35"
-                              step="1"
-                              value={logoSizePercent}
-                              onChange={(e) => setLogoSizePercent(parseInt(e.target.value))}
-                              className="w-full accent-brand-primary h-1.5 cursor-pointer"
-                            />
-                          </div>
-                        </>
+                        <img src={customUploadedLogo} alt="Logo" className="w-8 h-8 object-contain rounded bg-black/40 border border-white/10 p-1 shrink-0" />
                       ) : (
-                        <p className="text-xs text-amber-400/90 italic font-sans leading-relaxed">
-                          ⚠️ No hay ningún logotipo activo. Genera uno en 'Logos' o súbelo en el panel de arriba.
-                        </p>
+                        <Sparkles className="w-4 h-4 text-brand-primary shrink-0" />
                       )}
+                      <div className="min-w-0">
+                        <p className="text-xs font-mono font-bold text-white truncate">Estampar Logo en el Producto</p>
+                        <p className="text-[10px] text-slate-400 truncate">Integra automáticamente el logo al producto o empaque</p>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={applyLogo}
+                      onChange={(e) => setApplyLogo(e.target.checked)}
+                      className="rounded border-white/10 text-brand-primary focus:ring-0 cursor-pointer accent-brand-primary w-4 h-4 shrink-0"
+                    />
+                  </div>
+
+                  {applyLogo && customUploadedLogo && (
+                    <div className="flex items-center justify-between bg-black/20 border border-white/5 rounded-lg px-2.5 py-1.5 mt-1">
+                      <span className="text-[11px] font-mono text-slate-400">Esquina:</span>
+                      <div className="flex gap-1">
+                        {[
+                          { id: 'top-left', label: '↖ Izq' },
+                          { id: 'top-right', label: '↗ Der' },
+                          { id: 'bottom-left', label: '↙ Izq' },
+                          { id: 'bottom-right', label: '↘ Der' }
+                        ].map(pos => (
+                          <button
+                            key={pos.id}
+                            type="button"
+                            onClick={() => setLogoPosition(pos.id as any)}
+                            className={cn(
+                              "px-2 py-1 rounded text-[10px] font-mono border transition-all cursor-pointer",
+                              logoPosition === pos.id
+                                ? "bg-brand-primary/20 border-brand-primary text-white font-bold"
+                                : "bg-black/20 border-white/5 text-slate-400 hover:text-slate-200"
+                            )}
+                          >
+                            {pos.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -260,8 +260,11 @@ STRICT RULES:
 5. Maximum 3 words. Example output: "shield wings star"`;
     } else if (isFlyer) {
       const isMockupStyle = mockupType && (mockupType.includes("Mockup") || mockupType.includes("Maqueta") || mockupType.includes("Poster") || mockupType.includes("Póster"));
+      const brandHeaderRule = brandName?.trim() ? `- The flyer poster MUST feature prominent clean brand header typography reading "${brandName.trim()}" integrated at the top header layout of the design.` : "";
+      
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
          Your job is to translate the user's flyer or ad request into a highly optimized English prompt for a MARKETING FLYER / ADVERTISEMENT.
+         ${brandHeaderRule}
          MANDATORY FLYER RULES:
          - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent. NEVER reference, imitate, or draw inspiration from copyrighted characters or third-party trademarks.
          ${isMockupStyle
@@ -270,8 +273,11 @@ STRICT RULES:
          - NEVER generate just a plain photo of a person or a simple product image without the graphic design flyer context.
          - Return ONLY the optimized English visual description. No quotes, no explanations.`;
     } else {
+      const brandLogoProductRule = brandName?.trim() ? `- The product packaging or item MUST cleanly display the brand name logo "${brandName.trim()}" printed on the front surface.` : "";
+      
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
          Your job is to translate the user's request into a premium English prompt for a COMMERCIAL PRODUCT PHOTOGRAPH / MERCHANDISE MOCKUP.
+         ${brandLogoProductRule}
          MANDATORY PRODUCT RULES:
          - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent.
          - The output MUST describe the commercial physical product itself (e.g., coffee cup, packaging box, t-shirt, hoodie, bottle) in a professional studio photography setting.
