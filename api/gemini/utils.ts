@@ -503,13 +503,26 @@ ${baseCopy}
 
 /**
  * 🚀 Multi-LLM Provider Engine (from awesome-free-llm-apis)
- * Unified fallback cascade:
+ * Unified fallback cascade with 10s timeout per call.
  * 1. Google Gemini 2.5 Flash
  * 2. NVIDIA NIM LLM (Llama 3.3 70B / Nemotron)
  * 3. Groq API (Llama 3.3 70B - Ultra fast 400 tps)
  * 4. OpenRouter Free Models (Llama 3.3 70B, Gemma 2, DeepSeek R1)
  * 5. OVHcloud Anonymous AI Endpoint (100% free, no key needed)
  */
+async function fetchWithTimeout(url: string, options: any, timeoutMs = 10000): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(id);
+    return response;
+  } catch (err) {
+    clearTimeout(id);
+    throw err;
+  }
+}
+
 export async function callMultiProviderLlm(options: {
   systemPrompt?: string;
   userPrompt: string;
@@ -543,7 +556,7 @@ export async function callMultiProviderLlm(options: {
   for (const nKey of nvidiaKeys) {
     if (nKey.length < 5) continue;
     try {
-      const res = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+      const res = await fetchWithTimeout("https://integrate.api.nvidia.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${nKey}`,
@@ -556,9 +569,9 @@ export async function callMultiProviderLlm(options: {
             { role: "user", content: userPrompt }
           ],
           temperature,
-          max_tokens: 2048
+          max_tokens: 1024
         })
-      });
+      }, 10000);
       if (res.ok) {
         const data = await res.json();
         const text = data?.choices?.[0]?.message?.content;
@@ -576,7 +589,7 @@ export async function callMultiProviderLlm(options: {
   const groqKey = customGroqKey || process.env.GROQ_API_KEY;
   if (groqKey && groqKey.trim()) {
     try {
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      const res = await fetchWithTimeout("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${groqKey.trim()}`,
@@ -590,7 +603,7 @@ export async function callMultiProviderLlm(options: {
           ],
           temperature
         })
-      });
+      }, 10000);
       if (res.ok) {
         const data = await res.json();
         const text = data?.choices?.[0]?.message?.content;
@@ -608,9 +621,7 @@ export async function callMultiProviderLlm(options: {
   const openRouterKey = customOpenRouterKey || process.env.OPENROUTER_API_KEY;
   const freeOpenRouterModels = [
     "meta-llama/llama-3.3-70b-instruct:free",
-    "google/gemma-2-9b-it:free",
-    "deepseek/deepseek-r1:free",
-    "qwen/qwen-2.5-72b-instruct:free"
+    "google/gemma-2-9b-it:free"
   ];
   for (const modelId of freeOpenRouterModels) {
     try {
@@ -618,7 +629,7 @@ export async function callMultiProviderLlm(options: {
       if (openRouterKey && openRouterKey.trim()) {
         headers["Authorization"] = `Bearer ${openRouterKey.trim()}`;
       }
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      const res = await fetchWithTimeout("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -629,7 +640,7 @@ export async function callMultiProviderLlm(options: {
           ],
           temperature
         })
-      });
+      }, 10000);
       if (res.ok) {
         const data = await res.json();
         const text = data?.choices?.[0]?.message?.content;
@@ -645,7 +656,7 @@ export async function callMultiProviderLlm(options: {
 
   // 5. Try OVHcloud Anonymous AI Endpoint (100% free, no key needed)
   try {
-    const res = await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions", {
+    const res = await fetchWithTimeout("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -656,7 +667,7 @@ export async function callMultiProviderLlm(options: {
         ],
         temperature
       })
-    });
+    }, 10000);
     if (res.ok) {
       const data = await res.json();
       const text = data?.choices?.[0]?.message?.content;
