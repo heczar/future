@@ -301,8 +301,51 @@ STRICT RULES:
   const activeStyleName = isLogo ? logoStyle : mockupType;
   let enhancedPrompt = "";
 
+function hexToColorName(hex: string): string {
+  if (!hex) return "vivid color";
+  let cleanHex = hex.replace('#', '').toUpperCase();
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map(c => c + c).join('');
+  }
+  if (cleanHex.length !== 6) return "vivid color";
+  
+  const r = parseInt(cleanHex.substring(0, 2), 16) || 0;
+  const g = parseInt(cleanHex.substring(2, 4), 16) || 0;
+  const b = parseInt(cleanHex.substring(4, 6), 16) || 0;
+
+  if (r > 220 && g > 220 && b > 220) return "White";
+  if (r < 35 && g < 35 && b < 35) return "Black";
+  if (r > 190 && g < 70 && b < 70) return "Bright Red";
+  if (r < 70 && g > 190 && b < 70) return "Bright Green";
+  if (r < 70 && g < 70 && b > 190) return "Electric Blue";
+  if (r > 190 && g > 190 && b < 70) return "Vivid Yellow";
+  if (r > 190 && g < 70 && b > 190) return "Vivid Magenta";
+  if (r < 70 && g > 190 && b > 190) return "Electric Cyan";
+  if (r > 190 && g > 100 && b < 60) return "Vivid Orange";
+  if (r > 120 && g < 60 && b > 160) return "Vivid Purple";
+  if (r > 180 && g > 100 && b > 150) return "Pink";
+  if (r < 60 && g > 140 && b > 100) return "Teal";
+  
+  if (r >= g && r >= b) return (r - g < 40 && g > 80) ? "Orange" : "Red";
+  if (g >= r && g >= b) return "Green";
+  if (b >= r && b >= g) return "Blue";
+  return "vivid color";
+}
+
+function removeAccents(str: string): string {
+  if (!str) return "BRAND";
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove tildes and accents
+    .replace(/ñ/g, "n")
+    .replace(/Ñ/g, "N")
+    .replace(/[^a-zA-Z0-9\s-]/g, "")
+    .trim()
+    .toUpperCase();
+}
+
   if (isLogo) {
-    const cleanName = brandName?.trim() || "BRAND";
+    const cleanName = removeAccents(brandName || "BRAND");
     
     // Build strict color instruction
     let colorPrefix = "";
@@ -314,7 +357,14 @@ STRICT RULES:
       const mainBrandColors = colors.filter(c => c.hex !== '#0F172A' && c.hex !== '#000000' && c.hex !== '#FFFFFF');
       const activeColors = mainBrandColors.length > 0 ? mainBrandColors : colors;
       
-      const colorNames = activeColors.map(c => c.name).join(" and ");
+      const colorNames = activeColors.map(c => {
+        const nameLower = (c.name || "").trim().toLowerCase();
+        if (!nameLower || nameLower.startsWith("color") || nameLower.startsWith("custom")) {
+          return hexToColorName(c.hex);
+        }
+        return c.name;
+      }).join(" and ");
+
       const colorHexes = activeColors.map(c => c.hex).join(", ");
       
       colorPrefix = `STRICT COLOR PALETTE: ${colorNames.toUpperCase()} (${colorHexes}). `;
