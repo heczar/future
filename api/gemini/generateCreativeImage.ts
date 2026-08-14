@@ -149,10 +149,10 @@ export default async function handler(req: any, res: any) {
       }
     } else if (isFlyer) {
       const style = styleName || "";
-      const spanishFlyerRule = "MANDATORY SPANISH TEXT: All typography and headlines on poster MUST BE IN SPANISH (e.g. 'GRAN APERTURA', '50% DE DESCUENTO'). Minimalist clean layout, very few words, generous negative space, uncluttered, no paragraphs of text.";
+      const spanishFlyerRule = "MANDATORY SPANISH TEXT: All typography and headlines on poster MUST BE IN SPANISH (e.g. 'GRAN APERTURA', '50% DE DESCUENTO'). Minimalist clean graphic design layout, very few words, generous negative space, uncluttered, no paragraphs of text, no people, no human models, no portraits, no faces.";
       
       if (style.includes("Moderno") && style.includes("Negocios")) {
-        prefix = "A professional high-end corporate business flyer design.";
+        prefix = "A clean minimalist commercial promotional poster graphic layout with zero human beings, zero people, zero portraits.";
         suffix = `Clean modern layout, minimal text in Spanish, geometric design elements, high-contrast, marketing poster. ${spanishFlyerRule} ${colorInstruction}`;
       } else if (style.includes("Elegante") || style.includes("Minimalista") || style.includes("Luxury")) {
         prefix = "A luxury minimalist flyer design, premium editorial advertisement layout.";
@@ -265,16 +265,16 @@ STRICT RULES:
       const brandHeaderRule = brandName?.trim() ? `- The flyer poster MUST feature prominent clean brand header typography reading "${removeAccents(brandName).trim()}" integrated at the top header layout of the design.` : "";
       
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
-         Your job is to translate the user's flyer or ad request into a highly optimized English prompt for a MARKETING FLYER / ADVERTISEMENT.
+         Your job is to translate the user's flyer or ad request into a highly optimized English prompt for a MINIMALIST SPANISH MARKETING FLYER / POSTER.
          ${brandHeaderRule}
          MANDATORY FLYER RULES:
          - MANDATORY SPANISH LANGUAGE RULE: ALL text written on the flyer poster (headlines, promotional text, discounts) MUST BE STRICTLY WRITTEN IN SPANISH (e.g. "GRAN APERTURA", "50% DE DESCUENTO", "OFERTA ESPECIAL", "NUEVA SUCURSAL"). NEVER generate English text like "GRAND OPENING", "DISCOUNT", or "50% OFF".
          - MANDATORY MINIMALIST TEXT RULE: Keep the poster design ultra-clean, minimal, uncluttered, and elegant with generous negative space. Include ONLY 1 short main headline in Spanish and 1 clean discount badge (e.g. "50% DE DESCUENTO"). NEVER fill the poster with long paragraphs of small text or busy details.
-         - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent. NEVER reference, imitate, or draw inspiration from copyrighted characters or third-party trademarks.
+         - MANDATORY NO PEOPLE RULE: NEVER generate people, human models, faces, portraits, or corporate employees. Focus strictly on graphic design, coffee/food/product/store artwork, minimalist typography, clean geometric layouts, and promotional badges.
+         - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent.
          ${isMockupStyle
-           ? `- The output MUST describe a mockup of a flyer or poster page sheet (A4 paper lying flat or hanging on a concrete wall with clips).`
-           : `- The output MUST describe a clean graphic design layout, promotional poster, banner, or marketing flyer page with headline text placement, grids, and promotional graphics.`}
-         - NEVER generate just a plain photo of a person or a simple product image without the graphic design flyer context.
+           ? `- The output MUST describe a mockup of a graphic poster sheet (A4 paper lying flat or hanging on a wall).`
+           : `- The output MUST describe a clean graphic design layout, promotional poster, or marketing flyer with Spanish headline typography and promotional graphics.`}
          - Return ONLY the optimized English visual description. No quotes, no explanations.`;
     } else {
       const brandLogoProductRule = brandName?.trim() ? `- The product packaging or item MUST cleanly display the brand name logo "${brandName.trim()}" printed on the front surface.` : "";
