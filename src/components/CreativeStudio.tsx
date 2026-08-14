@@ -1274,7 +1274,7 @@ export default function CreativeStudio({
                   <div className="grid grid-cols-2 gap-1.5 pt-1 select-none">
                     {[
                       { id: 'rose-gold', name: 'Rosa & Oro', colors: [{ hex: '#F43F5E', name: 'Rosa' }, { hex: '#FBBF24', name: 'Oro' }, { hex: '#FFFFFF', name: 'Blanco' }] },
-                      { id: 'cyber-neon', name: 'Neón Cyber', colors: [{ hex: '#00F2FE', name: 'Cian' }, { hex: '#A855F7', name: 'Púrpura' }, { hex: '#0F172A', name: 'Oscuro' }] },
+                      { id: 'cyber-neon', name: 'Neón Cyber', colors: [{ hex: '#00F2FE', name: 'Cian' }, { hex: '#3B82F6', name: 'Azul Neón' }, { hex: '#10B981', name: 'Verde' }] },
                       { id: 'luxury-gold', name: 'Oro & Negro', colors: [{ hex: '#D4AF37', name: 'Dorado' }, { hex: '#111111', name: 'Negro' }, { hex: '#FFFFFF', name: 'Blanco' }] },
                       { id: 'emerald-mint', name: 'Esmeralda', colors: [{ hex: '#10B981', name: 'Esmeralda' }, { hex: '#064E3B', name: 'Verde' }, { hex: '#F0FDF4', name: 'Menta' }] },
                       { id: 'purple-magenta', name: 'Púrpura', colors: [{ hex: '#8B5CF6', name: 'Violeta' }, { hex: '#EC4899', name: 'Magenta' }, { hex: '#FFFFFF', name: 'Blanco' }] },

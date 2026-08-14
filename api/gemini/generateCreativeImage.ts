@@ -304,12 +304,36 @@ STRICT RULES:
   if (isLogo) {
     const cleanName = brandName?.trim() || "BRAND";
     
-    // Build color instruction
+    // Build strict color instruction
+    let colorPrefix = "";
     let colorInstruction = "";
+    let colorNegative = "";
+
     if (colors && colors.length > 0) {
-      const colorNames = colors.map(c => c.name).join(" and ");
-      const colorHexes = colors.map(c => c.hex).join(", ");
-      colorInstruction = `colored in vivid ${colorNames} (${colorHexes})`;
+      // Filter out pure black, pure white, or dark slate hexes for main icon coloring
+      const mainBrandColors = colors.filter(c => c.hex !== '#0F172A' && c.hex !== '#000000' && c.hex !== '#FFFFFF');
+      const activeColors = mainBrandColors.length > 0 ? mainBrandColors : colors;
+      
+      const colorNames = activeColors.map(c => c.name).join(" and ");
+      const colorHexes = activeColors.map(c => c.hex).join(", ");
+      
+      colorPrefix = `STRICT COLOR PALETTE: ${colorNames.toUpperCase()} (${colorHexes}). `;
+      colorInstruction = `rendered strictly using ONLY ${colorNames} (${colorHexes}) colors`;
+      
+      // Check if user requested purple/magenta/pink
+      const hasPurple = activeColors.some(c => 
+        c.name.toLowerCase().includes("púrpura") || 
+        c.name.toLowerCase().includes("purpura") || 
+        c.name.toLowerCase().includes("violeta") || 
+        c.name.toLowerCase().includes("magenta") ||
+        c.hex.toLowerCase().includes("a855f7") ||
+        c.hex.toLowerCase().includes("8b5cf6") ||
+        c.hex.toLowerCase().includes("ec4899")
+      );
+
+      if (!hasPurple) {
+        colorNegative = ", no purple, no violet, no magenta";
+      }
     } else {
       colorInstruction = "in bold high-contrast colors";
     }
@@ -361,10 +385,9 @@ STRICT RULES:
 
     // ═══════════════════════════════════════════════════════════════
     // DETERMINISTIC LOGO TEMPLATE — FLUX receives ONLY this rigid template.
-    // The symbol concept is the ONLY variable. Everything else is fixed.
-    // This makes it IMPOSSIBLE for FLUX to generate people or portraits.
+    // Color prefix is placed at the front to give maximum color weight to FLUX.
     // ═══════════════════════════════════════════════════════════════
-    enhancedPrompt = `${styleModifier} vector logo design of a ${symbolConcept} icon symbol ${colorInstruction}, with bold clean typography text "${cleanName}" below the icon, isolated on a pure solid white background, professional brand identity design, 8k ultra sharp, no photographs, no people, no faces, no human figures, no realistic imagery, only flat graphic vector illustration`;
+    enhancedPrompt = `${colorPrefix}${styleModifier} vector logo design of a ${symbolConcept} icon symbol ${colorInstruction}, with bold clean typography text "${cleanName}" below the icon, isolated on a pure solid white background, professional brand identity design, 8k ultra sharp, no photographs, no people, no faces, no human figures, no realistic imagery${colorNegative}, only flat graphic vector illustration`;
     
     console.log(`[FUTURA SERVER] DETERMINISTIC LOGO PROMPT: "${enhancedPrompt}"`);
   } else {
