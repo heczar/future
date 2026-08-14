@@ -149,31 +149,33 @@ export default async function handler(req: any, res: any) {
       }
     } else if (isFlyer) {
       const style = styleName || "";
+      const spanishFlyerRule = "MANDATORY SPANISH TEXT: All typography and headlines on poster MUST BE IN SPANISH (e.g. 'GRAN APERTURA', '50% DE DESCUENTO'). Minimalist clean layout, very few words, generous negative space, uncluttered, no paragraphs of text.";
+      
       if (style.includes("Moderno") && style.includes("Negocios")) {
         prefix = "A professional high-end corporate business flyer design.";
-        suffix = `Clean modern layout, structured text columns, professional layout, geometric design elements, high-contrast, marketing presentation. ${colorInstruction} No text watermark.`;
+        suffix = `Clean modern layout, minimal text in Spanish, geometric design elements, high-contrast, marketing poster. ${spanishFlyerRule} ${colorInstruction}`;
       } else if (style.includes("Elegante") || style.includes("Minimalista") || style.includes("Luxury")) {
         prefix = "A luxury minimalist flyer design, premium editorial advertisement layout.";
-        suffix = `Clean high-end typography layout, spacious margins, sophisticated composition, high-contrast detail, aesthetic editorial styling. ${colorInstruction} No text watermark.`;
+        suffix = `Clean high-end typography layout in Spanish, spacious margins, minimal text, sophisticated composition, aesthetic editorial styling. ${spanishFlyerRule} ${colorInstruction}`;
       } else if (style.includes("Llamativo") || style.includes("Neón")) {
         prefix = "A vibrant nightclub event flyer design, modern party poster.";
-        suffix = `Neon glowing accents, high-contrast dark background, energetic typography layout, modern party layout, digital flyer. ${colorInstruction} No text watermark.`;
+        suffix = `Neon glowing accents, high-contrast dark background, energetic typography in Spanish, minimal text layout, digital flyer. ${spanishFlyerRule} ${colorInstruction}`;
       } else if (style.includes("Vectorial") || style.includes("Ilustrado")) {
         prefix = "An illustrated creative vector flyer design, artistic marketing layout.";
-        suffix = `Clean vector illustrations, creative shapes, playful modern layout, flat design, creative marketing banner. ${colorInstruction} No text watermark.`;
+        suffix = `Clean vector illustrations, creative shapes, playful modern layout in Spanish, minimal text, flat design banner. ${spanishFlyerRule} ${colorInstruction}`;
       } else if (style.includes("Banner")) {
         prefix = "A clean corporate marketing banner layout, professional ad design.";
-        suffix = `Balanced alignment, modern professional design, call-to-actions placeholders, business color palette. ${colorInstruction} No text watermark.`;
+        suffix = `Balanced alignment, modern professional design in Spanish, minimal headline text, business color palette. ${spanishFlyerRule} ${colorInstruction}`;
       } else if (style.includes("Folleto") || style.includes("Mockup")) {
         prefix = "A professional paper flyer mockup template, branding showcase.";
-        suffix = `An A4 paper flyer sheet lying flat on a minimalist concrete table surface, soft ambient shadows, photo-realistic paper texture, professional branding showcase. ${colorInstruction} No text watermark.`;
+        suffix = `An A4 paper flyer sheet lying flat on a minimalist concrete table surface, clean text in Spanish, soft ambient shadows, photo-realistic paper texture. ${spanishFlyerRule} ${colorInstruction}`;
       } else if (style.includes("Póster") || style.includes("Colgante") || style.includes("Hanging")) {
         prefix = "A premium vertical poster mockup template, design showcase.";
-        suffix = `A poster sheet hanging from small metal clips on a clean raw concrete wall, realistic paper curl and wrinkles, subtle drop shadows, professional design showcase. ${colorInstruction} No text watermark.`;
+        suffix = `A poster sheet hanging from small metal clips on a clean raw concrete wall, minimal clean text in Spanish, subtle drop shadows. ${spanishFlyerRule} ${colorInstruction}`;
       } else {
         // Default Flyer
         prefix = "A high-end professional graphic design layout flyer and digital advertisement.";
-        suffix = `Modern layout, balanced spacing, clean alignment, high-contrast details. ${colorInstruction} No text watermark, ready for marketing production.`;
+        suffix = `Modern minimal layout, clean alignment, minimal headline text in Spanish. ${spanishFlyerRule} ${colorInstruction}`;
       }
     } else {
       // Products / Mockups
@@ -260,12 +262,14 @@ STRICT RULES:
 5. Maximum 3 words. Example output: "shield wings star"`;
     } else if (isFlyer) {
       const isMockupStyle = mockupType && (mockupType.includes("Mockup") || mockupType.includes("Maqueta") || mockupType.includes("Poster") || mockupType.includes("Póster"));
-      const brandHeaderRule = brandName?.trim() ? `- The flyer poster MUST feature prominent clean brand header typography reading "${brandName.trim()}" integrated at the top header layout of the design.` : "";
+      const brandHeaderRule = brandName?.trim() ? `- The flyer poster MUST feature prominent clean brand header typography reading "${removeAccents(brandName).trim()}" integrated at the top header layout of the design.` : "";
       
       optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
          Your job is to translate the user's flyer or ad request into a highly optimized English prompt for a MARKETING FLYER / ADVERTISEMENT.
          ${brandHeaderRule}
          MANDATORY FLYER RULES:
+         - MANDATORY SPANISH LANGUAGE RULE: ALL text written on the flyer poster (headlines, promotional text, discounts) MUST BE STRICTLY WRITTEN IN SPANISH (e.g. "GRAN APERTURA", "50% DE DESCUENTO", "OFERTA ESPECIAL", "NUEVA SUCURSAL"). NEVER generate English text like "GRAND OPENING", "DISCOUNT", or "50% OFF".
+         - MANDATORY MINIMALIST TEXT RULE: Keep the poster design ultra-clean, minimal, uncluttered, and elegant with generous negative space. Include ONLY 1 short main headline in Spanish and 1 clean discount badge (e.g. "50% DE DESCUENTO"). NEVER fill the poster with long paragraphs of small text or busy details.
          - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent. NEVER reference, imitate, or draw inspiration from copyrighted characters or third-party trademarks.
          ${isMockupStyle
            ? `- The output MUST describe a mockup of a flyer or poster page sheet (A4 paper lying flat or hanging on a concrete wall with clips).`
