@@ -462,13 +462,13 @@ function removeAccents(str: string): string {
     }
   }
   
-  // Sanitize prompt for NVIDIA NIM: replace "logo" with "brand emblem" to prevent safety filter false positives
+  // Sanitize prompt for NVIDIA NIM: replace "logo" with "isolated vector mark" to prevent safety filter false positives while preventing circular coin medallion generation
   const sanitizeForNvidia = (p: string) => {
     let sanitized = p
-      .replace(/\blogo\b/gi, 'brand emblem')
+      .replace(/\blogo\b/gi, 'isolated vector mark')
       .replace(/\blogotype\b/gi, 'visual brand mark');
       
-    const logoExtra = isLogo ? ", isolated vector graphic logo icon on a pure solid white background for 100% clean PNG transparent background extraction, ONLY the logo symbol and typography, no background graphics, no containers, no frames, no surrounding boxes, no human beings, no models, no people, no portraits, no clothing photos" : "";
+    const logoExtra = isLogo ? ", isolated vector graphic icon on a pure solid white background for 100% clean PNG transparent background extraction, ONLY the central graphic symbol and typography, no background graphics, no containers, no frames, no surrounding boxes, no circular medallions, no coin seals, no human beings, no models, no people, no portraits, no clothing photos" : "";
     return sanitized + logoExtra + " 100% original custom independent brand identity mark, completely unique, non-infringing, no third-party copyrighted characters, no corporate trademarks.";
   };
 
