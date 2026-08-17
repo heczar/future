@@ -512,7 +512,7 @@ function removeAccents(str: string): string {
               
               // Alternate retry prompt with clean name
               const altSpacedName = (brandName || "BRAND").trim().toUpperCase();
-              const altPrompt = `A high quality vibrant visual brand emblem and emblem mark for ${altSpacedName}, ${prompt || 'modern company'}, clean design, white background, ultra high resolution.`;
+              const altPrompt = `A high quality isolated vector graphic icon mark for ${altSpacedName}, ${prompt || 'modern company'}, clean design, isolated on a pure solid white background, no circular coins, no medallion seals, ultra high resolution.`;
               
               const retryResponse = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev", {
                 method: "POST",
