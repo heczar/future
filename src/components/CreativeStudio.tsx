@@ -1450,17 +1450,26 @@ export default function CreativeStudio({
                     onChange={(e) => setFlyerPrompt(e.target.value)}
                     className="w-full bg-[#090909] border border-white/10 rounded-xl p-3.5 text-sm text-white outline-none focus:border-brand-primary/50 transition-colors resize-none font-sans placeholder:text-slate-600"
                   />
-                  <div className="flex flex-wrap gap-1.5 mt-2 select-none">
-                    {quickSuggestionsFlyers.map((s) => (
-                      <button
-                        key={s.text}
-                        type="button"
-                        onClick={() => setFlyerPrompt(s.prompt)}
-                        className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-sans transition-all cursor-pointer"
-                      >
-                        {s.text}
-                      </button>
-                    ))}
+                  <div className="space-y-1.5 mt-2.5 select-none">
+                    <span className="text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider block">🚀 Campañas Express en 1 Clic:</span>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {quickSuggestionsFlyers.map((s) => (
+                        <button
+                          key={s.text}
+                          type="button"
+                          onClick={() => {
+                            setFlyerPrompt(s.prompt);
+                            setTimeout(() => {
+                              handleGenerateAsset('flyers');
+                            }, 50);
+                          }}
+                          className="p-2.5 rounded-xl bg-brand-primary/10 hover:bg-brand-primary/20 border border-brand-primary/30 text-white text-xs font-sans font-semibold transition-all cursor-pointer text-left flex items-center justify-between group"
+                        >
+                          <span>{s.text}</span>
+                          <span className="text-[10px] text-brand-primary group-hover:translate-x-0.5 transition-transform">⚡ Generar</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
