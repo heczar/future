@@ -16,6 +16,7 @@ import generateContentStrategyHandler from "./api/gemini/generateContentStrategy
 import generateCreativeImageHandler from "./api/gemini/generateCreativeImage.js";
 import generateSocialCopyHandler from "./api/gemini/generateSocialCopy.js";
 import refineSocialCopyHandler from "./api/gemini/refineSocialCopy.js";
+import iconifySearchHandler from "./api/gemini/iconifySearch.js";
 import devAgentHandler from "./api/admin/devAgent.js";
 import supportTicketsHandler from "./api/support/tickets.js";
 
@@ -85,6 +86,7 @@ app.post("/api/gemini/generateContentStrategy", wrapHandler(generateContentStrat
 app.post("/api/gemini/generateCreativeImage", wrapHandler(generateCreativeImageHandler));
 app.post("/api/gemini/generateSocialCopy", wrapHandler(generateSocialCopyHandler));
 app.post("/api/gemini/refineSocialCopy", wrapHandler(refineSocialCopyHandler));
+app.all("/api/gemini/iconifySearch", wrapHandler(iconifySearchHandler));
 app.post("/api/admin/dev-agent", wrapHandler(devAgentHandler));
 app.all("/api/support/tickets", wrapHandler(supportTicketsHandler));
 app.all("/api/support", wrapHandler(supportTicketsHandler));

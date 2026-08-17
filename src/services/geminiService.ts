@@ -633,6 +633,38 @@ export async function generateContentStrategy(
   );
 }
 
+export async function searchIconifyIcons(query: string): Promise<Array<{ id: string; svgUrl: string; name: string }>> {
+  try {
+    const res = await fetch(`/api/gemini/iconifySearch?q=${encodeURIComponent(query)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.icons && data.icons.length > 0) return data.icons;
+    }
+  } catch (err) {
+    console.warn("Iconify search fallback to direct API...", err);
+  }
+  
+  // Direct client fallback to Iconify Search API
+  try {
+    const directRes = await fetch(`https://api.iconify.design/search?query=${encodeURIComponent(query)}&limit=16`);
+    if (directRes.ok) {
+      const data = await directRes.json();
+      const iconNames: string[] = data.icons || [];
+      return iconNames.slice(0, 16).map(iconName => {
+        const parts = iconName.split(':');
+        return {
+          id: iconName,
+          svgUrl: `https://api.iconify.design/${parts[0] || 'mdi'}/${parts[1] || 'star'}.svg`,
+          name: parts[1] || iconName
+        };
+      });
+    }
+  } catch (e) {
+    console.warn("Iconify direct API error:", e);
+  }
+  return [];
+}
+
 // Helper to wrap prompts based on design style and brand color palette
 export function getStyledPromptWrappers(
   generationType: 'logos' | 'flyers' | 'products' | undefined,
