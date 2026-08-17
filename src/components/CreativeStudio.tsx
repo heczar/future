@@ -179,6 +179,7 @@ export default function CreativeStudio({
   ];
 
   const flyerStyles = [
+    '✨ Magnific AI Relight & Hyper-Detail (8K)',
     'Moderno e Impactante (Negocios)',
     'Elegante y Minimalista (Luxury)',
     'Llamativo con Neón y Contraste (Eventos)',
@@ -189,6 +190,7 @@ export default function CreativeStudio({
   ];
 
   const productStyles = [
+    '✨ Magnific AI Relight & Hyper-Detail (8K)',
     'Estudio Fotográfico Premium',
     'Estilo de Vida Urbano (Modelo)',
     'Minimalista Orgánico',

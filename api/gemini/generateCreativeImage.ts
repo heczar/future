@@ -261,12 +261,14 @@ STRICT RULES:
 4. The symbol must be a GRAPHIC OBJECT (shape, animal, object, emblem), never a person.
 5. Maximum 3 words. Example output: "shield wings star"`;
     } else if (isFlyer) {
-      const isMockupStyle = mockupType && (mockupType.includes("Mockup") || mockupType.includes("Maqueta") || mockupType.includes("Poster") || mockupType.includes("Póster"));
+      const isMockupStyle = mockupType && (mockupType.includes("Mockup") || mockupType.includes("Maqueta") || mockupType.includes("Poster") || mockupType.includes("Póster") || mockupType.includes("Magnific"));
       const brandHeaderRule = brandName?.trim() ? `- The flyer poster MUST feature prominent clean brand header typography reading "${removeAccents(brandName).trim()}" integrated at the top header layout of the design.` : "";
       
-      optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
-         Your job is to translate the user's flyer or ad request into a highly optimized English prompt for a MINIMALIST SPANISH MARKETING FLYER / POSTER.
+      optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX & MAGNIFIC AI).
+         Your job is to translate the user's flyer or ad request into a highly optimized English prompt for a MINIMALIST SPANISH MARKETING FLYER / POSTER with MAGNIFIC AI QUALITY.
          ${brandHeaderRule}
+         MAGNIFIC AI HYPER-DETAIL DIRECTIVES:
+         - Ray-traced volumetric studio lighting, 8k hyper-detailed surface materials, cinematic ambient rim light, octane-grade depth, pristine commercial studio photography finish.
          MANDATORY FLYER RULES:
          - MANDATORY SPANISH LANGUAGE RULE: ALL text written on the flyer poster (headlines, promotional text, discounts) MUST BE STRICTLY WRITTEN IN SPANISH (e.g. "GRAN APERTURA", "50% DE DESCUENTO", "OFERTA ESPECIAL", "NUEVA SUCURSAL"). NEVER generate English text like "GRAND OPENING", "DISCOUNT", or "50% OFF".
          - MANDATORY MINIMALIST TEXT RULE: Keep the poster design ultra-clean, minimal, uncluttered, and elegant with generous negative space. Include ONLY 1 short main headline in Spanish and 1 clean discount badge (e.g. "50% DE DESCUENTO"). NEVER fill the poster with long paragraphs of small text or busy details.
@@ -279,9 +281,11 @@ STRICT RULES:
     } else {
       const brandLogoProductRule = brandName?.trim() ? `- The product packaging or item MUST cleanly display the brand name logo "${brandName.trim()}" printed on the front surface.` : "";
       
-      optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX).
-         Your job is to translate the user's request into a premium English prompt for a COMMERCIAL PRODUCT PHOTOGRAPH / MERCHANDISE MOCKUP.
+      optimizerInstruction = `You are an expert design director and prompt engineer for state-of-the-art AI image generators (FLUX & MAGNIFIC AI).
+         Your job is to translate the user's request into a premium English prompt for a COMMERCIAL PRODUCT PHOTOGRAPH / MERCHANDISE MOCKUP with MAGNIFIC AI QUALITY.
          ${brandLogoProductRule}
+         MAGNIFIC AI HYPER-DETAIL DIRECTIVES:
+         - Ray-traced volumetric studio lighting, 8k hyper-detailed surface materials, fabric weave texture, cinematic ambient rim light, octane-grade depth, pristine commercial studio photography finish.
          MANDATORY PRODUCT RULES:
          - MANDATORY ANTI-COPYRIGHT RULE: The design MUST be 100% original, unique, and independent.
          - The output MUST describe the commercial physical product itself (e.g., coffee cup, packaging box, t-shirt, hoodie, bottle) in a professional studio photography setting.
