@@ -1442,14 +1442,40 @@ export default function CreativeStudio({
               /* FLYERS & ADVERTISING FORM */
               <div className="space-y-4 pt-1">
                 <div className="space-y-1.5">
-                  <label className="text-xs md:text-sm font-mono font-semibold text-slate-300">¿Qué promociona este flyer o anuncio?</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs md:text-sm font-mono font-semibold text-slate-300 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-brand-primary" />
+                      <span>Instrucciones Especiales / ¿Qué deseas anunciar?</span>
+                    </label>
+                    <span className="text-[11px] font-mono text-slate-500">100% Personalizable</span>
+                  </div>
                   <textarea
                     rows={4}
-                    placeholder="Ejemplo: Gran apertura de nuestra nueva sucursal con 50% de descuento en la primera compra, fucsia eléctrico, aspecto de poster digital moderno..."
+                    placeholder="Escribe aquí tus peticiones especiales (ej. 'Promoción válida hasta el 30 de agosto, resaltar teléfono de WhatsApp, fondo fucsia elegante con destellos dorados')..."
                     value={flyerPrompt}
                     onChange={(e) => setFlyerPrompt(e.target.value)}
                     className="w-full bg-[#090909] border border-white/10 rounded-xl p-3.5 text-sm text-white outline-none focus:border-brand-primary/50 transition-colors resize-none font-sans placeholder:text-slate-600"
                   />
+                  <div className="flex flex-wrap gap-1 mt-1.5 select-none">
+                    <span className="text-[10px] font-mono text-slate-500 block w-full">💡 Sugerencias de peticiones especiales:</span>
+                    {[
+                      "Agregar WhatsApp y Redes",
+                      "Fondo Oscuro Elegante con Neón",
+                      "Promoción Válida por Tiempo Limitado",
+                      "Estilo Minimalista de Lujo"
+                    ].map((chip) => (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => {
+                          setFlyerPrompt(prev => prev ? `${prev}. ${chip}` : chip);
+                        }}
+                        className="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-[11px] font-sans border border-white/5 transition-colors cursor-pointer"
+                      >
+                        + {chip}
+                      </button>
+                    ))}
+                  </div>
                   <div className="space-y-1.5 mt-2.5 select-none">
                     <span className="text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider block">🚀 Campañas Express en 1 Clic:</span>
                     <div className="grid grid-cols-2 gap-1.5">
