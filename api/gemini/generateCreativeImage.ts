@@ -380,8 +380,8 @@ function removeAccents(str: string): string {
       const colorNames = colorEntries.map(c => c.name).join(" and ");
       const colorHexes = colorEntries.map(c => c.hex).join(", ");
       
-      colorPrefix = `STRICT COLOR PALETTE: ${colorNames.toUpperCase()} (${colorHexes}). `;
-      colorInstruction = `rendered strictly using ONLY ${colorNames} (${colorHexes}) colors`;
+      colorPrefix = `STRICT BRAND COLOR PALETTE: ${colorNames.toUpperCase()} (${colorHexes}). `;
+      colorInstruction = `rendered strictly and exclusively using ONLY ${colorNames} (${colorHexes}) colors for the icon graphic and typography`;
       
       // Check if user requested purple/magenta/pink
       const hasPurple = colorEntries.some(c => 
