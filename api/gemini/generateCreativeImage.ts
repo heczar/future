@@ -423,37 +423,37 @@ function removeAccents(str: string): string {
     console.log(`[FUTURA SERVER] EXTRACTED SYMBOL CONCEPT: "${symbolConcept}"`);
 
     // Build logo style modifier based on user's selected style
-    let styleModifier = "clean minimalist flat 2D vector";
+    let styleModifier = "clean minimalist vector mark";
     const normalizedStyle = (logoStyle || "").toLowerCase();
-    if (normalizedStyle.includes("3d") || normalizedStyle.includes("futurist")) {
-      styleModifier = "glossy 3D rendered";
-    } else if (normalizedStyle.includes("vintage") || normalizedStyle.includes("retro")) {
-      styleModifier = "vintage retro distressed";
-    } else if (normalizedStyle.includes("luxury") || normalizedStyle.includes("lujo") || normalizedStyle.includes("elegant")) {
-      styleModifier = "luxury premium gold-accented";
+    if (normalizedStyle.includes("3d") || normalizedStyle.includes("futurist") || normalizedStyle.includes("relieve")) {
+      styleModifier = "glossy 3D rendered graphic symbol";
+    } else if (normalizedStyle.includes("vintage") || normalizedStyle.includes("retro") || normalizedStyle.includes("industrial")) {
+      styleModifier = "vintage artisanal heraldic mark";
+    } else if (normalizedStyle.includes("luxury") || normalizedStyle.includes("lujo") || normalizedStyle.includes("elegant") || normalizedStyle.includes("simétrico")) {
+      styleModifier = "luxury gold-accented symmetrical graphic mark";
     } else if (normalizedStyle.includes("minimalist") || normalizedStyle.includes("minimal")) {
-      styleModifier = "ultra-minimalist clean geometric";
-    } else if (normalizedStyle.includes("hand") || normalizedStyle.includes("lettering") || normalizedStyle.includes("artisan")) {
-      styleModifier = "hand-drawn artisanal calligraphic";
-    } else if (normalizedStyle.includes("mascot") || normalizedStyle.includes("mascota")) {
-      styleModifier = "cartoon mascot character";
-    } else if (normalizedStyle.includes("emblem") || normalizedStyle.includes("badge") || normalizedStyle.includes("insignia")) {
-      styleModifier = "circular badge crest emblem";
+      styleModifier = "ultra-minimalist clean geometric graphic mark";
+    } else if (normalizedStyle.includes("hand") || normalizedStyle.includes("lettering") || normalizedStyle.includes("artisan") || normalizedStyle.includes("orgánico")) {
+      styleModifier = "organic botanical calligraphic mark";
+    } else if (normalizedStyle.includes("mascot") || normalizedStyle.includes("mascota") || normalizedStyle.includes("esports")) {
+      styleModifier = "illustrated mascot character icon";
+    } else if (normalizedStyle.includes("emblem") || normalizedStyle.includes("badge") || normalizedStyle.includes("insignia") || normalizedStyle.includes("sello")) {
+      styleModifier = "symmetrical heraldic crest mark";
     } else if (normalizedStyle.includes("abstract") || normalizedStyle.includes("geometr")) {
-      styleModifier = "abstract geometric";
-    } else if (normalizedStyle.includes("monogram") || normalizedStyle.includes("letter")) {
+      styleModifier = "abstract geometric graphic mark";
+    } else if (normalizedStyle.includes("monogram") || normalizedStyle.includes("siglas") || normalizedStyle.includes("letter")) {
       styleModifier = "typographic monogram lettermark";
-    } else if (normalizedStyle.includes("gradient") || normalizedStyle.includes("modern")) {
-      styleModifier = "modern gradient";
+    } else if (normalizedStyle.includes("gradient") || normalizedStyle.includes("modern") || normalizedStyle.includes("tecnológico")) {
+      styleModifier = "modern cybernetic gradient mark";
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // DETERMINISTIC LOGO TEMPLATE — FLUX receives ONLY this rigid template.
-    // Color prefix is placed at the front to give maximum color weight to FLUX.
+    // UNIFIED ISOLATED LOGO TEMPLATE — Applies strictly to ALL logo styles.
+    // Guarantees an isolated symbol on a solid white background with zero coins/medallions.
     // ═══════════════════════════════════════════════════════════════
-    enhancedPrompt = `${colorPrefix}${styleModifier} vector logo design of a ${symbolConcept} icon symbol ${colorInstruction}, with bold clean typography text "${cleanName}" below the icon, isolated on a pure solid white background, professional brand identity design, 8k ultra sharp, no photographs, no people, no faces, no human figures, no realistic imagery${colorNegative}, only flat graphic vector illustration`;
+    enhancedPrompt = `${colorPrefix}${styleModifier} of a ${symbolConcept} graphic symbol ${colorInstruction}, with bold clean typography text "${cleanName}" below the symbol, isolated on a pure solid white background, professional brand identity logo mark, 8k ultra sharp, no background graphics, no containers, no frames, no surrounding boxes, no circular medallions, no coin seals, no metal plates, no photographs, no people, no faces, no human figures, no realistic imagery${colorNegative}, flat isolated vector graphic illustration`;
     
-    console.log(`[FUTURA SERVER] DETERMINISTIC LOGO PROMPT: "${enhancedPrompt}"`);
+    console.log(`[FUTURA SERVER] UNIFIED ISOLATED LOGO PROMPT: "${enhancedPrompt}"`);
   } else {
     const { prefix, suffix } = getStyledPromptWrappers(generationType as any, activeStyleName, colors, brandName);
     enhancedPrompt = `${prefix} ${englishPrompt}. ${suffix}`;
