@@ -421,22 +421,24 @@ function removeAccents(str: string): string {
     console.log(`[FUTURA SERVER] EXTRACTED SYMBOL CONCEPT: "${symbolConcept}"`);
 
     // Build logo style modifier based on user's selected style
-    let styleModifier = "clean minimalist vector mark";
+    let styleModifier = "clean minimalist flat vector graphic icon";
     const normalizedStyle = (logoStyle || "").toLowerCase();
-    if (normalizedStyle.includes("3d") || normalizedStyle.includes("futurist") || normalizedStyle.includes("relieve")) {
-      styleModifier = "glossy 3D rendered graphic symbol";
+    const is3dStyle = normalizedStyle.includes("3d") || normalizedStyle.includes("futurist") || normalizedStyle.includes("relieve");
+
+    if (is3dStyle) {
+      styleModifier = "glossy 3D rendered graphic icon";
     } else if (normalizedStyle.includes("vintage") || normalizedStyle.includes("retro") || normalizedStyle.includes("industrial")) {
-      styleModifier = "vintage artisanal heraldic mark";
+      styleModifier = "vintage artisanal hand-drawn vector mark";
     } else if (normalizedStyle.includes("luxury") || normalizedStyle.includes("lujo") || normalizedStyle.includes("elegant") || normalizedStyle.includes("simétrico")) {
       styleModifier = "luxury premium elegant flat graphic icon";
     } else if (normalizedStyle.includes("minimalist") || normalizedStyle.includes("minimal")) {
       styleModifier = "ultra-minimalist clean geometric graphic mark";
     } else if (normalizedStyle.includes("hand") || normalizedStyle.includes("lettering") || normalizedStyle.includes("artisan") || normalizedStyle.includes("orgánico")) {
-      styleModifier = "organic botanical calligraphic mark";
+      styleModifier = "organic botanical vector mark";
     } else if (normalizedStyle.includes("mascot") || normalizedStyle.includes("mascota") || normalizedStyle.includes("esports")) {
       styleModifier = "illustrated mascot character icon";
     } else if (normalizedStyle.includes("emblem") || normalizedStyle.includes("badge") || normalizedStyle.includes("insignia") || normalizedStyle.includes("sello")) {
-      styleModifier = "symmetrical heraldic crest mark";
+      styleModifier = "clean geometric icon mark";
     } else if (normalizedStyle.includes("abstract") || normalizedStyle.includes("geometr")) {
       styleModifier = "abstract geometric graphic mark";
     } else if (normalizedStyle.includes("monogram") || normalizedStyle.includes("siglas") || normalizedStyle.includes("letter")) {
@@ -446,12 +448,13 @@ function removeAccents(str: string): string {
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // UNIFIED ISOLATED LOGO TEMPLATE — Applies strictly to ALL logo styles.
+    // UNIVERSAL ISOLATED LOGO TEMPLATE — Applies strictly to ALL logo styles.
     // Guarantees an isolated symbol on a solid white background with zero coins/medallions.
     // ═══════════════════════════════════════════════════════════════
-    enhancedPrompt = `A single flat ${styleModifier} of a ${symbolConcept} ${colorInstruction}, on a plain pure white background. ${colorPrefix}Bold clean typography text "${cleanName}" below the icon. Simple flat vector illustration, NOT a photograph, NOT a 3D render, NOT a coin, NOT a medallion, NOT a circular seal, NOT a metal plate, no ornate borders, no decorative frames, no background textures, no shadows behind the icon, no people, no faces${colorNegative}. 8k ultra sharp`;
+    const renderTypeRule = is3dStyle ? "Glossy 3D icon object" : "Simple flat vector illustration, NOT a photograph";
+    enhancedPrompt = `A single isolated ${styleModifier} of a ${symbolConcept} ${colorInstruction}, on a plain pure solid white background. ${colorPrefix}Bold clean typography text "${cleanName}" below the icon. ${renderTypeRule}, NOT a coin, NOT a medallion, NOT a circular seal, NOT a metal plate, no ornate borders, no decorative frames, no background textures, no background containers, no surrounding boxes, no shadows behind the icon, no people, no faces${colorNegative}. 8k ultra sharp`;
     
-    console.log(`[FUTURA SERVER] UNIFIED ISOLATED LOGO PROMPT: "${enhancedPrompt}"`);
+    console.log(`[FUTURA SERVER] UNIVERSAL ISOLATED LOGO PROMPT: "${enhancedPrompt}"`);
   } else {
     const { prefix, suffix } = getStyledPromptWrappers(generationType as any, activeStyleName, colors, brandName);
     enhancedPrompt = `${prefix} ${englishPrompt}. ${suffix}`;
