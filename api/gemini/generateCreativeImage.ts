@@ -367,32 +367,30 @@ function removeAccents(str: string): string {
     let colorNegative = "";
 
     if (colors && colors.length > 0) {
-      // Filter out pure black, pure white, or dark slate hexes for main icon coloring
-      const mainBrandColors = colors.filter(c => c.hex !== '#0F172A' && c.hex !== '#000000' && c.hex !== '#FFFFFF');
-      const activeColors = mainBrandColors.length > 0 ? mainBrandColors : colors;
+      // Process all selected colors (both preset and custom hex pickers)
+      const colorEntries = colors.map(c => {
+        const translatedName = hexToColorName(c.hex);
+        const rawName = (c.name || "").trim();
+        const finalName = (!rawName || rawName.toLowerCase().startsWith("color") || rawName.toLowerCase().startsWith("custom"))
+          ? translatedName
+          : `${rawName} (${translatedName})`;
+        return { name: finalName, hex: c.hex, translated: translatedName };
+      });
       
-      const colorNames = activeColors.map(c => {
-        const nameLower = (c.name || "").trim().toLowerCase();
-        if (!nameLower || nameLower.startsWith("color") || nameLower.startsWith("custom")) {
-          return hexToColorName(c.hex);
-        }
-        return c.name;
-      }).join(" and ");
-
-      const colorHexes = activeColors.map(c => c.hex).join(", ");
+      const colorNames = colorEntries.map(c => c.name).join(" and ");
+      const colorHexes = colorEntries.map(c => c.hex).join(", ");
       
       colorPrefix = `STRICT COLOR PALETTE: ${colorNames.toUpperCase()} (${colorHexes}). `;
       colorInstruction = `rendered strictly using ONLY ${colorNames} (${colorHexes}) colors`;
       
       // Check if user requested purple/magenta/pink
-      const hasPurple = activeColors.some(c => 
+      const hasPurple = colorEntries.some(c => 
+        c.translated.toLowerCase().includes("purple") || 
+        c.translated.toLowerCase().includes("magenta") || 
+        c.translated.toLowerCase().includes("pink") ||
         c.name.toLowerCase().includes("púrpura") || 
         c.name.toLowerCase().includes("purpura") || 
-        c.name.toLowerCase().includes("violeta") || 
-        c.name.toLowerCase().includes("magenta") ||
-        c.hex.toLowerCase().includes("a855f7") ||
-        c.hex.toLowerCase().includes("8b5cf6") ||
-        c.hex.toLowerCase().includes("ec4899")
+        c.name.toLowerCase().includes("violeta")
       );
 
       if (!hasPurple) {
