@@ -415,7 +415,7 @@ function removeAccents(str: string): string {
     }
     // Fallback if empty
     if (!symbolConcept || symbolConcept.length < 2) {
-      symbolConcept = "abstract geometric emblem";
+      symbolConcept = "abstract geometric shape";
     }
 
     console.log(`[FUTURA SERVER] EXTRACTED SYMBOL CONCEPT: "${symbolConcept}"`);
@@ -428,7 +428,7 @@ function removeAccents(str: string): string {
     } else if (normalizedStyle.includes("vintage") || normalizedStyle.includes("retro") || normalizedStyle.includes("industrial")) {
       styleModifier = "vintage artisanal heraldic mark";
     } else if (normalizedStyle.includes("luxury") || normalizedStyle.includes("lujo") || normalizedStyle.includes("elegant") || normalizedStyle.includes("simétrico")) {
-      styleModifier = "luxury gold-accented symmetrical graphic mark";
+      styleModifier = "luxury premium elegant flat graphic icon";
     } else if (normalizedStyle.includes("minimalist") || normalizedStyle.includes("minimal")) {
       styleModifier = "ultra-minimalist clean geometric graphic mark";
     } else if (normalizedStyle.includes("hand") || normalizedStyle.includes("lettering") || normalizedStyle.includes("artisan") || normalizedStyle.includes("orgánico")) {
@@ -449,7 +449,7 @@ function removeAccents(str: string): string {
     // UNIFIED ISOLATED LOGO TEMPLATE — Applies strictly to ALL logo styles.
     // Guarantees an isolated symbol on a solid white background with zero coins/medallions.
     // ═══════════════════════════════════════════════════════════════
-    enhancedPrompt = `${colorPrefix}${styleModifier} of a ${symbolConcept} graphic symbol ${colorInstruction}, with bold clean typography text "${cleanName}" below the symbol, isolated on a pure solid white background, professional brand identity logo mark, 8k ultra sharp, no background graphics, no containers, no frames, no surrounding boxes, no circular medallions, no coin seals, no metal plates, no photographs, no people, no faces, no human figures, no realistic imagery${colorNegative}, flat isolated vector graphic illustration`;
+    enhancedPrompt = `A single flat ${styleModifier} of a ${symbolConcept} ${colorInstruction}, on a plain pure white background. ${colorPrefix}Bold clean typography text "${cleanName}" below the icon. Simple flat vector illustration, NOT a photograph, NOT a 3D render, NOT a coin, NOT a medallion, NOT a circular seal, NOT a metal plate, no ornate borders, no decorative frames, no background textures, no shadows behind the icon, no people, no faces${colorNegative}. 8k ultra sharp`;
     
     console.log(`[FUTURA SERVER] UNIFIED ISOLATED LOGO PROMPT: "${enhancedPrompt}"`);
   } else {
